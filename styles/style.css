@@ -1,20 +1,24 @@
-/* Clean, minimal stylesheet for Portfolio */
 :root {
-    --bg: #0f1724;
+    --bg: #100f1b;
+    --header: #120f1f;
+    --header-2: #120f18;
+
     --card: #0b1220;
     --text: #e6eef8;
-    --muted: #9aa7b8;
+    --muted: #bab7dd;
     --accent: #4f8bf9;
-}
+    --accent-hover: #6b9fff;
 
-/* Section-level theming variables (shared defaults) */
-:root{
-    --section-bg: rgba(255,255,255,0.02);
-    --section-alt-bg: rgba(79,139,249,0.035);
-    --section-vertical-padding: 3rem; /* outer section vertical spacing (top/bottom) */
-    --section-container-vertical: 2.5rem; /* inner container vertical padding */
-    --section-container-horizontal: 1rem; /* inner container horizontal pad on small screens */
-    --section-radius: 0px; /* useful if you want rounded edges on section containers */
+    --section-bg: rgba(247, 229, 255, 0.02);
+    --section-alt-bg: rgba(187, 79, 249, 0.035);
+    --section-vertical-padding: 3rem;
+    /* outer section vertical spacing (top/bottom) */
+    --section-container-vertical: 2.5rem;
+    /* inner container vertical padding */
+    --section-container-horizontal: 1rem;
+    /* inner container horizontal pad on small screens */
+    --section-radius: 0px;
+    /* useful if you want rounded edges on section containers */
     /* typography */
     --font-sans: Inter, Roboto, Arial, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
     --font-mono: "Source Code Pro", SFMono-Regular, Menlo, Monaco, monospace;
@@ -30,12 +34,13 @@
     --container-padding-horizontal: 1rem;
 
     /* shadows */
-    --shadow-soft: 0 4px 18px rgba(2,6,23,0.35);
-    --shadow-strong: 0 8px 30px rgba(2,6,23,0.6);
+    --shadow-soft: 0 4px 18px rgba(2, 6, 23, 0.35);
+    --shadow-strong: 0 8px 30px rgba(2, 6, 23, 0.6);
 }
 
 * {
-    box-sizing: border-box
+    box-sizing: border-box;
+    transition: ease-in-out 0.1s;
 }
 
 html,
@@ -54,7 +59,7 @@ body {
 }
 
 .site-header {
-    background: linear-gradient(90deg, #071027 0%, #0b1630 100%);
+    background: linear-gradient(90deg, var(--header) 0%, var(--header-2) 50%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.03)
 }
 
@@ -62,7 +67,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem
+    padding: 1rem;
+    max-width: 90%;
 }
 
 .brand {
@@ -75,7 +81,7 @@ body {
 .main-nav a {
     color: var(--muted);
     text-decoration: none;
-    margin-left: 1rem;
+    margin-left: 3rem;
     font-weight: 500
 }
 
@@ -94,6 +100,7 @@ body {
 
 .hero h1 {
     margin: 0 0 .5rem;
+    padding: 2rem 0;
     font-size: clamp(1.6rem, 3vw, 2.4rem)
 }
 
@@ -119,14 +126,6 @@ body {
     justify-content: center;
 }
 
-@media (max-width:980px) {
-    .hero-card {
-        width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-        border-radius: 12px;
-    }
-}
 
 .hero-bg {
     position: absolute;
@@ -151,7 +150,6 @@ body {
     max-width: 70ch;
 }
 
-/* keep old profile-image if present elsewhere */
 .profile-image {
     max-width: 100%;
     height: auto;
@@ -163,23 +161,31 @@ section {
     border-top: 1px solid rgba(255, 255, 255, 0.02)
 }
 
-.section, .section-bg { width:100%; }
+.section,
+.section-bg {
+    width: 100%;
+}
 
 .section {
-        background: var(--section-bg, rgba(255,255,255,0.02));
+    background: var(--section-bg, rgba(255, 255, 255, 0.02));
 }
+
 .section.section-alt,
 .section-alt {
-        background: var(--section-alt-bg, rgba(79,139,249,0.035));
+    background: var(--section-alt-bg, rgba(79, 139, 249, 0.035));
 }
 
-@media (max-width:980px){
-    .section .container{ padding-left:1rem;padding-right:1rem }
+
+h2 {
+    color: var(--text);
+    margin: 0 0 0.5rem
 }
 
-/* typography: headings and body text */
-h2 { color: var(--text); margin: 0 0 0.5rem }
-p, .lead { color: var(--muted); line-height: 1.6 }
+p,
+.lead {
+    color: var(--muted);
+    line-height: 1.6
+}
 
 .links-grid {
     display: grid;
@@ -189,13 +195,59 @@ p, .lead { color: var(--muted); line-height: 1.6 }
 }
 
 .links-grid a {
-    display: inline-block;
+    display: inline-flex;
     padding: 1rem;
     background: rgba(255, 255, 255, 0.02);
     border-radius: var(--radius-small);
     text-align: center;
     color: var(--text);
     text-decoration: none
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem 1rem;
+    border-radius: var(--radius-small);
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    text-decoration: none;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.02)
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem
+}
+
+.btn-icon .icon {
+    width: 40px;
+    height: 40px;
+    display: block;
+    object-fit: contain;
+    filter: grayscale(100%) brightness(1.1);
+}
+
+.btn-icon:hover .icon {
+    filter: none
 }
 
 .links-grid a:hover {
@@ -211,11 +263,18 @@ p, .lead { color: var(--muted); line-height: 1.6 }
     text-align: center
 }
 
-@media (min-width:880px) {
+@media (min-width:1350px) {
+
+    .hero-card {
+        width: 140%;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 12px;
+
+    }
+
     .hero {
-        text-align: left;
         gap: 2rem;
-        padding: 2rem 0;
     }
 
     .hero h1 {
@@ -224,10 +283,5 @@ p, .lead { color: var(--muted); line-height: 1.6 }
 
     .lead {
         margin-top: 0;
-    }
-
-
-    .hero-card {
-        min-height: 50vh;
     }
 }
