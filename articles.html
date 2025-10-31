@@ -1,0 +1,126 @@
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Articles — Jack Tollenaar</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .articles-hero {
+            background: var(--bg);
+            /* no background image or overlay */
+            padding: 4rem 0 2rem;
+            width: 100%;
+            max-width: 100% !important;
+        }
+
+        .articles-hero .container h1 {
+            margin: 0;
+            font-size: 2.25rem;
+            line-height: 1.1;
+        }
+
+        /* Horizontal card layout */
+        .cards {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
+
+        .card {
+            flex: 0 1 320px;
+            /* prefer 320px, allow wrapping */
+            box-shadow: var(--shadow, 0 6px 18px rgba(10, 10, 10, 0.08));
+            border-radius: 10px;
+            overflow: hidden;
+
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+
+        }
+
+        .card a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            height: 100%;
+        }
+
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card h3 {
+            margin: 0.75rem 1rem 0 1rem;
+        }
+
+        .card .muted {
+            margin: 0.25rem 1rem 1rem 1rem;
+            color: #dbc8e0;
+        }
+
+        @media (max-width: 520px) {
+            .articles-hero .container h1 {
+                font-size: 1.6rem;
+            }
+
+            .card {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<header class="site-header">
+    <div class="container">
+        <a class="brand" href="/index.html">Jack Tollenaar</a>
+        <nav class="main-nav">
+            <a href="/index.html">Home</a>
+            <a href="/projects.html">Projects</a>
+            <a href="/contact.html">Contact</a>
+        </nav>
+    </div>
+</header>
+    <body>
+        <main>
+            <section class="hero container articles-hero">
+                <div class="container">
+                    <h1>Articles</h1>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <div class="cards">
+                        <article class="card">
+                            <a href="basic-filtering-for-denoising-in-raytracers.html">
+                                <img src="https://lh3.googleusercontent.com/sitesv/AAzXCkfdxos0kXq4E7-rPBTwOGw7g2Z_WKj9vdl94KunESavJ6RESe8lwukTpT-anFjNJj80tuwGGLBff0ivHyom8oGTudvukL013_vaK_J_DH7II_y4j8oL-AVl0OdiNeUrZJyDtq15Zz5djHAIWBH0aaoeOWRmih7NWeA9M_IB2BsI9neeIV3EUzrNDufvE0vJkpspyk7y7BZMm4LwjWpTUitDZdAkPTR0EpgJ1Vo=w1280"
+                                    alt="Basic Denoising">
+                                <h3>Basic Denoising</h3>
+                                <p class="muted">Weighted gaussian blurs as denoising for raytracers.</p>
+                            </a>
+                        </article>
+
+                        <article class="card">
+                            <a href="mesh-seam-smoothing-blending.html">
+                                <img src="https://lh3.googleusercontent.com/sitesv/AAzXCkcfHpMUpG3sUojXmfn7XKv4fVy5frzf-jtT-7yN14CBPmT5YSQXvD8jQXXyWp8SKDONu4rIPibDzW569BKvcgis5oW646JKLmonUAxvhbd-s-uO3_I2CwqRE5OhMTpiD0tkEOraEVHrNsIKKFARSf1CkiuerpAhE35Y9EGWNXpBl0hCWbvgqHHuWl0fAdX6M56b0aWf6e7u97xXKrhF7OzsNcx6A9osH2WGX_A=w1280"
+                                    alt="Mesh seam blending">
+                                <h3>Mesh seam blending</h3>
+                                <p class="muted">Smooth transitioning of mesh seam as a post process.</p>
+                            </a>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section section-alt">
+                <div class="container">
+                    <h2>Contact</h2>
+                    <p>If you want more info you can contact me at <a
+                            href="mailto:Jack.Tollenaar@protonmail.com">Jack.Tollenaar@protonmail.com</a>.</p>
+                </div>
+            </section>
+        </main>

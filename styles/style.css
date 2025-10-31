@@ -1,17 +1,18 @@
 :root {
-    --bg: #100f1b;
+    --bg: #10101b;
     --header: #120f1f;
     --header-2: #120f18;
 
     --card: #0b1220;
+    --card-bg: rgba(55, 48, 88, 0.137);
     --text: #e6eef8;
     --muted: #bab7dd;
     --accent: #4f8bf9;
     --accent-hover: #6b9fff;
 
-    --section-bg: rgba(247, 229, 255, 0.02);
-    --section-alt-bg: rgba(187, 79, 249, 0.035);
-    --section-vertical-padding: 3rem;
+    --section-bg: rgba(242, 229, 255, 0.02);
+    --section-alt-bg: rgba(189, 149, 221, 0.03);
+    --section-vertical-padding: 1rem;
     /* outer section vertical spacing (top/bottom) */
     --section-container-vertical: 2.5rem;
     /* inner container vertical padding */
@@ -33,9 +34,10 @@
     --container-padding-vertical: 0rem;
     --container-padding-horizontal: 1rem;
 
+
     /* shadows */
-    --shadow-soft: 0 4px 18px rgba(2, 6, 23, 0.35);
-    --shadow-strong: 0 8px 30px rgba(2, 6, 23, 0.6);
+    --shadow-soft: 0 4px 18px rgba(2, 6, 23, 0.164);
+    --shadow-strong: 0 8px 30px rgba(2, 6, 23, 0.349);
 }
 
 * {
@@ -60,7 +62,15 @@ body {
 
 .site-header {
     background: linear-gradient(90deg, var(--header) 0%, var(--header-2) 50%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03)
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    /* make header lock to the top of the viewport when scrolling */
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    /* subtle elevation when overlapping content */
+    backdrop-filter: blur(4px);
+    transition: box-shadow 180ms ease, background-color 180ms ease;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 
 .site-header .container {
@@ -147,7 +157,8 @@ body {
     /* semi-opaque background behind text */
     border-radius: var(--radius-medium);
     margin: 2rem auto;
-    max-width: 70ch;
+    min-width: 80ch;
+    max-width: 80ch;
 }
 
 .profile-image {
