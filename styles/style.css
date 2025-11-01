@@ -296,3 +296,28 @@ p,
         margin-top: 0;
     }
 }
+
+/* Prevent hero-card from creating horizontal scroll on small screens */
+@media (max-width: 1180px) {
+    .hero-card {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: var(--radius-medium);
+        min-height: 40vh; /* reduce vertical footprint on small screens */
+        box-shadow: var(--shadow-soft);
+    }
+
+    /* ensure hero content fits inside the card without forcing width */
+    .hero-content {
+        min-width: auto;
+        max-width: 100%;
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    /* make hero background image scale within the container */
+    .hero-bg {
+        transform: none;
+    }
+}

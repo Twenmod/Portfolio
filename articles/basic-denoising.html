@@ -1,0 +1,319 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Weighted Gaussian blurring for denoising — Jack Tollenaar</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+        /* Page-scoped styles: plain hero and article layout */
+        .articles-hero {
+            background: none;
+            padding: 3.5rem 0 1rem;
+            width: 100%;
+            max-width: 100% !important;
+        }
+
+        .articles-hero .container h1 {
+            margin: 0;
+            font-size: 2rem;
+            line-height: 1.15;
+        }
+
+        .article-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow, 0 10px 30px rgba(10, 10, 10, .08));
+            margin: 1rem 0;
+            display: block
+        }
+
+        /* Highlight for manually marked changed lines inside code blocks */
+        .article-content pre.code .changed-line {
+            background: rgba(185, 91, 170, 0.22);
+            border-radius: 1px;
+        }
+
+        pre.code {
+            background: rgba(0, 0, 0, 0.06);
+            padding: 1rem;
+            overflow: auto;
+            border-radius: 6px;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        @media (max-width: 700px) {
+            .articles-hero .container h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    <!-- Highlight.js for client-side syntax highlighting of code blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // Marker-based auto-highlights (new behavior: only <changed> markers)
+        // Flow:
+        // 1) Detect lines that contain the literal `<changed>` marker in the code block textContent.
+        // 2) Remove the marker from the textContent (so it won't appear), run highlight.js on the cleaned text.
+        // 3) After highlighting, wrap the previously-marked lines with .changed-line. No placeholder is used.
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.hljs) return;
+
+            const markerFinder = /<changed>/i;    // detect marker in textContent
+            const markerFinderG = /<changed>/gi; // global replacer
+
+            document.querySelectorAll('pre.code code').forEach(codeEl => {
+                const original = codeEl.textContent || '';
+                const textLines = original.split('\n');
+                // Which lines contained the marker?
+                const toHighlight = textLines.map(l => markerFinder.test(l));
+
+                // Remove markers from the raw text so highlight.js sees clean code
+                const tokenized = original.replace(markerFinderG, '');
+                codeEl.textContent = tokenized;
+
+                // Highlight this element only
+                try { hljs.highlightElement(codeEl); } catch (e) { /* ignore highlight errors */ }
+
+                // Reconstruct per-line HTML and wrap lines that were marked
+                const renderedLines = (codeEl.innerHTML || '').split('\n');
+
+                for (let i = 0; i < renderedLines.length; i++) {
+                    if (toHighlight[i]) {
+                        // defensively remove any visible escaped marker text
+                        renderedLines[i] = renderedLines[i].replace(/&lt;changed&gt;/gi, '');
+                        // remove any actual <changed> tags if present
+                        renderedLines[i] = renderedLines[i].replace(/<\/?changed[^>]*>/gi, '');
+                        renderedLines[i] = '<span class="changed-line">' + renderedLines[i] + '</span>';
+                    }
+                }
+
+                codeEl.innerHTML = renderedLines.join('\n');
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container articles-hero">
+            <div class="container">
+                <h1>Weighted Gaussian blurring for denoising</h1>
+                <p class="muted">Simple denoising for real time raytracers (or any noisy application) using weighted
+                    Gaussian blurring</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container article-content">
+                <!-- Lead image from original article -->
+                <img src="https://lh3.googleusercontent.com/sitesv/AAzXCkeqyXOuXrUcz9nu27U2v-gnQHQziaYmyfVKV3BH6zonb9c_1ldTimTeOEjbHSqRmSPPw3RsyF3F6wqOGC6Bh4mM-TPgXfmJE1Lh58_oFNaDDlX2oEcYtupovXIiOZduZKWdanO56iyHbLRAtXzQlzsPFJJ7lKv1mP-uSlFZdolAIXyAu2DpPAVsng7vFEOiuHzjPUQ3H9rGm--xsEthTTR1ke9vs-29qm6wqPY=w1280"
+                    alt="Denoising example">
+
+                <h2 id="idea">Idea</h2>
+                <p>Real time Path/Raytracers give very noisy images which do not look nice.
+                    While there are currently significantly better techniques using for example machine learning, I will
+                    be discussing a much simpler way of denoising using a weighted gaussian blur.</p>
+
+                <h3>Basic blurring</h3>
+                <p>This technique relies on selectively blurring the noisy data, so let's start of with just blurring
+                    the whole screen.</p>
+                <p>For this example I will be using a 2 pass Gaussian blur where we first blur all the pixels
+                    horizontally and then vertically, for our case this is beneficial since later it will be harder to
+                    weight it correctly if we use a square kernel</p>
+                <p>For the first step we will loop over all the pixels in the image and average them with their
+                    horizontal neighbors.
+                    In this average we use a Gaussian distribution which creates a nicer blur than directly taking the
+                    average
+                </p>
+                <p>This weight follows the standard Gaussian distribution which is calculated as</p>
+                <img src="../media/images/articles/denoising/gaussian.png" alt="Gaussian formula">
+
+                <p>where x is the distance of the pixel and σ is the standard deviation which controls the spread of the
+                    blur</p>
+                <p>This is a pretty lengthy formula with a square root and exponentials so it is better to precalculate
+                    this and put it in a array
+                </p>
+
+                <p>While I dont recommend calculating this at runtime an implementation of this formula in code would
+                    look something like this.</p>
+
+                <pre class="code"><code class="language-cpp">const float PI = 3.14159265;
+const float sigma = 1.0; // This controls the spread of the Gaussian
+
+const float weights[33];
+
+for (int i = 0; i &lt; 33; i++) { // In this case i is the distance used in the formula
+    // We can also write this as 1.0 / (sqrt(2.0*PI*sigma*sigma)) which is identical but slower to calculate
+    float coeff = 1.0 / (sqrt(2.0 * PI) * sigma);
+    float exponent = -(i * i) / (2.0 * sigma * sigma);
+    weights[i] = coeff * exp(exponent); // exp(x) does e^x
+}
+</code></pre>
+                <p>Now lets look at the code that would implement the actual blurring, I will be using a GLSL shader but
+                    you can use anything you like.</p>
+                <p>First we start of by blurring into one direction from the center of every pixel</p>
+                <pre class="code"><code class="language-cpp">const float weights[33] = float[]( 
+
+ 0.0702, 0.0699, 0.0691, 0.0676, 0.0657, 0.0633, 0.0605, 0.0573, 
+
+ 0.0539, 0.0502, 0.0464, 0.0426, 0.0387, 0.0349, 0.0312, 0.0277, 
+
+ 0.0244, 0.0213, 0.0184, 0.0158, 0.0134, 0.0113, 0.0095, 0.0079, 
+
+ 0.0065, 0.0053, 0.0043, 0.0035, 0.0028, 0.0022, 0.0017, 0.0013, 0.0010
+
+  );
+
+vec2 offset = 1.0 / vec2(resolutionX,resolutionY); // step in uv for moving 1 pixel
+
+const int size = 32; // size of blur this should be weights size -1 (for the center pixel)
+
+
+
+vec2 direction = vec2(1,0); // currently just horizontal
+
+vec4 centerColor = texture(c, uv);
+
+float totalWeight = 0.0;
+
+vec3 totalColor = vec3(0.0);
+
+//Loop over all the pixels in the +x direction
+
+for(int i = 0; i <= size; i++) {
+
+    float weight = weights[i]; // Get our current weight
+
+    vec2 neigborUV = uv + direction*i*offset; // Get the uv coords
+
+    if (uv.x > 1.0 || uv.x < 0.0 || uv.y > 1.0 || uv.y < 0.0) break; // Dont sample outside of screen
+
+    totalColor += texture(c,neigborUV).xyz * weight; // Add neigbor color to total
+
+    totalWeight += weight; // Add weight to total
+
+}
+
+color = totalColor / totalWeight; // calculate average by dividing by the total weight used
+</code></pre>
+                <p>This gets us a blurred image in one direction, then to get a full horizontal blur, we can just repeat
+                    the for loop in the negative direction</p>
+                <p>by replacing direction with the negative of direction</p>
+                <pre
+                    class="code"><code class="language-cpp">vec2 neigborUV = uv + -direction*i*offset; // Get the uv coords (negative)</code></pre>
+                <p>If you did it correctly you should get something like this:</p>
+                <img src="../media/images/articles/denoising/beforeBlur.png" alt="Before">
+                <p><b>⬆ Input | Output ⬇ </b></p>
+                <img src="../media/images/articles/denoising/afterBlur.png" alt="After">
+                <p>To get the full blur you have to run the filter over the image twice switching the direction from
+                    horizontal to vertical</p>
+                <p>so:</p>
+                <pre
+                    class="code"><code class="language-cpp">vec2 direction = vec2(1,0); // currently just horizontal</code></pre>
+                <p>Would become</p>
+                <pre class="code"><code class="language-cpp">vec2 direction;
+
+if(horizontal == true) direction = vec2(1,0); // in the second pass we set horizontal to false
+
+else direction = vec2(0,1);</code></pre>
+                <p>You cant just add 4 for loops to the first pass since it wouldn't have the correct data to blur the
+                    image correctly.</p>
+                <p>So you need to draw this first horizontal blur to a texture and then blur it again, but vertically.
+                </p>
+                <p>This gives us the full blur:</p>
+                <img src="../media/images/articles/denoising/fullblur.png" alt="Blurred">
+                <h2 id="weighing">Weighing</h2>
+                <p>While simply blurring gets rid of any noise that would be there it also gets rid of any coherent
+                    scene.
+                </p>
+                <p>To get around this we need to weight our blur by more information.
+                    The best candidate for this is information from the G-buffer (geometry buffer).
+                    This includes scene normals, world positions and depth.<br>
+                    I will only be using the normals for this example but you will get better results by using a mixture
+                    of them and tweaking their influence until it looks good.</p>
+                <img src="../media/images/articles/denoising/gbuffer.png" alt="Normals">
+                <p>As you can see big changes in normals give a good estimate of all the edges in our scene which we do
+                    not want to blur.
+                    <br>So we will add a parameter to our function that weighs our blur by the change in normals:
+                </p>
+                <pre class="code"><code class="language-cpp">const float edgeFallSpeed = 6.0; &lt;changed&gt;
+vec4 centerColor = texture(c, uv);
+float totalWeight = 0.0;
+vec3 totalColor = vec3(0.0);
+float edgeWeight = 1.0;  &lt;changed&gt;
+vec3 lastNormal; &lt;changed&gt;
+
+//Loop over all the pixels in the positive direction
+for(int i = 0; i <= size; i++) {
+    
+    float weight = weights[i]; // Get our current weight
+    vec2 neigborUV = uv + direction*i*offset; // Get the uv coords
+    if (uv.x > 1.0 || uv.x < 0.0 || uv.y > 1.0 || uv.y < 0.0) break; // Dont sample outside of screen
+    vec3 normal = texture(N, neighbourUV).xyz; // Get the current normal &lt;changed&gt;
+    if (i != 0) {// at the center we have nothing to compare too so skip it &lt;changed&gt;
+        float diff = 1.0-dot(lastNormal, normal);  // Get the difference with the normal of the last pixel &lt;changed&gt;
+        edgeWeight -= diff * edgeFallSpeed; &lt;changed&gt;
+        if (edgeWeight < 0.0) break; // stop sampling if we dont contribute anymore &lt;changed&gt;
+        weight *= edgeWeight; &lt;changed&gt;
+    } &lt;changed&gt;
+    lastNormal = normal;
+    totalColor += texture(c,neigborUV).xyz * weight; // Add neigbor color to total
+    totalWeight += weight; 
+}
+
+color = totalColor / totalWeight;</code></pre>
+<p>You can see here why we split the blurring into each direction separately, so that we can stop the blur separately in each direction.</p>
+<p>This will make our blur stop at hard edges and blur less at steep changes which will make edges visible again.</p>
+                <img src="../media/images/articles/denoising/edges.png" alt="Blur with clear edges">
+<p>Like mentioned before, you can improve this by adding more data for weighing, like the difference in depth or world position of a pixel</p>
+<p>When applied to a noisy image it dramatically reduces noise</p>
+                <img src="../media/images/articles/denoising/light data.png" alt="Noisy image denoised">
+<h2 id="data">Choosing the right data</h2>
+<p>As keen eyed people might have noticed is that while this technique removes noise it also removes any details like textures.
+<br>There are some ways to get around that.</p>
+<p>One good solution is to weight the blurring by the difference in color, in my case the noise is mainly on the lighting causing the pixels to become brighter or darker. This means that the color changes a lot, but the hue of the color doesn't. We can check the difference in hue either by calculating the actual hue or as a simpler approach threat the color as a direction and check for the change in direction.</p>
+<p>We can do this using the dot product</p>
+<pre class="code"><code class="language-cpp">float colorDiff;
+// Cant check black pixels so assume they are the same color
+if(length(lastColor) < 0.001 || length(color) < 0.001) colorDiff = 0.0;
+else 
+{
+    colorDiff = 1.0-abs(dot(normalize(lastColor),normalize(color)));  // Get the difference in color (hue)
+}</code></pre>
+                <img src="../media/images/articles/denoising/colorpreserve.png" alt="Colors slightly preserved">
+<p>A better solution is to not blur your detailed textures at all.
+In most cases not all your data is noisy, in my case only the lighting data is noisy while the colors/textures of the frame aren't.</p>
+<p>Because of this if you split your noisy data from your unnoisy data you can denoise only the noisy data and recombine it with the rest of the data to get a better final image</p>
+                <img src="../media/images/articles/denoising/final.png" alt="Final denoising">
+
+                <section class="section-alt">
+                    <h3>Related</h3>
+                    <p><a href="/articles.html">Back to Articles</a></p>
+                </section>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>
