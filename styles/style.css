@@ -54,6 +54,9 @@ body {
     color: var(--text)
 }
 
+/* keep content below the fixed header */
+main { padding-top: var(--header-height, 64px); }
+
 .container {
     max-width: var(--container-max-width);
     margin: 0 auto;
@@ -63,14 +66,17 @@ body {
 .site-header {
     background: linear-gradient(90deg, var(--header) 0%, var(--header-2) 50%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    /* make header lock to the top of the viewport when scrolling */
-    position: sticky;
+    /* make header fixed so it stays visible while scrolling */
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height, 64px);
     z-index: 9999;
     /* subtle elevation when overlapping content */
     backdrop-filter: blur(4px);
     transition: box-shadow 180ms ease, background-color 180ms ease;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
 .site-header .container {
@@ -304,7 +310,8 @@ p,
         margin-left: 0 !important;
         margin-right: 0 !important;
         border-radius: var(--radius-medium);
-        min-height: 40vh; /* reduce vertical footprint on small screens */
+        min-height: 40vh;
+        /* reduce vertical footprint on small screens */
         box-shadow: var(--shadow-soft);
     }
 
@@ -321,3 +328,34 @@ p,
         transform: none;
     }
 }
+
+
+pre.code {
+    background: rgba(0, 0, 0, 0.06);
+    overflow: auto;
+    border-radius: 6px;
+      font-weight: 400;
+    font-family: 'Source Code Pro', monospace;
+}
+
+code {
+    background: #20122ebe !important;
+    color: white !important;
+}
+
+.hljs-keyword,
+.hljs-type {
+  color: #1b58d1 !important;         
+  font-weight: 600;
+}
+
+.hljs-built_in { color: #1b58d1 !important; }
+
+.hljs-number { color: #eeffe6 !important; }
+.hljs-string { color: #9be7a1; }
+.hljs-comment { color: #6a9955 !important; font-style: italic; }
+
+        .article-content pre.code .changed-line {
+            background: rgba(158, 91, 185, 0.11);
+            border-radius: 1px;
+        }
