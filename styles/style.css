@@ -111,7 +111,7 @@ main { padding-top: var(--header-height, 64px); }
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 5rem 1rem;
+    padding: 3rem 0rem;
 }
 
 .hero h1 {
@@ -174,7 +174,7 @@ main { padding-top: var(--header-height, 64px); }
 }
 
 section {
-    padding: 3rem 0;
+    padding: 2rem 0;
     border-top: 1px solid rgba(255, 255, 255, 0.02)
 }
 
