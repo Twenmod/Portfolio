@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mesh seam smoothing &amp; blending — Jack Tollenaar</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+        /* Page-scoped styles similar to other articles */
+        .articles-hero {
+            background: none;
+            padding: 3.5rem 0 1rem;
+            width: 100%;
+            max-width: 100% !important;
+        }
+
+        .articles-hero .container h1 {
+            margin: 0;
+            font-size: 2rem;
+            line-height: 1.15;
+        }
+
+        .article-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow, 0 10px 30px rgba(10, 10, 10, .08));
+            margin: 1rem 0;
+            display: block;
+        }
+
+            /* Ensure lists inside article-content match paragraph color and spacing */
+            .article-content ul,
+            .article-content li {
+                color: var(--muted);
+            }
+
+            .article-content ul {
+                margin-left: 1.25rem;
+                line-height: 1.6;
+            }
+
+        @media (max-width:700px) {
+            .articles-hero .container h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+    <!-- Highlight.js for client-side syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/glsl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/hlsl.min.js"></script>
+    <script>
+        // Marker-based cleaned highlighting (matches basic-denoising behaviour)
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.hljs) return;
+
+            const markerFinder = /<changed>/i;    // detect marker in textContent
+            const markerFinderG = /<changed>/gi; // global replacer
+
+            document.querySelectorAll('pre.code code').forEach(codeEl => {
+                const original = codeEl.textContent || '';
+                const textLines = original.split('\n');
+                // Which lines contained the marker?
+                const toHighlight = textLines.map(l => markerFinder.test(l));
+
+                // Remove markers from the raw text so highlight.js sees clean code
+                const tokenized = original.replace(markerFinderG, '');
+                codeEl.textContent = tokenized;
+
+                // Highlight this element only
+                try { hljs.highlightElement(codeEl); } catch (e) { /* ignore highlight errors */ }
+
+                // Reconstruct per-line HTML and wrap lines that were marked
+                const renderedLines = (codeEl.innerHTML || '').split('\n');
+
+                for (let i = 0; i < renderedLines.length; i++) {
+                    if (toHighlight[i]) {
+                        // defensively remove any visible escaped marker text
+                        renderedLines[i] = renderedLines[i].replace(/&lt;changed&gt;/gi, '');
+                        // remove any actual <changed> tags if present
+                        renderedLines[i] = renderedLines[i].replace(/<\/?changed[^>]*>/gi, '');
+                        renderedLines[i] = '<span class="changed-line">' + renderedLines[i] + '</span>';
+                    }
+                }
+
+                codeEl.innerHTML = renderedLines.join('\n');
+                codeEl.innerHTML = codeEl.innerHTML.replace(/\b(float3|float4|half4|float2|float|unity_ObjectToWorld|frag|Hash)\b/g, '<span class="hljs-type">$1</span>');
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="hero container articles-hero">
+            <div class="container">
+                <h1>Mesh seam smoothing&blending</h1>
+                <p class="muted">Smoothing of mesh seams as a post process</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container article-content">
+                <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
+                <h2 id="idea">Idea</h2>
+                <p>When putting meshes/objects together in games the seam between them can look very jarring.
+                    This is especially the case with objects used for terrain.
+                    By merging and blending edges together seams look way smoother and more realistic.</p>
+                <img src="../media/images/articles/blending/idea.gif" alt="Preview">
+                <p>But how do we blend objects together in a game engine?
+                    First lets think about how you would create a transition in 2d.
+                    <br>To create a transition in 2d you would overlap the 2 images and then smoothly blend the edge so
+                    it transitions in between the 2 images
+                </p>
+                <img src="../media/images/articles/blending/exampleblend.gif" alt="Preview">
+                <p>In 3d this creates a problem though since we cannot overlap our pixels like that without very complex
+                    rendering of our scene.
+                    <br>
+                    To solve this problem we mirror both sides of the image across and then blend, That way we do have
+                    color on the other side of the seam.
+                </p>
+                <img src="../media/images/articles/blending/examplemirror.gif" alt="Preview">
+                <h2 id="detection">Seam detection</h2>
+                <p>This technique relies on knowing where the seams between meshes are, so we need a system to be able
+                    to detect this. <br>
+                    We could rely on g-buffer info such as checking if the normals of the surface changes but that would
+                    also smooth intended seams on meshes themselves.
+                    The technique I used is generating a ID for every object, there are a lot of ways to do this since i
+                    am implementing this in Unity the simplest way is adding a render pass.
+                </p>
+                <p>
+                    For this pass I set every objects shader to a shader that hashes its position into the color as an
+                    id then draw that pass to a render texture
+                </p>
+                <pre class="code"><code class="language-glsl">// ObjectIDShader
+// HLSL:
+
+float Hash(float3 p)
+{
+    p = frac(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+half4 frag(Varyings input) : SV_Target
+{
+    float3 normal = normalize(input.normalWS);
+    float3 objectPosition = unity_ObjectToWorld._m03_m13_m23;
+    float hashValue = Hash(objectPosition);
+    return half4(hashValue, 0, 0, 1);
+}</code></pre>
+                <p>If you draw this to a screen This should get you something like this:</p>
+                <img src="../media/images/articles/blending/objectid.png" alt="Preview">
+                <p>Now that we have a id per object detecting seams is pretty straight forward.
+                    In a post process shader we run a kernel that detects if the id changes
+                </p>
+                <pre class="code"><code class="language-glsl">// SeamDetectionPostProcess
+// HLSL:
+
+int _KernelSize;
+float _KernelRadius;
+half4 Frag(Varyings input) : SV_Target
+{	
+    float2 UV = float2(input.uv.x, 1-input.uv.y); // In my case i had to flip the uv
+
+    // Depth and color of the current pixel
+    float4 sceneColor = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UV);
+    float sceneDepth = Linear01Depth(SAMPLE_TEXTURE2D(_ObjectDepthTexture, sampler_ObjectDepthTexture, UV), _ZBufferParams);
+    
+    // The ID we set in the first pass
+    float4 objectIDColor = SAMPLE_TEXTURE2D(_ObjectIDTexture, sampler_ObjectIDTexture, UV);
+    float4 color = sceneColor;
+
+    //Kernel, loop over all the pixels in a radius
+    for(int x = -_KernelSize; x <= _KernelSize; x++) {
+        for(int y = -_KernelSize; y <= _KernelSize; y++) {
+            // Divide by scenedepth to keep sample size consistent over distance
+            float2 offset = float2(x,y)*_KernelRadius/sceneDepth/_KernelSize;
+            float2 SampleUV = UV + offset; // UV location of the pixel being tested
+
+            // Test the id of the offset pixel against the middle pixel
+            float4 id = SAMPLE_TEXTURE2D(_ObjectIDTexture, sampler_ObjectIDTexture, SampleUV);
+
+            if (id.x != objectIDColor.x) {
+                color = float4(1,0,0,1); // Set the color to red if there is a seam
+            }
+        }
+    }
+    return color;
+}</code></pre>
+                <p>With this you should basically have a outline shader:</p>
+                <img src="../media/images/articles/blending/outline.png" alt="Preview">
+                <h2 id="Blending">Blending</h2>
+                <p>
+                    Now comes the actual blending,<br>
+                    To be able to smoothly blend the materials we would need some overlapping texture data which you
+                    dont really have access to in a post process. To work around this we mirror whats on the other side
+                    of the seam.
+                </p>
+                <p>For this we use our kernel shader, We find the point of symmetry and mirror the pixels across.
+                    To find this point we have to find the closest distance at which the object id changes
+                </p>
+                <pre class="code"><code class="language-glsl">// SeamMirrorPostProcess
+// HLSL:
+
+int _KernelSize; 
+
+float _KernelRadius;
+
+half4 Frag(Varyings input) : SV_Target
+{	
+    float2 UV = float2(input.uv.x, 1-input.uv.y); // In my case i had to flip the uv
+
+    // Depth and color of the current pixel
+    float4 sceneColor = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UV);
+    float sceneDepth = Linear01Depth(SAMPLE_TEXTURE2D(_ObjectDepthTexture, sampler_ObjectDepthTexture, UV), _ZBufferParams);
+    // The ID we set in the first pass
+    float4 objectIDColor = SAMPLE_TEXTURE2D(_ObjectIDTexture, sampler_ObjectIDTexture, UV);
+
+    float2 seamLocation = float2(0,0); // Default to current pixel if we don't find seam &lt;changed&gt;
+    float minimumDistance = 9999999; &lt;changed&gt;
+
+    // Kernel, loop over all the pixels in a radius
+    for(int x = -_KernelSize; x <= _KernelSize; x++) {
+        for(int y = -_KernelSize; y <= _KernelSize; y++) {
+            // Divide by scenedepth to keep sample size consistent over distance
+            float2 offset = float2(x,y)*_KernelRadius/sceneDepth/_KernelSize;
+            float2 SampleUV = UV + offset; // UV location of the pixel being tested
+
+            // Test the id of the offset pixel against the middle pixel
+            float4 id = SAMPLE_TEXTURE2D(_ObjectIDTexture, sampler_ObjectIDTexture, SampleUV);
+            if (id.x != objectIDColor.x) 
+            {
+                float squareDistance = dot(offset,offset); // Same as x*x+y*y &lt;changed&gt;
+                if (squareDistance < minimumDistance)  &lt;changed&gt;
+                { &lt;changed&gt;
+                    minimumDistance = squareDistance; // Found new closest seam &lt;changed&gt;
+                    seamLocation = offset; &lt;changed&gt;
+                } &lt;changed&gt;
+            }
+        }
+    }
+    // Mirror the pixel on the other side of the seam
+    float4 otherColor = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UV + seamLocation * 2); &lt;changed&gt;
+    return otherColor; &lt;changed&gt;
+}
+</code></pre>
+                <p>This should produce a trippy effect wherein both sides of the seam are mirrored,
+                    I split the image with and without the effect for clarity</p>
+                <img src="../media/images/articles/blending/mirror.png" alt="Preview">
+                <p>If instead of directly mirroring we lerp the colors based on distance from the seam it becomes a nice
+                    transition,<br>
+                    Since we mirror on both sides of the seam we should also adjust the lerp so that the mix is 50% at
+                    the seam and 0% at the edge of our search radius</p>
+                <pre class="code"><code class="language-glsl">// SeamBlendPostProcess
+// HLSL:
+int _KernelSize;
+float _KernelRadius;
+
+half4 Frag(Varyings input) : SV_Target
+{	
+...
+Kernel
+...
+
+// Get the pixel on the other side of the seam
+float4 otherColor = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UV + seamLocation * 2 );
+
+// This is the maximum distance where our kernel can find a seam &lt;changed&gt;
+float maxSearchDistance = (KernelRadius)/sceneDepth;  &lt;changed&gt;
+// We subtract 0.5 to make the transition line up on the seam &lt;changed&gt;
+float weight = saturate(0.5 - sqrt(minimumDistance ) / maxSearchDistance); &lt;changed&gt;
+return lerp(sceneColor, otherColor, weight); &lt;changed&gt;
+}
+</code></pre>
+                <p>This should give us a nicely blended seam:</p>
+                <img src="../media/images/articles/blending/blended.png" alt="Preview">
+
+                <h2 id="Conditions">Conditions</h2>
+                <p>There is one simple problem with our transitions. <br>
+                    They are happening even if the objects arent next to eachother so the top of the rocks are also
+                    transitioned.<br>
+                    We can fix this by adding a simple check for depth to our weight</p>
+                <pre class="code"><code class="language-glsl">// SeamBlendPostProcess
+// HLSL:
+
+int _KernelSize;
+float _KernelRadius;
+float _DepthFalloff; &lt;changed&gt;
+
+half4 Frag(Varyings input) : SV_Target
+{	
+    ...
+    Kernel
+    ...
+
+    // Get the pixel on the other side of the seam
+    float4 otherColor = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, UV + seamLocation * 2 );
+
+    float4 otherDepth = Linear01Depth(SAMPLE_TEXTURE2D(_ObjectDepthTexture, sampler_ObjectDepthTexture, UV + seamLocation * 2 ), _ZBufferParams); &lt;changed&gt;
+    float depthDiff = abs(otherDepth-sceneDepth); &lt;changed&gt;
+
+    // This is the maximum distance where our kernel can find a seam
+    float maxSearchDistance = (KernelRadius)/sceneDepth; 
+
+    // We subtract 0.5 to make the transition line up on the seam
+    float spatialWeight = saturate(0.5 - sqrt(minimumDistance ) / maxSearchDistance); &lt;changed&gt;
+    float depthWeight = saturate(1.0 - depthDiff / _DepthFalloff*_KernelRadius); &lt;changed&gt;
+    float totalWeight = (depthWeight+spatialWeight)*0.5; &lt;changed&gt;
+    return lerp(sceneColor, otherColor, totalWeight);
+}
+</code></pre>
+                <p>
+                    This creates our final effect</p>
+                <img src="../media/images/articles/blending/idea.gif" alt="Preview">
+                <h2 id="improvements">Improvements</h2>
+                <p>In this article I went over a simpler way to implement this but it is very slow and has some
+                    artifacts.</p>
+
+                <p>There are a lots of improvements still left to be done which i will not cover in this article, here
+                    are some examples:</p>
+
+                <ul>
+                    <li>Compute, There are a lot of performance benefits available if you port this to compute, for
+                        example by running a cheap masking pass you can only run the expensive search on pixels with
+                        edges.</li>
+                    <li>Better searching, A search kernel is a very limited way of searching and there are way better
+                        ways like a spiral pattern that refines over multiple iterations.</li>
+                    <li>Custom id's using material property blocks you can set custom id's for objects allowing you to
+                        control what blends with what or even blend sizes.</li>
+                    <li>Normal-based filtering,adding a check for normal difference, This fixes transitioning happening
+                        around corners or weird angles.</li>
+                    <li>Multiple-seam support,adding support for detecting multiple seams this fixes incorrect blending
+                        when more than 2 objects intersect at a point</li>
+                </ul>
+
+                <h2 id="improvements">Source code/Implementation</h2>
+                <p>An open implementation of this code is available for free on the Unity Asset Store:</p>
+                    <a class="btn" href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-326839" target="_blank" rel="noopener">Free &amp; Open - Asset Store</a>
+                    <p>There is also a paid version which implements most of the improvements mentioned above and more</p>
+                    <a class="btn btn-primary" href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-pro-330717#description" target="_blank" rel="noopener" style="margin-left:.75rem;">Pro (Paid) - Asset Store</a>
+
+            </div>
+        </section>
+    </main>
+</body>
