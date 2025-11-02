@@ -87,6 +87,42 @@ main { padding-top: var(--header-height, 64px); }
     max-width: 90%;
 }
 
+/* Navigation links styled as compact buttons and vertically centered */
+.main-nav {
+    display: flex;
+    align-items: center; /* ensures vertical centering in header */
+    gap: .6rem; /* spacing between nav items */
+}
+
+.main-nav a {
+    /* keep the muted text color but make them look like buttons */
+    color: var(--muted);
+    text-decoration: none;
+    margin-left: 0; /* spacing handled by gap */
+    display: inline-flex;
+    align-items: center;
+    padding: .4rem .75rem;
+    border-radius: var(--radius-small);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    font-weight: 600;
+    transition: background .12s ease, color .12s ease, transform .08s ease;
+}
+
+.main-nav a:hover {
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    transform: translateY(-1px);
+}
+
+/* mark the current/active page with a slightly stronger accent (not same as .btn-primary) */
+.main-nav a[aria-current="page"],
+.main-nav a.active {
+    background: linear-gradient(90deg, rgba(79,139,249,0.14), rgba(79,139,249,0.06));
+    color: white;
+    border-color: rgba(79,139,249,0.12);
+}
+
 .brand {
     color: var(--text);
     font-weight: 600;
