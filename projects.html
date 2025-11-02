@@ -1,0 +1,150 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Projects — Jack Tollenaar</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        /* a few small page-scoped tweaks to align with articles layout */
+        .projects-hero {
+            padding: 4rem 0 2rem;
+        }
+
+        .cards {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center; /* center the card grid */
+        }
+
+        .card {
+            flex: 0 1 360px;
+            box-shadow: var(--shadow, 0 6px 18px rgba(10, 10, 10, .08));
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+        }
+
+        .card a { color: inherit; text-decoration: none; display: block; height: 100%; }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block
+        }
+
+        .card h3 {
+            margin: .75rem 1rem 0 1rem
+        }
+
+        .card .muted {
+            margin: .25rem 1rem 1rem 1rem;
+            color: #dbc8e0
+        }
+
+        h2 {
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width:1000px) {
+            .card {
+                flex: 1 1 100%
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/articles.html">Articles</a>
+                <a href="#contact">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Projects</h1>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <h2>Big projects:</h2>
+                <div class="cards">
+                    <article class="card">
+                        <a href="/helitrace">
+                            <img src="./media/images/projects/helitrace-card.png"
+                                alt="CPU Raytracer">
+                            <h3>CPU Raytracer</h3>
+                            <p class="muted">BUAS Y1 Block C | A CPU-based raytracer written in C++.</p>
+                        </a>
+                    </article>
+
+                    <article class="card">
+                        <a href="/metalgear2">
+                            <img src="./media/images/projects/pi-card.png"
+                                alt="OpenGL on Pi">
+                            <h3>OpenGL on Pi</h3>
+                            <p class="muted">BUAS Y1 Block B | An Cross platform OpenGL game with reflectionprobes</p>
+                        </a>
+                    </article>
+
+                    <article class="card">
+                        <a href="/metalgear1">
+                            <img src="./media/images/projects/mg-card.png"
+                                alt="2D Raytracer">
+                            <h3>2D Raytracer</h3>
+                            <p class="muted">BUAS Y1 Block A | Metal Gear remake with a 2D GPU raytracer</p>
+                        </a>
+                    </article>
+                    
+                    <article class="card">
+                        <a href="/golf-rush">
+                            <img src="./media/images/projects/gr-card.png"
+                                alt="Golf Rush">
+                            <h3>Golf Rush</h3>
+                            <p class="muted">A Multiplayer game made in Unity</p>
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt">
+            <div class="container">
+                <h2>Game jams:</h2>
+                <div class="cards">
+                    <article class="card">
+                        <a href="/tabletop-tumble">
+                            <img src="./media/images/projects/tabletop-card.png"
+                                alt="Tabletop tumble">
+                            <h3>Tabletop tumble</h3>
+                            <p class="muted">A Team Unity project for the GMTK jam.</p>
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt" id="contact">
+            <div class="container">
+                <h2>Contact</h2>
+                <p>If you want more info you can contact me at <a
+                        href="mailto:Jack.Tollenaar@protonmail.com">Jack.Tollenaar@protonmail.com</a>.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
