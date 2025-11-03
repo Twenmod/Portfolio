@@ -11,16 +11,17 @@
             padding: 4rem 0 2rem;
         }
 
+
+        /* Cards grid: responsive, consistent sizing */
         .cards {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
             align-items: stretch;
-            justify-content: center; /* center the card grid */
+            justify-content: center;
         }
 
         .card {
-            flex: 0 1 360px;
             box-shadow: var(--shadow, 0 6px 18px rgba(10, 10, 10, .08));
             border-radius: 10px;
             overflow: hidden;
@@ -28,24 +29,46 @@
             display: flex;
             flex-direction: column;
             text-decoration: none;
+            transition: transform .18s ease, box-shadow .18s ease;
+            min-height: 260px; /* reduced vertical footprint */
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(2,6,23,0.35);
         }
 
         .card a { color: inherit; text-decoration: none; display: block; height: 100%; }
 
         .card img {
             width: 100%;
-            height: 200px;
+            max-height: 250px;
             object-fit: cover;
-            display: block
+            display: block;
         }
 
         .card h3 {
-            margin: .75rem 1rem 0 1rem
+            margin: .35rem 0 0 0; /* tighter title spacing */
+            padding: 0 1rem;
+            font-size: 1.03rem;
+            line-height: 1.2;
+        }
+
+        .card .card-body {
+            padding: 1.0rem 0.9rem 0.9rem 0.9rem; /* reduce vertical padding */
+        }
+
+        /* slightly smaller grade badge inside cards */
+        .card .project-grade {
+            padding: .18rem .5rem;
+            font-size: .9rem;
         }
 
         .card .muted {
-            margin: .25rem 1rem 1rem 1rem;
-            color: #dbc8e0
+            margin: .15rem 0 0.6rem 0;
+            padding: 0 1rem;
+            color: #dbc8e0;
+            font-size: .95rem;
         }
 
         h2 {
@@ -81,39 +104,57 @@
 
         <section class="section">
             <div class="container">
-                <h2>Big projects:</h2>
+                <h2>BUAS projects</h2>
                 <div class="cards">
                     <article class="card">
                         <a href="/projects/helitrace.html">
-                            <img src="./media/images/projects/helitrace-card.png"
-                                alt="CPU Raytracer">
-                            <h3>CPU Raytracer</h3>
-                            <p class="muted">BUAS Y1 Block C | A CPU-based raytracer written in C++.</p>
+                            <img src="./media/images/projects/helitrace-card.png" alt="CPU Raytracer">
+                            <div class="card-body">
+                                <h3>CPU Raytracer</h3>
+                                <div class="project-meta-row">
+                                    <p class="muted">BUAS Y1 Block C</p>
+                                    <div class="project-grade">100/100</div>
+                                </div>
+                            </div>
                         </a>
                     </article>
 
                     <article class="card">
                         <a href="/projects/opengl.html">
-                            <img src="./media/images/projects/pi-card.png"
-                                alt="OpenGL on Pi">
-                            <h3>OpenGL on Pi</h3>
-                            <p class="muted">BUAS Y1 Block B | An Cross platform OpenGL game with reflectionprobes</p>
+                            <img src="./media/images/projects/pi-card.png" alt="OpenGL on Pi">
+                            <div class="card-body">
+                                <h3>OpenGL on Pi</h3>
+                                <div class="project-meta-row">
+                                    <p class="muted">BUAS Y1 Block B</p>
+                                    <div class="project-grade">100/100</div>
+                                </div>
+                            </div>
                         </a>
                     </article>
 
                     <article class="card">
                         <a href="/metalgear1">
-                            <img src="./media/images/projects/mg-card.png"
-                                alt="2D Raytracer">
-                            <h3>2D Raytracer</h3>
-                            <p class="muted">BUAS Y1 Block A | Metal Gear remake with a 2D GPU raytracer</p>
+                            <img src="./media/images/projects/mg-card.png" alt="2D Raytracer">
+                            <div class="card-body">
+                                <h3>2D Raytracer</h3>
+                                <div class="project-meta-row">
+                                    <p class="muted">BUAS Y1 Block A</p>
+                                    <div class="project-grade">100/100</div>
+                                </div>
+                            </div>
                         </a>
                     </article>
-                    
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <h2>Other big projects</h2>
+                <div class="cards">
                     <article class="card">
                         <a href="/golf-rush">
-                            <img src="./media/images/projects/gr-card.png"
-                                alt="Golf Rush">
+                            <img src="./media/images/projects/gr-card.png" alt="Golf Rush">
                             <h3>Golf Rush</h3>
                             <p class="muted">A Multiplayer game made in Unity</p>
                         </a>
