@@ -218,6 +218,12 @@ main {
     align-items: center;
 }
 
+/* allow flex children to shrink below content size to avoid overflow on small screens */
+.project-row .text,
+.project-row .media {
+    min-width: 0;
+}
+
 /* Layout tweaks when a .media column contains multiple images.
    Use :has(...) so single-image .media keeps existing behavior. */
 .project-row:has(.media img + img) {
@@ -273,6 +279,26 @@ main {
     }
 }
 
+/* make embedded iframes responsive and not overflow their column */
+.project-special .media iframe,
+.project-row .media iframe,
+.project-special iframe,
+.project-row iframe,
+.project-content iframe {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+}
+
+/* ensure single image .media keeps previous behaviour but can't overflow */
+.project-row .media img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
 .project-row .text {
     flex: 1 1 48%;
 }
@@ -304,6 +330,13 @@ main {
     .project-row .media {
         flex: none;
         width: 100%;
+    }
+}
+
+/* For rows that should keep images on the left for large viewports but show text above images on small screens */
+@media (max-width: 800px) {
+    .project-row.media-left {
+        flex-direction: column-reverse;
     }
 }
 
