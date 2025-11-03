@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tabletop Tumble</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html" aria-current="page">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Tabletop Tumble</h1>
+                <p class="lead">Team base Game jam in Unity | GMTK 2024</p>
+            </div>
+        </section>
+
+        <!-- Section 1: image right -->
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <div class="project-meta-row">
+                            <p class="project-meta">Role · Gameplay · Physics · Rendering</p>
+                        </div>
+                        <h2>Overview</h2>
+                        <p>For GMTK 2024 me and a team of 6 others made tabletop tumble. <br>
+                            A deck building card game in which u use the cards to build a tower. <br> For this I made
+                            most of the gameplay systems together with 1 other programmer.
+                        </p>
+                        <p class="project-cta">
+
+                            <a class="external btn btn-icon" href="https://twenmod.itch.io/tabletop-tumble"
+                                target="_blank" rel="noopener">
+                                <img src="../media/images/itch.png" alt="Itch.io" class="icon"> Game
+                            </a>
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/tabletop/idea.png" alt="Tabletop Tumble overview">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2>My Role and teamwork</h2>
+                        <p>I worked together on this project with 8 other people (2 of which abandoned the project after
+                            a day). <br>Which meant we had to have really good collaboration to make something good.
+                            <br><br>
+
+                            We planned ahead our ideas and structure using miro and split our team into different
+                            disiplines. <br> <br>
+
+                            We used a self hosted perforce server for collaboration, The others had never used perforce
+                            before so I also made a reference doc to make sure everything worked correctly and everyone
+                            knew how to work in it Perforce document [Google drive]
+
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/tabletop/tasks.png" alt="Project management with trello">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-special">
+
+                    <div class="project-row media-left">
+                        <div class="media">
+                            <img src="../media/images/projects/tabletop/cards.png" alt="Card UI">
+                            <img src="../media/images/projects/tabletop/objects.png" alt="Cards in engine">
+
+
+                        </div>
+                        <div class="text">
+                            <h2>Modular systems</h2>
+                            <p>I made a modular card system using unity's scriptable objects which allowed for adding
+                                cards
+                                super easily.<br><br>
+                                All cards derive from base systems so you can just add specific behaviour and don't have
+                                to
+                                manage a lot of system interactions at once when adding a card. <br><br>
+
+                                I made a very similar system for the card effects and the end of turn events. <br><br>
+
+                                I also made procedural animations for the cards in your hand so it feels nice to grab a
+                                card.
+                            </p>
+                        </div>
+                    </div>
+                    <p>Example code for the freeze effect. <br> This is easily selected in a scritable object with its
+                        details to create a card. <br>This made it easy for our designer to add cards or tweak their
+                        descriptions or appear chance.</p>
+                    <div class="media">
+                        <img src="../media/images/projects/tabletop/systemcode.png" alt="">
+
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row">
+
+                    <div class="text">
+                        <h2>Rope graphics</h2>
+                        <p>One of the effects in this game is connecting objects using a rope. <br>
+                            Fully physical ropes can be very demanding to calculate (especially in a webGL build)
+                            <br><br>
+
+                            So I opted for using a approximation of a rope using a hyperbolic formula. <br>
+
+                            This system is based on another implementation for the game "Sea of Thieves" from this talk
+                            <a href="https://www.youtube.com/watch?v=y9BOz2dFZzs&t=1583s" target="_blank"
+                                rel="noopener">[YouTube: Sea of Thieves talk]</a> <br>
+
+                            I translated the formula into the environment of our project, which was more work than
+                            expected since the talk only shows psuedocode and does not deal with the correct scaling and
+                            movement translation of the line in an actual environment. <br><br>
+
+                            This formula also only approaches the solution to the problem. <br>With more iterations the
+                            formula works for closer distances, that is why i dynamically scale the iterations based on
+                            object distance.<br>
+                            However there is still a limit to the formula and it still breaks when
+                            object are directly above each other. <br>
+                            That's why I change to a simpler formula when closer
+                            which uses bezier curves to approximate the rope shape
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/tabletop/ropes.gif" alt="Rope physics and drawing">
+                        <p>Rope swinging around while adjusting length at runtime<br>Debug spheres show different parts
+                            of the formula</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container project-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">Gameplay</h2>
+                    </div>
+
+                    <!-- horizontally scrollable gallery placed below the text -->
+                    <div class="media media-scroll higher" role="region">
+                        <img src="../media/images/projects/tabletop/gameplay0.gif" alt="Gameplay">
+                        <img src="../media/images/projects/tabletop/gameplay.gif" alt="Gameplay">
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/includes/load-footer.js"></script>
+</body>
+
+</html>

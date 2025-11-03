@@ -296,6 +296,11 @@ main {
     -webkit-overflow-scrolling: touch;
 }
 
+.higher img {
+    max-height: 450px !important;
+}
+
+
 .media-scroll img {
     flex: 0 0 auto;
     width: min(420px, 45%);
@@ -322,6 +327,15 @@ main {
     max-width: 100%;
     height: auto;
     aspect-ratio: 16/9;
+    border-radius: 8px;
+}
+
+.project-special .media img,
+.project-special img {
+
+    width: 100%;
+    max-width: 100%;
+    height: auto;
     border-radius: 8px;
 }
 
