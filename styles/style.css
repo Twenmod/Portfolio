@@ -55,7 +55,9 @@ body {
 }
 
 /* keep content below the fixed header */
-main { padding-top: var(--header-height, 64px); }
+main {
+    padding-top: var(--header-height, 64px);
+}
 
 .container {
     max-width: var(--container-max-width);
@@ -90,15 +92,18 @@ main { padding-top: var(--header-height, 64px); }
 /* Navigation links styled as compact buttons and vertically centered */
 .main-nav {
     display: flex;
-    align-items: center; /* ensures vertical centering in header */
-    gap: .6rem; /* spacing between nav items */
+    align-items: center;
+    /* ensures vertical centering in header */
+    gap: .6rem;
+    /* spacing between nav items */
 }
 
 .main-nav a {
     /* keep the muted text color but make them look like buttons */
     color: var(--muted);
     text-decoration: none;
-    margin-left: 0; /* spacing handled by gap */
+    margin-left: 0;
+    /* spacing handled by gap */
     display: inline-flex;
     align-items: center;
     padding: .4rem .75rem;
@@ -114,15 +119,13 @@ main { padding-top: var(--header-height, 64px); }
     color: var(--text);
     transform: translateY(-1px);
 }
-
 /* mark the current/active page with a slightly stronger accent (not same as .btn-primary) */
 .main-nav a[aria-current="page"],
 .main-nav a.active {
-    background: linear-gradient(90deg, rgba(79,139,249,0.14), rgba(79,139,249,0.06));
+    background: linear-gradient(90deg, rgba(79, 139, 249, 0.14), rgba(79, 139, 249, 0.06));
     color: white;
-    border-color: rgba(79,139,249,0.12);
+    border-color: rgba(79, 139, 249, 0.12);
 }
-
 .brand {
     color: var(--text);
     font-weight: 600;
@@ -299,10 +302,11 @@ p,
     filter: grayscale(100%) brightness(1.0);
 }
 
-#itch .icon  {
+#itch .icon {
     filter: grayscale(100%) brightness(1.5) !important;
 }
-#itch:hover .icon  {
+
+#itch:hover .icon {
     filter: none !important;
 }
 
@@ -373,33 +377,77 @@ p,
     }
 }
 
+.article-content {
+    background-color: rgba(255, 255, 255, 0.02);
+    padding: 2rem;
+    padding-top: 0.8rem;
+    padding-bottom: 2rem;
+    max-width: 1000px !important;
+    border-radius: var(--radius-large);
+}
 
 pre.code {
     background: rgba(0, 0, 0, 0.06);
     overflow: auto;
     border-radius: 6px;
-      font-weight: 400;
+    font-weight: 400;
     font-family: 'Source Code Pro', monospace;
 }
 
 code {
-    background: #20122ebe !important;
+    background: #0f0a14be !important;
     color: white !important;
+    line-height: 1.5;
+}
+
+.article-content pre.code .changed-line {
+    background: #1b1223;
+    border-radius: 1px;
+    display: inline; /* keep inline so it matches surrounding code line boxes */
+    /* ensure marker and padding apply without changing line height */
+    position: relative;
+    padding-left: 0.4rem;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    /* space for the left marker */
+    margin-left: -0.4rem;
+    /* keep alignment inside pre */
+    margin-top: 0px;
+    margin-bottom: 0px;
+    line-height: inherit;
+    vertical-align: baseline;
+}
+
+.article-content pre.code .changed-line::before {
+    content: "";
+    position: absolute;
+    left: 0rem;
+    top: -1px;
+    bottom: -1px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 2px;
 }
 
 .hljs-keyword,
 .hljs-type {
-  color: #1b58d1 !important;         
-  font-weight: 600;
+    color: #1b58d1 !important;
+    font-weight: 600;
 }
 
-.hljs-built_in { color: #1b58d1 !important; }
+.hljs-built_in {
+    color: #1b58d1 !important;
+}
 
-.hljs-number { color: #eeffe6 !important; }
-.hljs-string { color: #9be7a1; }
-.hljs-comment { color: #6a9955 !important; font-style: italic; }
+.hljs-number {
+    color: #eeffe6 !important;
+}
 
-        .article-content pre.code .changed-line {
-            background: rgba(158, 91, 185, 0.11);
-            border-radius: 1px;
-        }
+.hljs-string {
+    color: #9be7a1;
+}
+
+.hljs-comment {
+    color: #6a9955 !important;
+    font-style: italic;
+}
