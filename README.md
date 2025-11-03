@@ -2,4 +2,4 @@
 
 Website containing my projects and articles
 
-available at (www.jacktollenaar.top)[www.jacktollenaar.top]
+available at [www.jacktollenaar.top]
