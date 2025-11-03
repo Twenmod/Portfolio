@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Helitrace — Project Template</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html" aria-current="page">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Helitrace</h1>
+                <p class="lead">A concise project page template demonstrating alternating sections with text and
+                    imagery.</p>
+            </div>
+        </section>
+
+        <!-- Section 1: image right -->
+        <section class="section">
+            <div class="container project-content">
+                <div class="project-row">
+                    <div class="text">
+                        <div class="project-meta-row">
+                            <p class="project-meta">Role · Research · Rendering</p>
+                            <div class="project-grade">Grade: <strong>100/100</strong></div>
+                        </div>
+                        <h2>Overview</h2>
+                        <p>For BUAS block C, I created a CPU raytracer with reprojection and volumetrics. <br>
+                            All of this runs
+                            real time on the CPU, which is why it is quite noisy.</p>
+                        <p class="project-cta">
+                            <a class="external btn btn-icon" href="https://github.com/Twenmod/HeliTrace" target="_blank"
+                                rel="noopener">
+                                <img src="../media/images/git.png" alt="GitHub" class="icon"> Source
+                            </a>
+                            <a class="external btn btn-icon" href="https://twenmod.itch.io/helitrace" target="_blank"
+                                rel="noopener">
+                                <img src="../media/images/itch.png" alt="Itch.io" class="icon"> Game
+                            </a>
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/helitrace/header.png" alt="Helitrace overview">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: stacked text + horizontal gallery -->
+        <section class="section-alt">
+            <div class="container project-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">PBR Materials</h2>
+                        <p>I implemented support for different materials using physically correct calculations</p>
+                    </div>
+
+                    <!-- horizontally scrollable gallery placed below the text -->
+                    <div class="media media-scroll" role="region" aria-label="PBR material gallery">
+                        <img src="../media/images/projects/helitrace/pbr.png" alt="pbr preview">
+                        <img src="../media/images/projects/helitrace/glass.png" alt="glass preview">
+                        <img src="../media/images/projects/helitrace/reflect.png" alt="reflect preview">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Volumetrics: stacked text + horizontal gallery -->
+        <section class="section-alt">
+            <div class="container project-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2>Volumetrics</h2>
+                        <p>I implemented raymarched volumetrics with in-scattering to approximate atmospheric light transport.</p>
+                    </div>
+
+                    <div class="media media-scroll" role="region" aria-label="Volumetrics gallery">
+                        <img src="../media/images/projects/helitrace/volume1.png" alt="volumetrics preview 1">
+                        <img src="../media/images/projects/helitrace/volume2.png" alt="volumetrics preview 2">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recap & Gameplay: video embed -->
+        <section class="section">
+            <div class="container project-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2>Recap & Gameplay</h2>
+                    </div>
+                    <div class="media">
+                        <iframe width="869" height="490" src="https://www.youtube.com/embed/2t8aM6ewEhQ"
+                            title="CPU Raytracer - Y1 Block C Buas" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/includes/load-footer.js"></script>
+</body>
+
+</html>
