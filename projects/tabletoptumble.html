@@ -79,6 +79,43 @@
                 </div>
             </div>
         </section>
+                <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row">
+
+                    <div class="text">
+                        <h2>Rope graphics</h2>
+                        <p>One of the effects in this game is connecting objects using a rope. <br>
+                            Fully physical ropes can be very demanding to calculate (especially in a webGL build)
+                            <br><br>
+
+                            So I opted for using a approximation of a rope using a hyperbolic formula. <br>
+
+                            This system is based on another implementation for the game "Sea of Thieves" from this talk
+                            <a href="https://www.youtube.com/watch?v=y9BOz2dFZzs&t=1583s" target="_blank"
+                                rel="noopener">[YouTube: Sea of Thieves talk]</a> <br>
+
+                            I translated the formula into the environment of our project, which was more work than
+                            expected since the talk only shows psuedocode and does not deal with the correct scaling and
+                            movement translation of the line in an actual environment. <br><br>
+
+                            This formula also only approaches the solution to the problem. <br>With more iterations the
+                            formula works for closer distances, that is why i dynamically scale the iterations based on
+                            object distance.<br>
+                            However there is still a limit to the formula and it still breaks when
+                            object are directly above each other. <br>
+                            That's why I change to a simpler formula when closer
+                            which uses bezier curves to approximate the rope shape
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/tabletop/ropes.gif" alt="Rope physics and drawing">
+                        <p>Rope swinging around while adjusting length at runtime<br>Debug spheres show different parts
+                            of the formula</p>
+                    </div>
+                </div>
+            </div>
+        </section>
         <section class="section">
             <div class="container article-content">
                 <div class="project-special">
@@ -116,43 +153,7 @@
                 </div>
             </div>
         </section>
-        <section class="section-alt">
-            <div class="container article-content">
-                <div class="project-row">
 
-                    <div class="text">
-                        <h2>Rope graphics</h2>
-                        <p>One of the effects in this game is connecting objects using a rope. <br>
-                            Fully physical ropes can be very demanding to calculate (especially in a webGL build)
-                            <br><br>
-
-                            So I opted for using a approximation of a rope using a hyperbolic formula. <br>
-
-                            This system is based on another implementation for the game "Sea of Thieves" from this talk
-                            <a href="https://www.youtube.com/watch?v=y9BOz2dFZzs&t=1583s" target="_blank"
-                                rel="noopener">[YouTube: Sea of Thieves talk]</a> <br>
-
-                            I translated the formula into the environment of our project, which was more work than
-                            expected since the talk only shows psuedocode and does not deal with the correct scaling and
-                            movement translation of the line in an actual environment. <br><br>
-
-                            This formula also only approaches the solution to the problem. <br>With more iterations the
-                            formula works for closer distances, that is why i dynamically scale the iterations based on
-                            object distance.<br>
-                            However there is still a limit to the formula and it still breaks when
-                            object are directly above each other. <br>
-                            That's why I change to a simpler formula when closer
-                            which uses bezier curves to approximate the rope shape
-                        </p>
-                    </div>
-                    <div class="media">
-                        <img src="../media/images/projects/tabletop/ropes.gif" alt="Rope physics and drawing">
-                        <p>Rope swinging around while adjusting length at runtime<br>Debug spheres show different parts
-                            of the formula</p>
-                    </div>
-                </div>
-            </div>
-        </section>
         <section class="section-alt">
             <div class="container project-content">
                 <div class="project-special">
