@@ -25,6 +25,7 @@
             height: auto;
             flex-wrap: wrap;
             align-items: stretch;
+            justify-content: center; /* center cards horizontally */
         }
 
         .card {
@@ -37,6 +38,10 @@
             flex-direction: column;
             text-decoration: none;
 
+        }
+                .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(2,6,23,0.35);
         }
 
         .card a {
