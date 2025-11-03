@@ -7,7 +7,6 @@
     <title>Weighted Gaussian blurring for denoising — Jack Tollenaar</title>
     <link rel="stylesheet" href="../styles/style.css">
     <style>
-        /* Page-scoped styles: plain hero and article layout */
         .articles-hero {
             background: none;
             padding: 3.5rem 0 1rem;
@@ -39,45 +38,33 @@
             }
         }
 
-        /* (use global .btn / .btn-primary from styles/style.css) */
     </style>
-    <!-- Highlight.js for client-side syntax highlighting of code blocks -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/glsl.min.js"></script>
     <script>
-        // Marker-based auto-highlights (new behavior: only <changed> markers)
-        // Flow:
-        // 1) Detect lines that contain the literal `<changed>` marker in the code block textContent.
-        // 2) Remove the marker from the textContent (so it won't appear), run highlight.js on the cleaned text.
-        // 3) After highlighting, wrap the previously-marked lines with .changed-line. No placeholder is used.
         document.addEventListener('DOMContentLoaded', function () {
             if (!window.hljs) return;
 
-            const markerFinder = /<changed>/i;    // detect marker in textContent
-            const markerFinderG = /<changed>/gi; // global replacer
+            const markerFinder = /<changed>/i;
+            const markerFinderG = /<changed>/gi; 
 
             document.querySelectorAll('pre.code code').forEach(codeEl => {
                 const original = codeEl.textContent || '';
                 const textLines = original.split('\n');
-                // Which lines contained the marker?
                 const toHighlight = textLines.map(l => markerFinder.test(l));
 
-                // Remove markers from the raw text so highlight.js sees clean code
                 const tokenized = original.replace(markerFinderG, '');
                 codeEl.textContent = tokenized;
 
-                // Highlight this element only
                 try { hljs.highlightElement(codeEl); } catch (e) { /* ignore highlight errors */ }
 
-                // Reconstruct per-line HTML and wrap lines that were marked
                 const renderedLines = (codeEl.innerHTML || '').split('\n');
 
                 for (let i = 0; i < renderedLines.length; i++) {
                     if (toHighlight[i]) {
-                        // defensively remove any visible escaped marker text
                         renderedLines[i] = renderedLines[i].replace(/&lt;changed&gt;/gi, '');
-                        // remove any actual <changed> tags if present
                         renderedLines[i] = renderedLines[i].replace(/<\/?changed[^>]*>/gi, '');
                         renderedLines[i] = '<span class="changed-line">' + renderedLines[i] + '</span>';
                     }

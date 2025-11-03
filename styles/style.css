@@ -13,29 +13,29 @@
     --section-bg: rgba(242, 229, 255, 0.02);
     --section-alt-bg: rgba(189, 149, 221, 0.03);
     --section-vertical-padding: 1rem;
-    /* outer section vertical spacing (top/bottom) */
+    
     --section-container-vertical: 2.5rem;
-    /* inner container vertical padding */
+    
     --section-container-horizontal: 1rem;
-    /* inner container horizontal pad on small screens */
+    
     --section-radius: 0px;
-    /* useful if you want rounded edges on section containers */
-    /* typography */
+    
+    
     --font-sans: Inter, Roboto, Arial, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
     --font-mono: "Source Code Pro", SFMono-Regular, Menlo, Monaco, monospace;
 
-    /* radii */
+    
     --radius-small: 6px;
     --radius-medium: 8px;
     --radius-large: 12px;
 
-    /* container */
+    
     --container-max-width: 980px;
     --container-padding-vertical: 0rem;
     --container-padding-horizontal: 1rem;
 
 
-    /* shadows */
+    
     --shadow-soft: 0 4px 18px rgba(2, 6, 23, 0.164);
     --shadow-strong: 0 8px 30px rgba(2, 6, 23, 0.349);
 }
@@ -54,7 +54,7 @@ body {
     color: var(--text)
 }
 
-/* keep content below the fixed header */
+
 main {
     padding-top: var(--header-height, 64px);
 }
@@ -68,14 +68,14 @@ main {
 .site-header {
     background: linear-gradient(90deg, var(--header) 0%, var(--header-2) 50%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    /* make header fixed so it stays visible while scrolling */
+    
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: var(--header-height, 64px);
     z-index: 9999;
-    /* subtle elevation when overlapping content */
+    
     backdrop-filter: blur(4px);
     transition: box-shadow 180ms ease, background-color 180ms ease;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
@@ -89,21 +89,21 @@ main {
     max-width: 90%;
 }
 
-/* Navigation links styled as compact buttons and vertically centered */
+
 .main-nav {
     display: flex;
     align-items: center;
-    /* ensures vertical centering in header */
+    
     gap: .6rem;
-    /* spacing between nav items */
+    
 }
 
 .main-nav a {
-    /* keep the muted text color but make them look like buttons */
+    
     color: var(--muted);
     text-decoration: none;
     margin-left: 0;
-    /* spacing handled by gap */
+    
     display: inline-flex;
     align-items: center;
     padding: .4rem .75rem;
@@ -112,7 +112,7 @@ main {
     border: 1px solid rgba(255, 255, 255, 0.03);
     font-weight: 600;
     transition: background .12s ease, color .12s ease, transform .08s ease;
-    position: relative; /* for active fill animation pseudo */
+    position: relative; 
     overflow: hidden;
 }
 
@@ -121,16 +121,15 @@ main {
     color: var(--text);
     transform: translateY(-1px);
 }
-/* mark the current/active page with a slightly stronger accent (not same as .btn-primary) */
+
 .main-nav a[aria-current="page"],
 .main-nav a.active {
-    /* final active styles (background is painted by the animated pseudo-element)
-       keep color and border highlight */
+
     color: white;
     border-color: rgba(79, 139, 249, 0.12);
 }
 
-/* animated fill for the active nav item: plays once on load */
+
 .main-nav a[aria-current="page"]::before,
 .main-nav a.active::before {
     content: "";
@@ -142,13 +141,13 @@ main {
     z-index: 0;
     border-radius: inherit;
     pointer-events: none;
-    /* animate once and stay in final state */
+    
     animation: navActiveFill .22s ease forwards;
 }
 
 .main-nav a[aria-current="page"] *,
 .main-nav a.active * {
-    position: relative; /* ensure content sits above the animated pseudo */
+    position: relative; 
     z-index: 1;
 }
 
@@ -232,14 +231,14 @@ main {
     padding: 2rem;
     backdrop-filter: blur(4px);
     background: rgba(6, 10, 20, 0.55);
-    /* semi-opaque background behind text */
+    
     border-radius: var(--radius-medium);
     margin: 2rem auto;
     min-width: 80ch;
     max-width: 80ch;
 }
 
-/* Project page helpers: alternating text + image rows used by project templates */
+
 .projects-hero {
     padding: 3rem 0 1rem;
     text-align: center;
@@ -251,16 +250,14 @@ main {
     align-items: center;
 }
 
-/* allow flex children to shrink below content size to avoid overflow on small screens */
+
 .project-row .text,
 .project-row .media {
     min-width: 0;
 }
 
-/* Layout tweaks when a .media column contains multiple images.
-   Use :has(...) so single-image .media keeps existing behavior. */
 .project-row:has(.media img + img) {
-    /* align the row to the top so images start at the same vertical as text */
+    
     align-items: flex-start;
 }
 
@@ -272,7 +269,7 @@ main {
 }
 
 .project-row:has(.media img + img) .media img {
-    /* make images share available width, wrap to next line if needed */
+    
     flex: 1 1 calc(50% - 0.375rem);
     width: auto;
     max-width: 100%;
@@ -286,7 +283,7 @@ main {
     }
 }
 
-/* Horizontal scroll gallery used by special project sections (keeps single .media unchanged) */
+
 .media-scroll {
     margin-top: 1rem;
     display: flex;
@@ -317,7 +314,7 @@ main {
     }
 }
 
-/* make embedded iframes responsive and not overflow their column */
+
 .project-special .media iframe,
 .project-row .media iframe,
 .project-special iframe,
@@ -339,7 +336,7 @@ main {
     border-radius: 8px;
 }
 
-/* ensure single image .media keeps previous behaviour but can't overflow */
+
 .project-row .media img {
     max-width: 100%;
     height: auto;
@@ -362,7 +359,7 @@ main {
     box-shadow: var(--shadow-soft);
 }
 
-/* helper to flip image/text order for alternating sections */
+
 .project-row.flip {
     flex-direction: row-reverse;
 }
@@ -380,7 +377,7 @@ main {
     }
 }
 
-/* For rows that should keep images on the left for large viewports but show text above images on small screens */
+
 @media (max-width: 800px) {
     .project-row.media-left {
         flex-direction: column-reverse;
@@ -396,7 +393,7 @@ main {
     margin-top: 1rem;
 }
 
-/* meta row: role on the left, grade pill on the right */
+
 .project-meta-row {
     display: flex;
     align-items: center;
@@ -426,7 +423,7 @@ main {
     }
 }
 
-/* prevent default paragraph margin from stretching the meta row */
+
 .project-meta-row .project-meta {
     margin: 0;
 }
@@ -576,7 +573,7 @@ p,
     }
 }
 
-/* Prevent hero-card from creating horizontal scroll on small screens */
+
 @media (max-width: 1180px) {
     .hero-card {
         width: 100% !important;
@@ -584,11 +581,11 @@ p,
         margin-right: 0 !important;
         border-radius: var(--radius-medium);
         min-height: 40vh;
-        /* reduce vertical footprint on small screens */
+        
         box-shadow: var(--shadow-soft);
     }
 
-    /* ensure hero content fits inside the card without forcing width */
+    
     .hero-content {
         min-width: auto;
         max-width: 100%;
@@ -596,7 +593,7 @@ p,
         padding: 1rem;
     }
 
-    /* make hero background image scale within the container */
+    
     .hero-bg {
         transform: none;
     }
@@ -611,7 +608,7 @@ p,
     border-radius: var(--radius-large);
 }
 
-/* Project-specific content container: slightly tighter padding than article pages */
+
 .project-content {
     background-color: rgba(255, 255, 255, 0.015);
     padding: 1.25rem;
@@ -638,15 +635,15 @@ code {
 .article-content pre.code .changed-line {
     background: #1b1223;
     border-radius: 1px;
-    display: inline; /* keep inline so it matches surrounding code line boxes */
-    /* ensure marker and padding apply without changing line height */
+    display: inline; 
+    
     position: relative;
     padding-left: 0.4rem;
     padding-top: 3px;
     padding-bottom: 3px;
-    /* space for the left marker */
+    
     margin-left: -0.4rem;
-    /* keep alignment inside pre */
+    
     margin-top: 0px;
     margin-bottom: 0px;
     line-height: inherit;
