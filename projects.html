@@ -30,15 +30,21 @@
             flex-direction: column;
             text-decoration: none;
             transition: transform .18s ease, box-shadow .18s ease;
-            min-height: 260px; /* reduced vertical footprint */
+            min-height: 260px;
+            /* reduced vertical footprint */
         }
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(2,6,23,0.35);
+            box-shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
         }
 
-        .card a { color: inherit; text-decoration: none; display: block; height: 100%; }
+        .card a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            height: 100%;
+        }
 
         .card img {
             width: 100%;
@@ -48,14 +54,16 @@
         }
 
         .card h3 {
-            margin: .35rem 0 0 0; /* tighter title spacing */
+            margin: .35rem 0 0 0;
+            /* tighter title spacing */
             padding: 0 1rem;
             font-size: 1.03rem;
             line-height: 1.2;
         }
 
         .card .card-body {
-            padding: 1.0rem 0.9rem 0.9rem 0.9rem; /* reduce vertical padding */
+            padding: 1.0rem 0.9rem 0.9rem 0.9rem;
+            /* reduce vertical padding */
         }
 
         /* slightly smaller grade badge inside cards */
@@ -71,15 +79,21 @@
             font-size: .95rem;
         }
 
+        /* small year tag for non-BUAS cards (simple, subtle) */
+        .card .project-year {
+            color: var(--muted);
+            font-size: .9rem;
+            padding: 0 1rem;
+            margin-top: 0.25rem;
+            text-align: right;
+            opacity: 0.95;
+        }
+
         h2 {
             margin-bottom: 2rem;
         }
 
-        @media (max-width:1000px) {
-            .card {
-                flex: 1 1 100%
-            }
-        }
+
     </style>
 </head>
 
@@ -104,7 +118,7 @@
 
         <section class="section">
             <div class="container">
-                <h2>BUAS projects</h2>
+                <h2>BUAS projects Y1 | 2024-2025</h2>
                 <div class="cards">
                     <article class="card">
                         <a href="/projects/helitrace.html">
@@ -148,39 +162,49 @@
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <h2>Other big projects</h2>
-                <div class="cards">
-                    <article class="card">
-                        <a href="/golf-rush">
-                            <img src="./media/images/projects/gr-card.png" alt="Golf Rush">
-                            <h3>Golf Rush</h3>
-                            <p class="muted">A Multiplayer game made in Unity</p>
-                        </a>
-                    </article>
-                </div>
-            </div>
-        </section>
-
         <section class="section section-alt">
             <div class="container">
                 <h2>Game jams:</h2>
                 <div class="cards">
                     <article class="card">
                         <a href="/tabletop-tumble">
-                            <img src="./media/images/projects/tabletop-card.png"
-                                alt="Tabletop tumble">
-                            <h3>Tabletop tumble</h3>
-                            <p class="muted">A Team Unity project for the GMTK jam.</p>
+                            <img src="./media/images/projects/tabletop-card.png" alt="Tabletop tumble">
+                            <div class="card-body">
+                                <h3>Tabletop tumble</h3>
+                                <div class="project-meta-row">
+                                    <p class="muted">A Team Unity project for the GMTK jam.</p>
+                                    <div class="project-year">2024</div>
+                                </div>
+                            </div>
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="container">
+                <h2>Other big projects</h2>
+                <div class="cards">
+                    <article class="card">
+                        <a href="/projects/golfrush.html">
+                            <img src="./media/images/projects/gr-card.png" alt="Golf Rush">
+                            <div class="card-body">
+                                <h3>Golf Rush</h3>
+                                <div class="project-meta-row">
+                                    <p class="muted">A Multiplayer game made in Unity</p>
+                                    <div class="project-year">2022</div>
+                                </div>
+                            </div>
                         </a>
                     </article>
                 </div>
             </div>
         </section>
 
-      <script src="/includes/load-footer.js"></script>
+
+        <script src="/includes/load-footer.js"></script>
 
     </main>
 </body>
+
 </html>

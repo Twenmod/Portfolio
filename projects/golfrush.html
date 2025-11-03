@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Golf Rush</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html" aria-current="page">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Golf Rush</h1>
+                <p class="lead">A multiplayer Unity game | 2022</p>
+            </div>
+        </section>
+
+        <!-- Section 1: image right -->
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <div class="project-meta-row">
+                            <p class="project-meta">Role · Networking · Gameplay</p>
+                        </div>
+                        <h2>Overview</h2>
+                        <p>Me and a friend had already made multiple smaller games together in game jams, <br>
+                            However we wanted to build something bigger. <br>
+                            That's where we got the idea for a multiplayer golf game where your goal isn't to get the
+                            least strokes but to get to the hole as fast as possible. <br>
+                            We were planning on releasing this on steam, however because of studies we did not
+                            have enough time to polish and make it release ready.
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/golfrush/gr.png" alt="Golf Rush overview">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row media-left">
+                    <div class="media">
+                        <img src="../media/images/projects/golfrush/trello.png" alt="Project management with trello">
+                    </div>
+                    <div class="text">
+                        <h2>My Role and teamwork</h2>
+                        <p>Because i worked together on this project I of course didn't do everything, our roles were
+                            mainly split into me being the main programmer and my friend as lead in art. <br> However
+                            sometimes we would do things that overlap. <br><br>
+
+                            For this project I've used trello for planning and to make sure I prioritize the most
+                            important features.<br><br>
+
+                            At first I was using unity's build in version control to sync our changes however after
+                            struggles and a lot of bugs with unity switching collab to plasticSCM. I switched to running
+                            my own perforce server which worked great! <br><br>
+
+                            The main features I worked on were, Networking, The car, Game logic, Golfball system, Player
+                            model with IK, UI (and syncing of UI) and Powerups. While Boris mainly focussed on the
+                            graphics.
+
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <h2>Networking</h2>
+                        <p>For this game I made the networking and game logic. This was a pretty daunting task because I
+                            had not done a lot of networking before this apart from some simple prototypes we made to
+                            test out networking. I ended up using the open-source Mirror package for handling the basics
+                            and build on top of that because it has good documentation and also works with
+                            Steam.<br><br>
+
+                            First I made a lobby system where players can join together and vote for a map (and I later
+                            also added gamemodes). This was already a challenge since I had to learn the basics of
+                            networking and making sure that the game correctly counts the players and those who are
+                            ready/voted and furthermore making everybody load a level.<br><br>
+
+                            For the gameplay itself we have 2 gamemodes (later more on this) 1 where everybody has their
+                            own ball and one where everybody shares one. For the first I made clients have authority
+                            over their stuff and send everything to the host. For the latter it was a bit more difficult
+                            as I run most calculations on the host and send requests from clients to do something like
+                            hit the ball.<br><br>
+
+                            I've had a lot of difficulties making everything work for every situation for example: a car
+                            hitting a player from a client to a client might work but not from a client to the host
+                            player.<br><br>
+
+                            In it's current state I am very happy how solid the networking works. Almost everything
+                            syncs correctly and the first gamemode works without game breaking bugs, there are still
+                            some bugs we find with every playtest however almost all of these are easy to fix because I
+                            made a good foundation.<br><br>
+
+                            I've learned a lot about syncing systems and checking all edge cases from working on this
+                            games networking and I am very happy about that.<br><br>
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/golfrush/networking.png" alt="Game lobby">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row media-left">
+                    <div class="media">
+                        <img src="../media/images/projects/golfrush/cart.png" alt="Cart in action">
+                        <img src="../media/images/projects/golfrush/cartcode.png" alt="Code of the cart">
+
+                    </div>
+                    <div class="text">
+                        <h2>Arcade cart physics</h2>
+                        <p>As part of the "rush" aspect of the game I wanted to add golf carts that you could drift
+                            around. For these carts I first opted for a physics based approach although I quickly found
+                            out that would be way too clunky for the speed of our game.<br><br>
+
+                            Then I opted for a more arcady feel for it. To achieve that I took inspiration from Mario
+                            kart. I used unity's animationcurves (that are based on bezier curves) as variables for
+                            acceleration, turning speed and braking. This made it easy to tweak the settings and get the
+                            best feel.<br><br>
+
+                            I split the car into 2 parts, the ghost part which runs the script and does the actual
+                            movements and a visible part that is attached to that ghost part with physics constraints. I
+                            did this to allow the car to collide and form around the terrain, objects and players. While
+                            there are more performant ways to do this, this solution works for more complex terrain and
+                            also collides with objects in the way.<br><br>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <h2>Gamemodes</h2>
+                        <p>After getting a base of the game running we started our first playtests with friends. However
+                            I found out that while the golving and driving was fun the game didn't feel multiplayer
+                            because the players do not affect each other enough, I added a powerup system to try to
+                            reduce this but that was still not enough. So I added a new gamemode wherein there is only 1
+                            golfball for all players and you get score for distance shot. This transformed the game into
+                            something way more fun.
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/golfrush/players.png" alt="Players running around">
+                    </div>
+                </div>
+            </div>
+        </section>
+        </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row media-left">
+                    <div class="media">
+                        <img src="../media/images/projects/golfrush/systemcode.png" alt="Golf system code">
+
+                    </div>
+                    <div class="text">
+                        <h2>Golf system</h2>
+                        <p>The golf system is made out of different parts,<br>
+                            The golf ball which samples the terrain (unity default terrain) on its location to determine
+                            how bouncy the ground should be and the friction.<br><br>
+
+                            I also made the golf ball increase in drag when it has spend too long on the ground to avoid
+                            players having to wait a very long time for the ball to slowly roll of a hill.<br><br>
+
+                            The second part is the golf club, which also samples the terrain to determine which club to
+                            use to make it easier for the player. Then when you want to hit it goes along different
+                            stages, first you choose a direction and power via a "bouncing selector" so for example the
+                            power level goes up and down until you click and then it selects where it was when you
+                            clicked.<br><br>
+
+                            To make the player able to hold the stick and move his arms correctly with the procedural
+                            animation I made use of an inverse kinematics system that blends with a pre-build animation
+                            to give a smooth hit effect.<br><br>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+
+            <div class="container article-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">Gameplay</h2>
+                    </div>
+                    <iframe width="1185" height="478" src="https://www.youtube.com/embed/nRDdbMds7Xs"
+                        title="Golfrush Playtest footage" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/includes/load-footer.js"></script>
+</body>
+
+</html>
