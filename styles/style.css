@@ -112,6 +112,8 @@ main {
     border: 1px solid rgba(255, 255, 255, 0.03);
     font-weight: 600;
     transition: background .12s ease, color .12s ease, transform .08s ease;
+    position: relative; /* for active fill animation pseudo */
+    overflow: hidden;
 }
 
 .main-nav a:hover {
@@ -122,10 +124,41 @@ main {
 /* mark the current/active page with a slightly stronger accent (not same as .btn-primary) */
 .main-nav a[aria-current="page"],
 .main-nav a.active {
-    background: linear-gradient(90deg, rgba(79, 139, 249, 0.14), rgba(79, 139, 249, 0.06));
+    /* final active styles (background is painted by the animated pseudo-element)
+       keep color and border highlight */
     color: white;
     border-color: rgba(79, 139, 249, 0.12);
 }
+
+/* animated fill for the active nav item: plays once on load */
+.main-nav a[aria-current="page"]::before,
+.main-nav a.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(79, 139, 249, 0.14), rgba(79, 139, 249, 0.06));
+    transform-origin: left center;
+    transform: scaleX(0);
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    /* animate once and stay in final state */
+    animation: navActiveFill .22s ease forwards;
+}
+
+.main-nav a[aria-current="page"] *,
+.main-nav a.active * {
+    position: relative; /* ensure content sits above the animated pseudo */
+    z-index: 1;
+}
+
+@keyframes navActiveFill {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+
+
 .brand {
     color: var(--text);
     font-weight: 600;

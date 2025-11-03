@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Metal Gear remake</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html" aria-current="page">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Metal Gear remake</h1>
+                <p class="lead">A remake of the original Metal Gear with (2D) GPU Raytracing</p>
+            </div>
+        </section>
+
+        <!-- Section 1: image right -->
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <div class="project-meta-row">
+                            <p class="project-meta">Role · Programming</p>
+                            <div class="project-grade">Grade: <strong>90/100</strong></div>
+                        </div>
+                        <h2>Overview</h2>
+                        <p>For BUAS block A we needed to recreate the original metal gear in C++. <br>
+                            We were also not allowed to use any standard library features for this project. <br>
+                            For this remake I wanted some extra challenge so I decided to add a 2D pathtracer to the
+                            project.
+                            <br><br>
+                            I'll only talk about the raytracer here.
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/mg1/header.png" alt="Metal Gear overview">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row media-left">
+                    <div class="media">
+                        <img src="../media/images/projects/mg1/noisy.gif" alt="Very noisy lighting">
+                    </div>
+                    <div class="text">
+                        <h2>First attempt | Lighting</h2>
+                        <p>First I tried to implement this in the 3D way, by sending a ray from every pixel on the
+                            screen, <br>
+                            I chose this since I thought it would give a more realistic effect and more
+                            uniform noise. <br>
+                            However after I implemented this I found out this technique would be way
+                            slower in this case and give way more noise. <br>
+                            In 2D rays cannot miss the camera so
+                            sending rays from the light source did make more sense
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <h2>Iteration | Lighting</h2>
+                        <p>After switching to rays from the light source things worked way nicer. <br>
+                            I then started to iterate over the concept. <br> <br>
+                            First i just had simple rays, Then to reduce the noise I sampled them over time as a form of
+                            temperal denoising. <br> <br>
+                            I then made the rays refract and leak into
+                            walls when they hit them so walls are also correctly lit.<br>
+                            Then for these wall collisions I
+                            added a heightmap to the walls to add a realistic height effect.
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/mg1/iterated.gif" alt="Gif of better working lighting">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-row media-left">
+                    <div class="media">
+                        <img src="../media/images/projects/mg1/speeddiff.png" alt="diff in performance">
+                        <img src="../media/images/projects/mg1/final.gif" alt="diff in performance">
+
+                    </div>
+                    <div class="text">
+                        <h2>Speed | Lighting</h2>
+                        <p>While this gave a good looking effect but it was relatively slow. <br> <br>
+                            So I multithreaded the solution since this is a perfect case for multithreading. <br>
+                            While multithreading worked great I wanted more rays. <br>
+                            So I ended up porting it even to the GPU using a compute shader which made it run really
+                            fast
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        </div>
+        </section>
+    </main>
+
+    <script src="/includes/load-footer.js"></script>
+</body>
+
+</html>
