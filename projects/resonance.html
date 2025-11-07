@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Resonance</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html" aria-current="page">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>PAGE WORK IN PROGRESS</h1>
+                <h1>Resonance</h1>
+                <p class="lead">Multi disciplinary team project in UE5</p>
+
+            </div>
+        </section>
+
+
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <div class="project-meta-row">
+                            <p class="project-meta">Role | Rendering · Gameplay</p>
+                            <div class="project-grade">Grade: <strong>98/100</strong></div>
+                        </div>
+                        <h2>Overview</h2>
+                        <p>For BUAS block D I worked together with a team of 4 Artists, 3 Designers a producer and 2
+                            other programmers <br><br>
+                            We had to create a game that was loosely based on the game: "Ape out"<br>
+                            I also had to implement a Research project for which I chose <i>Fog rendering/Fluid
+                                physics.</i><br><br>
+                            This project also got awarded: <br><b>"Best Y1 Design"</b> at BUaS awards <br><br>
+                            And got nominated for: <br><b>"Best Student Game"</b> at the <b>Dutch Game Awards 2025</b>
+                        </p>
+                        <p class="project-cta">
+                            <a id="itch" class="external btn btn-icon" href="https://buas.itch.io/resonance"
+                                target="_blank" rel="noopener">
+                                <img src="../media/images/itch.png" alt="Itch" class="icon"> Game
+                            </a>
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/resonance/teamresonance.png" alt="The team">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-alt">
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-row">
+                        <div class="text">
+                            <h2 id="details">Research | Idea / Discussion</h2>
+                            <p>As the research project I looked into fog rendering, I discussed the best
+                                ways/expectencies with my designers and artists<br>
+                                The designers found it important that this fog should be very interactive and react to
+                                the player to give more impact.<br>
+                                The artists wanted it to be subtle and dark to add to the noir vibe of the game,<br>
+                                and wanted it to have good control to tweak visuals<br><br>
+
+                                Based on this I decided that the fog should have fluid/smoke physics to be
+                                interactable,<br>I also researched some rendering techniques, <br>and opted to test a
+                                hybrid approach of depth based fog and particles since performance was a main concern
+                            </p>
+                        </div>
+
+
+                        <div class="media" role="region">
+                            <img src="../media/images/projects/resonance/screen1.jpg" alt="Screenshot">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-row media-left">
+                        <div class="media">
+                            <img src="../media/images/projects/aluminium/particlesingame.gif" alt="Particles in game">
+                            <img src="../media/images/projects/aluminium/particlesengine.gif" alt="Particles in engine">
+                        </div>
+                        <div class="text">
+                            <h2>Research | Fluid physics</h2>
+                            <p>For the fog I wanted interactable fluid physics, <br>
+                                For this I tested out multiple techniques, <br>starting with basic stam fluids on a
+                                grid. <br>Eventually I settled on using PIC fluid physics
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-alt">
+                <section class="section-alt">
+                    <div class="container article-content">
+                        <div class="project-row">
+                            <div class="text">
+                                <h2 id="details">Research | Fog Rendering</h2>
+                                <p>Since performance was a main concern since our lighting is very dynamic (and thus
+                                    expensive). <br>The fog could not take up much of the frame time.<br>So for
+                                    rendering I settled on a particle based approuch since I already have PIC
+                                    particles.<br>Per (visible)particle I render to a mask that is used to mask a depth
+                                    based fog, <br>This mask drawing has a lot of control for making the fog merge and
+                                    have more detail. This makes it so its not too obvious that its particles without
+                                    the heavy performance of marching the fog </p>
+                            </div>
+
+
+                            <div class="media" role="region">
+                                <img src="../media/images/projects/resonance/fog.gif" alt="Screenshot">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <section class="section">
+                    <div class="container article-content">
+                        <div class="project-row">
+                            <div class="text">
+                                <h2>Fog of war | Visibility masking</h2>
+                                <p>Our designers asked me if it would be feasable to have a fog of war system, <br>I
+                                    think it was so I implemented a fog of war system, which shadows visibility behind
+                                    walls.<br>
+                                    Because of the limited time I opted for a simple solution that requires no extra level design work. <br><br>
+                                    
+                                    I shoot rays in a circle that try to search for corners, <br>
+                                    With the result of that I draw a screen space mask for visibility.<br>
+                                    I then do a lot of processing and masking to make sure walls still show up considering our special perspective.
+                                </p>
+                            </div>
+                            <div class="media">
+                                <img src="../media/images/projects/aluminium/water.gif" alt="Water in game">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+            <section class="section-alt">
+                <section class="section-alt">
+                    <div class="container article-content">
+                        <div class="project-row media-left">
+                            <div class="media" role="region">
+                                <img src="../media/images/projects/resonance/fog.gif" alt="Screenshot">
+                            </div>
+                            <div class="text">
+                                <h2 id="details">Gameplay</h2>
+                                <p>I also worked on a lot of the gameplay systems for this project.<br>
+                                The main one being the main mechanic of telekineses,<br>The player had to be able to lift a lot of items and shoot them using a radial or a precise attack.<br>Since this was a design heavy feature I had a lot of communication and made sure to make things as tweakable as possible and have good (debug)visualisation</p>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </section>
+
+
+                <section class="section">
+
+                    <div class="container article-content">
+                        <div class="project-special">
+                            <div class="text">
+                                <h2 id="details">Gameplay trailer</h2>
+                            </div>
+                            <iframe width="832" height="389" src="https://www.youtube.com/embed/fIsdJDGlTiA"
+                                title="Resonance Trailer" frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+                        </div>
+                    </div>
+                    <div class="article-related" style="text-align:center; margin-top:1.5rem;">
+                        <a class="btn btn-primary" href="/projects.html" aria-label="Back to articles">Back to
+                            Projects</a>
+                    </div>
+                </section>
+                </div>
+            </section>
+    </main>
+
+    <script src="/includes/load-footer.js"></script>
+</body>
+
+</html>
