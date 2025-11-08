@@ -283,6 +283,38 @@ main {
     }
 }
 
+.section:has(> .award) {
+    /* make the section a positioning context only when it contains an award */
+    position: relative;
+}
+
+.award {
+    position: absolute;
+    right: 5%;
+    bottom: 0;
+    width: 160px;
+    max-width: 10%;
+    z-index: 6;
+    pointer-events: none; /* decorative only */
+    filter: drop-shadow(0 6px 18px rgba(2,6,23,0.45));
+}
+
+@media (max-width: 800px) {
+    /* On small screens keep the award in-flow so it doesn't overlap content */
+    .section:has(> .award) {
+        position: static;
+    }
+    .award {
+        position: static;
+        display: block;
+        margin: 1rem auto 0 auto;
+        width: 120px;
+        max-width: 40%;
+        filter: none;
+        pointer-events: auto;
+    }
+}
+
 
 .media-scroll {
     margin-top: 1rem;

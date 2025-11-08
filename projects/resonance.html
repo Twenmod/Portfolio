@@ -23,7 +23,6 @@
     <main>
         <section class="hero container projects-hero">
             <div class="container">
-                <h1>PAGE WORK IN PROGRESS</h1>
                 <h1>Resonance</h1>
                 <p class="lead">Multi disciplinary team project in UE5</p>
 
@@ -60,9 +59,9 @@
                     </div>
                 </div>
             </div>
+            <img class="award" src="../media/images/projects/resonance/nominated.png" alt="Nomination">
         </section>
 
-        <section class="section-alt">
             <section class="section-alt">
                 <div class="container article-content">
                     <div class="project-row">
@@ -91,23 +90,23 @@
 
             <section class="section">
                 <div class="container article-content">
-                    <div class="project-row media-left">
-                        <div class="media">
-                            <img src="../media/images/projects/aluminium/particlesingame.gif" alt="Particles in game">
-                            <img src="../media/images/projects/aluminium/particlesengine.gif" alt="Particles in engine">
-                        </div>
+                    <div class="project-special">
                         <div class="text">
                             <h2>Research | Fluid physics</h2>
                             <p>For the fog I wanted interactable fluid physics, <br>
                                 For this I tested out multiple techniques, <br>starting with basic stam fluids on a
-                                grid. <br>Eventually I settled on using PIC fluid physics
+                                grid. <br>Eventually I settled on using FLIP fluid physics
                             </p>
+                        </div>
+                        <div class="media media-scroll">
+                            <div><img src="../media/images/projects/resonance/stam.gif" alt="Stam fluid sim">
+                            <h6>Original Stam fluid prototype</h6></div>
+                            <div><img src="../media/images/projects/resonance/flipdebug.gif" alt="Final FLIP fluid sim">
+                            <h6>Final FLIP fluid simulation with debug rendering</h6></div>
                         </div>
                     </div>
                 </div>
             </section>
-
-            <section class="section-alt">
                 <section class="section-alt">
                     <div class="container article-content">
                         <div class="project-row">
@@ -115,8 +114,7 @@
                                 <h2 id="details">Research | Fog Rendering</h2>
                                 <p>Since performance was a main concern since our lighting is very dynamic (and thus
                                     expensive). <br>The fog could not take up much of the frame time.<br>So for
-                                    rendering I settled on a particle based approuch since I already have PIC
-                                    particles.<br>Per (visible)particle I render to a mask that is used to mask a depth
+                                    rendering I settled on a particle based approuch since I already have particles for the simulation.<br>Per (visible)particle I render to a mask that is used to mask a depth
                                     based fog, <br>This mask drawing has a lot of control for making the fog merge and
                                     have more detail. This makes it so its not too obvious that its particles without
                                     the heavy performance of marching the fog </p>
@@ -133,7 +131,12 @@
 
                 <section class="section">
                     <div class="container article-content">
-                        <div class="project-row">
+                        <div class="project-row media-left">
+                            <div class="media">
+                                <img src="../media/images/projects/resonance/warray.gif" alt="Visibility rays">
+                                                                <img src="../media/images/projects/resonance/levelwar.gif" alt="Visibility rays">
+
+                            </div>
                             <div class="text">
                                 <h2>Fog of war | Visibility masking</h2>
                                 <p>Our designers asked me if it would be feasable to have a fog of war system, <br>I
@@ -146,20 +149,15 @@
                                     I then do a lot of processing and masking to make sure walls still show up considering our special perspective.
                                 </p>
                             </div>
-                            <div class="media">
-                                <img src="../media/images/projects/aluminium/water.gif" alt="Water in game">
-                            </div>
                         </div>
                     </div>
                 </section>
 
-
-            <section class="section-alt">
                 <section class="section-alt">
                     <div class="container article-content">
                         <div class="project-row media-left">
                             <div class="media" role="region">
-                                <img src="../media/images/projects/resonance/fog.gif" alt="Screenshot">
+                                <img src="../media/images/projects/resonance/gameplay.gif" alt="Screenshot">
                             </div>
                             <div class="text">
                                 <h2 id="details">Gameplay</h2>
@@ -174,7 +172,6 @@
 
 
                 <section class="section">
-
                     <div class="container article-content">
                         <div class="project-special">
                             <div class="text">
