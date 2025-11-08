@@ -360,7 +360,8 @@ main {
 }
 
 .project-special .media img,
-.project-special img {
+.project-special img,
+.project-special video  {
 
     width: 100%;
     max-width: 100%;

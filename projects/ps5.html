@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>GLTF Viewer</title>
+    <link rel="stylesheet" href="../styles/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a class="brand" href="/index.html">Jack Tollenaar</a>
+            <nav class="main-nav">
+                <a href="/index.html">Home</a>
+                <a href="/projects.html" aria-current="page">Projects</a>
+                <a href="/articles.html">Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>PBR GLTF Viewer</h1>
+                <p class="lead">A GLTF viewer running on PlayStation 5</p>
+
+            </div>
+        </section>
+
+
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-row">
+                    <div class="text">
+                        <div class="project-meta-row">
+                            <p class="project-meta">Role | Rendering</p>
+                            <div class="project-grade">Grade: <strong>?/100</strong></div>
+                        </div>
+                        <h2>Overview</h2>
+                        <p>For BUAS Y2 block A, I had to create a PBR renderer on the PlayStation 5.<br><br>
+                            A main part of this project of course was working with proprietary hardware and APIs,<br>Due
+                            to that I cannot share too many details of this project here.<br><br>
+                            I will highlight some of the features I implemented below.
+                        </p>
+                    </div>
+                    <div class="media">
+                        <img src="../media/images/projects/ps5/helmet.png" alt="The team">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">PBR</h2>
+                        <p>I implemented PBR in line with the GLTF specifications.<br>
+                            This includes support for multiple lights and image based lighting.
+                        </p>
+                    </div>
+
+
+                    <div class="media" role="region" aria-label="PBR material gallery">
+                        <img src="../media/images/projects/ps5/helmet2.png" alt="Flight helmet">
+                        <img src="../media/images/projects/ps5/helmet3.png" alt="Damaged helmet">
+                        <img src="../media/images/projects/ps5/sponza.png" alt="Sponza">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container article-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">Transmission</h2>
+                        <p>I also implemented transmission in my renderer.<br>
+                            For this I implemented the paper <a
+                                href="https://cwyman.org/papers/sig05_approxISRefr.pdf">"An Approximate Image-Space
+                                Approach for Interactive Refraction" by Chris Wyman</a> <br>
+                            This involves rendering transparent backfaces to a separate buffer and then using that to
+                            refract the opaque pass more accurately.<br>
+                            This allows for rendering speculars of the backside and accurate depth base attenuation.
+                        </p>
+                    </div>
+
+
+                    <div class="media" role="region" aria-label="PBR material gallery">
+                        <img src="../media/images/projects/ps5/dragon.png" alt="Dragon">
+                        <img src="../media/images/projects/ps5/card.png" alt="A beautiful game">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">Reflection probes</h2>
+                        <p>For more accurate lighting and reflections I implemented reflection probes.<br>
+                            These capture the environment at specific locations for accurate sampling and static global
+                            illumination.<br>
+                            My implementation captures the maps by rendering the scene using only distant IBL and direct
+                            lighting.
+                    </div>
+                    <video class="media" controls>
+                        <source src="../media/images/projects/ps5/lightprobes.mp4" type="video/mp4">
+                    </video>
+                    <video class="media" controls>
+                        <source src="../media/images/projects/ps5/probes2.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <div class="project-special">
+                    <div class="text">
+                        <h2 id="details">Bloom & Postprocessing</h2>
+                        <p>To improve the quality and impact of light I implemented bloom and tonemapping into my renderer.<br>
+                        I render in HDR and apply physically based bloom using compute shaders.</p>
+                    </div>
+                    <video class="media" controls>
+                        <source src="../media/images/projects/ps5/bloom.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/includes/load-footer.js"></script>
+</body>
+
+</html>
