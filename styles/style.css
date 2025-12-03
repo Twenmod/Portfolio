@@ -79,6 +79,7 @@ main {
     backdrop-filter: blur(4px);
     transition: box-shadow 180ms ease, background-color 180ms ease;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+    max-width: 100%;
 }
 
 .site-header .container {
@@ -97,6 +98,29 @@ main {
     gap: .6rem;
     
 }
+@media (max-width: 800px) {
+.brand {
+    display: inline;
+    text-wrap: nowrap;
+    font-size: 3vw !important;
+}
+
+    .main-nav {
+            display: flex;
+    align-items: center;    
+    margin-left: 15px;
+    }
+    .main-nav a {
+            margin-left: 0rem !important;
+    }   
+
+}
+@media (max-width: 380px) {
+        .main-nav a {
+
+            font-size: 3vw;
+        }
+    }
 
 .main-nav a {
     
