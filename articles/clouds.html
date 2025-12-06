@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Volumetric Cloud Rendering — Jack Tollenaar</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+        .articles-hero {
+            background: none;
+            padding: 3.5rem 0 1rem;
+            width: 100%;
+            max-width: 100% !important;
+        }
+
+        .articles-hero .container h1 {
+            margin: 0;
+            font-size: 2rem;
+            line-height: 1.15;
+        }
+
+
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow, 0 10px 30px rgba(10, 10, 10, .08));
+            margin: 1rem 0;
+            display: block;
+        }
+
+            .article-content ul,
+            .article-content li {
+                color: var(--muted);
+            }
+
+            .article-content ul {
+                margin-left: 1.25rem;
+                line-height: 1.6;
+            }
+
+        @media (max-width:700px) {
+            .articles-hero .container h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/glsl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/hlsl.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.hljs) return;
+
+            const markerFinder = /<changed>/i;   
+            const markerFinderG = /<changed>/gi; 
+
+            document.querySelectorAll('pre.code code').forEach(codeEl => {
+                const original = codeEl.textContent || '';
+                const textLines = original.split('\n');
+                const toHighlight = textLines.map(l => markerFinder.test(l));
+
+                const tokenized = original.replace(markerFinderG, '');
+                codeEl.textContent = tokenized;
+
+                try { hljs.highlightElement(codeEl); } catch (e) { /* ignore highlight errors */ }
+
+                const renderedLines = (codeEl.innerHTML || '').split('\n');
+
+                for (let i = 0; i < renderedLines.length; i++) {
+                    if (toHighlight[i]) {
+                        renderedLines[i] = renderedLines[i].replace(/&lt;changed&gt;/gi, '');
+                        renderedLines[i] = renderedLines[i].replace(/<\/?changed[^>]*>/gi, '');
+                        renderedLines[i] = '<span class="changed-line">' + renderedLines[i] + '</span>';
+                    }
+                }
+
+                codeEl.innerHTML = renderedLines.join('\n');
+                codeEl.innerHTML = codeEl.innerHTML.replace(/\b(float3|float4|half4|float2|float|unity_ObjectToWorld|frag|Hash)\b/g, '<span class="hljs-type">$1</span>');
+            });
+        });
+    </script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="/index.html">Jack Tollenaar</a>
+      <nav class="main-nav">
+        <a href="/index.html" >Home</a>
+        <a href="/projects.html">Projects</a>
+        <a href="/articles.html" aria-current="page">Articles</a>
+      </nav>
+    </div>
+  </header>
+    <main>
+        <section class="hero container articles-hero">
+            <div class="container">
+                <h1>Volumetric Cloud Rendering</h1>
+                <p class="muted">Rendering of volumetric clouds in real-time</p>
+    <script src="/includes/load-footer.js"></script>
+    <script src="/includes/load-toc.js"></script>
+            </div>
+        </section>
+
+        <section class="toc-section">
+        <section class="section">
+            <div class="container article-content">
+                <h2 id="idea">Idea</h2>
+                <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
+                <p>When putting meshes/objects together in games the seam between them can look very jarring.
+                    This is especially the case with objects used for terrain.
+                    By merging and blending edges together seams look way smoother and more realistic.</p>              
+            </div>
+        </section>
+                <section class="section-alt">
+            <div class="container article-content">
+                <h2 id="Choosing">Choosing a structure</h2>
+                <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
+                <p>Most important choise is choosing a structure <br>
+                Depends on game i.e. inside clouds, cloud masked, dynamics</p>              
+            </div>
+        </section>
+    </section>
+    </main>
+</body>
