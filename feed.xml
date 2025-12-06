@@ -12,7 +12,7 @@
       <title>Mesh seam blending</title>
       <link>https://jacktollenaar.com/articles/meshblending.html</link>
       <guid>https://jacktollenaar.com/articles/meshblending.html</guid>
-      <description>Smooth transitioning of mesh seams as a post process</description>
+      <description><![CDATA[Smooth transitioning of mesh seams as a post process]]></description>
       <content:encoded><![CDATA[
         <img src="https://www.jacktollenaar.top/media/images/seamblend-card.png" alt="Mesh seam blending" style="max-width: 100%; height: auto;" />
         <p>A Guide to implementing blending of mesh seams as a post process</p>
@@ -25,7 +25,7 @@
       <title>Basic Denoising</title>
       <link>https://jacktollenaar.com/articles/basic-denoising.html</link>
       <guid>https://jacktollenaar.com/articles/basic-denoising.html</guid>
-      <description>Weighted gaussian blurs as denoising for raytracers</description>
+      <description><![CDATA[Weighted gaussian blurs as denoising for raytracers]]></description>
       <content:encoded><![CDATA[
         <img src="https://www.jacktollenaar.top/media/images/denoising-card.png" alt="Basic Denoising" style="max-width: 100%; height: auto;" />
         <p>A simple guide to implementing basic denoising techniques for raytraced images using weighted gaussian blur strategies.</p>
