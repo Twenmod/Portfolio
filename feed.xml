@@ -14,8 +14,8 @@
       <guid>https://jacktollenaar.com/articles/meshblending.html</guid>
       <description>Smooth transitioning of mesh seams as a post process</description>
       <content:encoded><![CDATA[
-        <p>When putting meshes/objects together in games, the seam between them can look very jarring. By merging and blending edges together, seams look way smoother and more realistic.</p>
-        <p>This article covers implementing smoothing of mesh seams as a post process.</p>
+        <p>A Guide to implementing blending of mesh seams as a post process</p>
+        <p>Using a new technique that mirrors pixels accross seams to smooth out hard edges.</p>
       ]]></content:encoded>
       <pubDate>Sun, 27 Jul 2025 00:00:00 +0000</pubDate>
     </item>
