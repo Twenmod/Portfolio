@@ -793,3 +793,8 @@ code {
     color: #6a9955 !important;
     font-style: italic;
 }
+
+.toc-section {
+    padding:0;
+    border-top: 0;
+}

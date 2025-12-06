@@ -8,21 +8,34 @@
   }
 
   function buildTOC(tocEl){
-    var container = document.querySelector('.article-content');
+    var _tocRevealed = false;
+    // Prefer an explicit `.toc-section` (used on projects) so we collect headings
+    // from multiple `.article-content` blocks. Fallback to a single `.article-content`.
+    var container = document.querySelector('.toc-section') || document.querySelector('.article-content');
     if (!container) return;
 
-    // place the toc inside the nearest section so sticky is bounded by that section
-    var section = container.closest('.section') || container.parentElement;
+    // place the toc inside the nearest section-like container so sticky is bounded by that section
+    var section = container.closest('.toc-section') || container.closest('.section') || container.parentElement;
 
-    // collect headings we want in the TOC
+    // collect headings we want in the TOC (scan the chosen container for all h2/h3)
     var headings = container.querySelectorAll('h2, h3');
     if (!headings.length) return;
 
     var list = tocEl.querySelector('.toc-list');
     list.innerHTML = '';
 
+    // ensure unique ids (some pages reuse the same id attribute) by tracking used ids
+    var usedIds = Object.create(null);
     headings.forEach(function(h){
-      if (!h.id) h.id = slugify(h.textContent || h.innerText || 'heading');
+      var base = (h.id && h.id.trim()) ? h.id.trim() : slugify(h.textContent || h.innerText || 'heading');
+      var uid = base;
+      var i = 1;
+      while (usedIds[uid]) {
+        uid = base + '-' + i;
+        i++;
+      }
+      if (!h.id || h.id !== uid) h.id = uid;
+      usedIds[uid] = true;
       var li = document.createElement('li');
       li.className = 'toc-item toc-' + (h.tagName || '').toLowerCase();
       var a = document.createElement('a');
@@ -69,12 +82,19 @@
       // articleRect.left and sectionRect.left are viewport-based; subtracting gives offsets relative to section
       var leftRelativeToSection = (articleRect.left - sectionRect.left) - tocRect.width - gap; // for position:absolute inside section
       var fixedLeft = articleRect.left - tocRect.width - gap; // for position:fixed (viewport coords)
+      // clamp to viewport so the TOC doesn't get positioned off-screen
+      var minLeft = 12;
+      var maxLeft = Math.max(window.innerWidth - tocRect.width - 12, minLeft);
+      if (!isFinite(fixedLeft) || fixedLeft < minLeft) fixedLeft = minLeft;
+      if (fixedLeft > maxLeft) fixedLeft = maxLeft;
+      if (!isFinite(leftRelativeToSection) || leftRelativeToSection < minLeft) leftRelativeToSection = minLeft;
+      if (leftRelativeToSection > maxLeft) leftRelativeToSection = maxLeft;
 
       // decide state
-      if (window.scrollY + fixedTop*0.5 <= sectionTopPage) {
+      if (window.scrollY + fixedTop*0.75 <= sectionTopPage) {
         // stick to top of section (absolute)
         tocEl.style.position = 'absolute';
-        tocEl.style.top = Math.max(container.offsetTop, 0) + 'px';
+        tocEl.style.top = Math.max(section.offsetTop+fixedTop*0.25, 0) + 'px';
         tocEl.style.left = (leftRelativeToSection) + 'px';
       } else if (window.scrollY + fixedTop + tocHeight >= sectionBottomPage) {
         // stick to bottom of section
@@ -90,6 +110,9 @@
         tocEl.style.left = fixedLeft + 'px';
       }
 
+      // ensure the TOC is visible (sometimes styles or positioning can hide it)
+      tocEl.style.display = 'block';
+
       // scrollspy: highlight current section
       var fromTop = window.scrollY + headerOffset;
       var current = headings[0];
@@ -104,8 +127,21 @@
 
     window.addEventListener('scroll', updateScrollState, {passive:true});
     window.addEventListener('resize', function(){ recalc(); updateScrollState(); });
-    // initial
-    setTimeout(function(){ recalc(); updateScrollState(); }, 120);
+    // initial: run once immediately, then again shortly after to stabilise measurements
+    recalc(); updateScrollState();
+    setTimeout(function(){ recalc(); updateScrollState();
+      // reveal TOC after we've positioned it (only once)
+      try {
+        if (!_tocRevealed) {
+          _tocRevealed = true;
+          tocEl.style.visibility = 'visible';
+          tocEl.style.opacity = '1';
+          // remove the transition after it finishes so subsequent position updates don't animate
+          var _cleanup = function(){ try{ tocEl.style.transition = ''; }catch(e){}; tocEl.removeEventListener('transitionend', _cleanup); };
+          tocEl.addEventListener('transitionend', _cleanup);
+        }
+      } catch(e){}
+    }, 120);
   }
 
   function loadTOC(){
@@ -118,6 +154,11 @@
       container.innerHTML = html;
       var tocEl = container.querySelector('#article-toc') || container.firstElementChild;
       if (!tocEl) return;
+
+      // hide initially to avoid a flash at top-left while measurements occur
+      tocEl.style.visibility = 'hidden';
+      tocEl.style.opacity = '0';
+      tocEl.style.transition = 'opacity 160ms linear, visibility 0s linear 300ms';
 
       document.body.appendChild(tocEl);
       buildTOC(tocEl);
