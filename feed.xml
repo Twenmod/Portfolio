@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Jack Tollenaar - Articles</title>
+    <link>https://jacktollenaar.com</link>
+    <description>Articles on graphics, rendering, and game development</description>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 06 Dec 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://jacktollenaar.com/feed.xml" rel="self" type="application/rss+xml" xmlns:atom="http://www.w3.org/2005/Atom"/>
+
+    <item>
+      <title>Mesh seam blending</title>
+      <link>https://jacktollenaar.com/articles/meshblending.html</link>
+      <guid>https://jacktollenaar.com/articles/meshblending.html</guid>
+      <description>Smooth transitioning of mesh seams as a post process</description>
+      <content:encoded><![CDATA[
+        <p>When putting meshes/objects together in games, the seam between them can look very jarring. By merging and blending edges together, seams look way smoother and more realistic.</p>
+        <p>This article covers implementing smoothing of mesh seams as a post process.</p>
+      ]]></content:encoded>
+      <pubDate>Sun, 27 Jul 2025 00:00:00 +0000</pubDate>
+    </item>
+
+    <item>
+      <title>Basic Denoising</title>
+      <link>https://jacktollenaar.com/articles/basic-denoising.html</link>
+      <guid>https://jacktollenaar.com/articles/basic-denoising.html</guid>
+      <description>Weighted gaussian blurs as denoising for raytracers</description>
+      <content:encoded><![CDATA[
+        <p>A simple guide to implementing basic denoising techniques for raytraced images using weighted gaussian blur strategies.</p>
+      ]]></content:encoded>
+      <pubDate>Thu, 13 Mar, 2025 00:00:00 +0000</pubDate>
+    </item>
+
+  </channel>
+</rss>
