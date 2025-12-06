@@ -683,6 +683,18 @@ p,
     align-self: start;
     transition: none;
 }
+
+@media (max-width: 1450px) {
+    .article-toc {
+        width: 150px !important;
+    }
+}
+@media (max-width: 1330px) {
+    .article-toc {
+        display: none !important;
+    }
+}
+
 .article-toc .toc-inner h3 {
     margin: 0 0 .5rem 0;
     font-size: .95rem;
