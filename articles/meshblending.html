@@ -114,7 +114,7 @@
                 <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
                 <h2 id="idea">Idea</h2>
                 <p>When putting meshes/objects together in games the seam between them can look very jarring.
-                    This is especially the case with objects used for terrain.
+                    This is especially the case with objects used for terrain. <br>
                     By merging and blending edges together seams look way smoother and more realistic.</p>
                 <img src="../media/images/articles/blending/idea.gif" alt="Preview">
                 <p>But how do we blend objects together in a game engine?
@@ -134,7 +134,7 @@
                 <p>This technique relies on knowing where the seams between meshes are, so we need a system to be able
                     to detect this. <br>
                     We could rely on g-buffer info such as checking if the normals of the surface changes but that would
-                    also smooth intended seams on meshes themselves.
+                    also smooth intended seams on meshes themselves. <br>
                     The technique I used is generating a ID for every object, there are a lot of ways to do this since i
                     am implementing this in Unity the simplest way is adding a render pass.
                 </p>
