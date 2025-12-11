@@ -4,8 +4,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="A guide on real time mesh blending as a post processing effect in games.">
     <title>Mesh seam smoothing &amp; blending — Jack Tollenaar</title>
-    <link rel="stylesheet" href="../styles/style.css">
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/png" href="media/images/favicon.png">
     <style>
         .articles-hero {
             background: none;
@@ -90,7 +92,7 @@
 <body>
   <header class="site-header">
     <div class="container">
-      <a class="brand" href="/index.html">Jack Tollenaar</a>
+      <a class="brand" href="/index.html"><img src="../media/images/iconhigh.png" alt="" class="brand-icon" style="height: 2em; vertical-align: middle; margin-right: 1.5rem; border-radius: 5px;">Jack Tollenaar</a>
       <nav class="main-nav">
         <a href="/index.html" >Home</a>
         <a href="/projects.html">Projects</a>
@@ -114,7 +116,7 @@
                 <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
                 <h2 id="idea">Idea</h2>
                 <p>When putting meshes/objects together in games the seam between them can look very jarring.
-                    This is especially the case with objects used for terrain.
+                    This is especially the case with objects used for terrain. <br>
                     By merging and blending edges together seams look way smoother and more realistic.</p>
                 <img src="../media/images/articles/blending/idea.gif" alt="Preview">
                 <p>But how do we blend objects together in a game engine?
@@ -134,7 +136,7 @@
                 <p>This technique relies on knowing where the seams between meshes are, so we need a system to be able
                     to detect this. <br>
                     We could rely on g-buffer info such as checking if the normals of the surface changes but that would
-                    also smooth intended seams on meshes themselves.
+                    also smooth intended seams on meshes themselves. <br>
                     The technique I used is generating a ID for every object, there are a lot of ways to do this since i
                     am implementing this in Unity the simplest way is adding a render pass.
                 </p>
@@ -352,7 +354,27 @@ half4 Frag(Varyings input) : SV_Target
                 <div class="article-related" style="text-align:center; margin-top:1.5rem;">
                     <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back to Articles</a>
                 </div>
+            </section></section>
+            <section class="section-alt">
+                 <div class="container article-content">
+                     <script src="https://giscus.app/client.js"
+                     data-repo="Twenmod/Portfolio"
+                     data-repo-id="R_kgDOQMtnaw"
+                     data-category="Announcements"
+                     data-category-id="DIC_kwDOQMtna84CzeLr"
+                     data-mapping="url"
+                     data-strict="0"
+                     data-reactions-enabled="1"
+                     data-emit-metadata="0"
+                     data-input-position="top"
+                     data-theme="catppuccin_mocha"
+                     data-lang="en"
+                     data-loading="lazy"
+                     crossorigin="anonymous"
+                     async>
+</script>
+                    </div>
+            </section>
             </div>
-        </section></section>
     </main>
 </body>

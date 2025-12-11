@@ -1,8 +1,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="Articles on graphics programming, rendering techniques, and game development. Topics include denoising, mesh blending, and post-processing effects.">
     <title>Articles — Jack Tollenaar</title>
     <link rel="stylesheet" href="styles/style.css">
+    <link rel="icon" type="image/png" href="media/images/favicon.png">
+    <link rel="alternate" type="application/rss+xml" title="Jack Tollenaar - Articles" href="/feed.xml">
+
     <style>
         .articles-hero {
             background: var(--bg);
@@ -80,7 +84,7 @@
 </head>
   <header class="site-header">
     <div class="container">
-      <a class="brand" href="/index.html">Jack Tollenaar</a>
+      <a class="brand" href="/index.html"><img src="media/images/iconhigh.png" alt="" class="brand-icon" style="height: 2em; vertical-align: middle; margin-right: 1.5rem; border-radius: 5px;">Jack Tollenaar</a>
       <nav class="main-nav">
         <a href="/index.html" >Home</a>
         <a href="/projects.html">Projects</a>
@@ -91,10 +95,11 @@
 
 <body>
     <main>
-        <section class="hero container articles-hero">
+        <section class="hero container articles-hero" style="position: relative;">
             <div class="container">
                 <h1>Articles</h1>
             </div>
+            <button class="btn" style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 50%; transform: translateY(-50%); cursor: pointer;" onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'Subscribe to RSS', 2000);">Subscribe to RSS</button>
         </section>
 
         <section class="section">
