@@ -316,9 +316,10 @@ half4 Frag(Varyings input) : SV_Target
     float maxSearchDistance = (KernelRadius)/sceneDepth; 
 
     // We subtract 0.5 to make the transition line up on the seam
+    // you can tweak this 0.5 if it does not line up perfectly.
     float spatialWeight = saturate(0.5 - sqrt(minimumDistance ) / maxSearchDistance); &lt;changed&gt;
     float depthWeight = saturate(1.0 - depthDiff / _DepthFalloff*_KernelRadius); &lt;changed&gt;
-    float totalWeight = (depthWeight+spatialWeight)*0.5; &lt;changed&gt;
+    float totalWeight = depthWeight*spatialWeight; &lt;changed&gt;
     return lerp(sceneColor, otherColor, totalWeight);
 }
 </code></pre>
