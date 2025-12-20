@@ -113,14 +113,22 @@
             <div class="container article-content">
                 <h2 id="idea">Idea</h2>
                 <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
-                <p>.</p>              
+                <p>There are a lot of technique s for rendering volumetrics in games,<br>
+In this article I'll talk about implementing the voxel based technique from Nubis.</p>              
             </div>
         </section>
         <section class="section-alt">
             <div class="container article-content">
-                <h2 id="Choosing">Choosing a structure</h2>
-                <p>Most important choise is choosing a structure <br>
-                Depends on game i.e. inside clouds, cloud masked, dynamics</p>              
+                <h2>Basic marching</h2>
+                <p>Most volumetric renderers rely on Ray marching, 
+since it's a simple and relatively efficient way to sample heterogeneous volumes (volumes with non constant density). 
+We'll also be using this as the basis for rendering our clouds. I'll go over the technique briefly but recommend THISSSSSS scratchapixel article for a more in depth look.
+
+What Ray marching tries to achieve is finding the total density and lighting of a volume along a Ray.
+Since getting the exact result would be impossible to get in real time we approximate it by taking a set amount of steps/samples.
+
+For every step along the Ray we sample the density of the volume.
+</p>              
             </div>
         </section>
         <section class="section">
