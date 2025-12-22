@@ -114,26 +114,102 @@
                 <h2 id="idea">Idea</h2>
                 <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
                 <p>There are a lot of technique s for rendering volumetrics in games,<br>
-In this article I'll talk about implementing the voxel based technique from Nubis.</p>              
+In this article I'll cover specifically clouds,<br> 
+and more specifically implementing a voxel based technique similar/based from the one talked about by Nubis.</p>              
             </div>
         </section>
         <section class="section-alt">
             <div class="container article-content">
                 <h2>Basic marching</h2>
-                <p>Most volumetric renderers rely on Ray marching, 
-since it's a simple and relatively efficient way to sample heterogeneous volumes (volumes with non constant density). 
-We'll also be using this as the basis for rendering our clouds. I'll go over the technique briefly but recommend THISSSSSS scratchapixel article for a more in depth look.
+                <p>Most volumetric renderers rely on Ray marching,
+since it's a simple and relatively efficient way to sample heterogeneous volumes (volumes with non constant density). <br>
+
+We'll also be using this as the basis for rendering our clouds. I'll go over the technique briefly but recommend <a href="https://www.scratchapixel.com/lessons/3d-basic-rendering/volume-rendering-for-developers/ray-marching-algorithm.html">this</a> scratchapixel article for a more in depth look.
+<br>
+                </p>
+                <details>
+                    <summary>Basics explained</summary>
+<p>
 
 What Ray marching tries to achieve is finding the total density and lighting of a volume along a Ray.
 Since getting the exact result would be impossible to get in real time we approximate it by taking a set amount of steps/samples.
+<br>
+<p style="opacity: 0.5;">The march along the ray, number shows accumulated density</p>
+<img src="../media/images/articles/clouds/marching.png" alt="Ray marching illustration">
+For every step along the Ray we sample the density of the volume and accumulate the total along the ray.
+<br>
+Since clouds can block light going through, we use this density to calculate how much light can pass through this volume, i.e. how transmissive it is.<br>
+<br>
+Clouds do not only block light comming through but also get lighted themselves, so we also calculate the lighting at every sample.<br>
+Keeping in mind that we need to take into account how much light is blocked by previous samples.<br>
+<br>
+                <pre class="code"><code class="language-glsl"># Basic accumulation
+# GLSL:	
 
-For every step along the Ray we sample the density of the volume.
+float3 marchVolume(float3 rayOrigin, float3 rayDir, float3 backgroundColor) {
+    float stepSize = MAX_DISTANCE / NUM_STEPS;
+    float3 pos = rayOrigin;
+    float totalDensity = 0.0;
+    float3 light = float3(0.0, 0.0, 0.0);
+    //Step along the ray
+    for (int i = 0; i < NUM_STEPS; i++) {
+        pos += rayDir * stepSize;
+        float density = sampleDensity(pos);
+        //Important to scale by stepsize since we're only sampling a single point
+        totalDensity += density * stepSize;
+        //Calculate how much light is blocked using Beer's law
+        float transmissance = exp(-totalDensity);
+        //Calculate lighting at this point, scale by amount blocked and density of this point.
+        light += CalculateLighting() * transmissance * density * stepSize;
+    }
+    //The background behind the cloud is also passed light, so we also add it to the final lighting
+    light += backgroundColor * transmissance;
+    return light;
+}
+</code></pre>
+
+To calculate the light coming in at a point, we need to account for that the light also passed through the volume on the way, and thus was blocked by it
+<br>
+To do this we do a secondary march towards the light, and also calculate the transmissance for it.
+<p style="opacity: 0.5;">Extra rays towards the light source, using transmissance calculated along the way</p>
+<img src="../media/images/articles/clouds/marchinglight.png" alt="Ray marching illustration">
+If for now we calculate our density using distance for a sphere.
+                <pre class="code"><code class="language-glsl"># Lighting and example density
+# GLSL:
+
+float SampleDensity(float3 pos) {
+    float baseDensity = 10;
+    float sphereRadius = 3;
+    float3 sphereOffset = _sample; // example sphere at 0 0 0 
+    float distToSphereSquared = dot(sphereOffset, sphereOffset);
+    float profile = baseDensity * (1 - distToSphereSquared / sphereRadius);
+    return saturate(profile);
+}
+float3 CalculateLighting(float3 pos) {
+    float stepSize = MAX_LIGHT_DISTANCE / NUM_LIGHT_STEPS;
+    float totalDensity = 0.0;
+    float3 sample = pos;
+    //Step towards the light
+    for (int i = 0; i < NUM_LIGHT_STEPS; i++) {
+        sample += LIGHT_DIRECTION * stepSize;
+        float density = SampleDensity(sample);
+        totalDensity += density * stepSize;
+    }
+    float transmissance = exp(-totalDensity);
+    return LIGHT * transmissance;
+}
+</code></pre>
+using this you should you should get a simple foggy sphere.
+<img src="../media/images/articles/clouds/basic.png" alt="Ray marching basics">
+                </details>
+
+<p></p>
 </p>              
             </div>
         </section>
         <section class="section">
             <div class="container article-content">
-                <h2 id="Choosing">Basic marching</h2>
+                <h2 id="Choosing">Choosing a structure | Why voxels?</h2>
                 <p></p>              
             </div>
         </section>

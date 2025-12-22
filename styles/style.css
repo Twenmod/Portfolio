@@ -816,3 +816,51 @@ code {
     padding:0;
     border-top: 0;
 }
+
+.article-content details {
+    border-radius: var(--radius-medium);
+    
+    overflow: hidden;
+}
+
+
+.article-content details > summary {
+    list-style: none;
+    cursor: pointer;
+    display: block;
+    align-items: center;
+    padding: .75rem 1rem;
+    color: var(--text);
+    background: #201f2e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.article-content details > summary:hover {
+    background: #26253b;
+}
+
+.article-content details > summary:focus-visible {
+    outline: 2px solid rgba(79, 139, 249, 0.45);
+    outline-offset: 2px;
+}
+
+.article-content details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.article-content details > summary::before {
+    content: "▸";
+    display: inline-block;
+    color: var(--muted);
+    transform: translateY(-1px);
+    transition: transform .12s ease, color .12s ease;
+}
+
+.article-content details[open] > summary::before {
+    transform: rotate(90deg);
+    color: var(--accent);
+}
+
+.article-content details > *:not(summary) {
+    padding: 0.5rem;
+}
