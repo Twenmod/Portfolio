@@ -46,6 +46,17 @@
                 font-size: 1.5rem;
             }
         }
+
+        @media (min-width:600px) {
+            .info {
+                max-width: 600px !important;
+                }
+            }
+                                
+            .info {
+    box-shadow: none !important;
+}
+
     </style>
 
     
@@ -124,18 +135,18 @@ and more specifically implementing a voxel based technique similar/based from th
                 <p>Most volumetric renderers rely on Ray marching,
 since it's a simple and relatively efficient way to sample heterogeneous volumes (volumes with non constant density). <br>
 
-We'll also be using this as the basis for rendering our clouds. I'll go over the technique briefly but recommend <a href="https://www.scratchapixel.com/lessons/3d-basic-rendering/volume-rendering-for-developers/ray-marching-algorithm.html">this</a> scratchapixel article for a more in depth look.
+We'll also be using this as the basis for rendering our clouds. <br> If you're already familiar with the basics feel free to skip this section.
 <br>
                 </p>
                 <details>
-                    <summary>Basics explained</summary>
+                    <summary>Basic marching explained</summary>
 <p>
 
 What Ray marching tries to achieve is finding the total density and lighting of a volume along a Ray.
 Since getting the exact result would be impossible to get in real time we approximate it by taking a set amount of steps/samples.
 <br>
 <p style="opacity: 0.5;">The march along the ray, number shows accumulated density</p>
-<img src="../media/images/articles/clouds/marching.png" alt="Ray marching illustration">
+<img class="info" src="../media/images/articles/clouds/marching.png" alt="Ray marching illustration">
 For every step along the Ray we sample the density of the volume and accumulate the total along the ray.
 <br>
 Since clouds can block light going through, we use this density to calculate how much light can pass through this volume, i.e. how transmissive it is.<br>
@@ -172,7 +183,7 @@ To calculate the light coming in at a point, we need to account for that the lig
 <br>
 To do this we do a secondary march towards the light, and also calculate the transmissance for it.
 <p style="opacity: 0.5;">Extra rays towards the light source, using transmissance calculated along the way</p>
-<img src="../media/images/articles/clouds/marchinglight.png" alt="Ray marching illustration">
+<img class="info" src="../media/images/articles/clouds/marchinglight.png" alt="Ray marching illustration">
 If for now we calculate our density using distance for a sphere.
                 <pre class="code"><code class="language-glsl"># Lighting and example density
 # GLSL:
@@ -200,7 +211,7 @@ float3 CalculateLighting(float3 pos) {
 }
 </code></pre>
 using this you should you should get a simple foggy sphere.
-<img src="../media/images/articles/clouds/basic.png" alt="Ray marching basics">
+<img class="info" src="../media/images/articles/clouds/basic.png" alt="Ray marching basics">
                 </details>
 
 <p></p>
@@ -209,8 +220,39 @@ using this you should you should get a simple foggy sphere.
         </section>
         <section class="section">
             <div class="container article-content">
-                <h2 id="Choosing">Choosing a structure | Why voxels?</h2>
-                <p></p>              
+                <h2 id="Choosing">Choosing a structure</h2>
+                <p>
+Clouds arent just simple spheres, so we need a way to store the density of clouds in a 3d structure.<br>
+There are multiple ways to store this data and this is a important choice since there are different benefits/drawbacks to choosing a specific one.<br>
+<br>
+One commonly used technique is: <br>
+<b>2.5d Cloud maps</b> <br>
+By using multiple layers of 2D textures you can approximate the 3D clouds.<br>
+This is cheap to sample since its only 2D textures and allows to quickly get a full sky map,<br> 
+and even blend between different types of clouds.
+<br>
+However, there is not much control over the actual 3D look of the clouds, and doesnt look to good when going through the clouds.<br>
+<br>
+This technique can be great for a simpler background sky but I'll be choosing about a different way that allows for more versatility.  
+<br>
+<br>
+<b>Voxels</b> <br>
+A way to get over the drawbacks of 2.5D clouds is using voxels.<br>
+Voxels allow you to fully control the look of the clouds in a 3D structure<br>
+and works well for both background clouds and clouds you can go through.<br>
+<b>- Sparse</b> <br>
+It might seem good to store these voxels in a sparse structure, aka either storing only the voxels where there are actually clouds,<br>
+Or using a tree structure to have smaller voxels where there is more detail<br>
+<img class="info" src="../media/images/articles/clouds/data.png" alt="Sparse voxel structure illustration">
+This has a lot of benefits in memory usage allowing you to store significantly more detailed clouds.<br>
+Using bounding boxes around clouds also allows you to skip sampling empty space.<br>
+
+<b>- Dense</b> <br>
+However, storing voxels in a dense structure, thus having a fixed grid of voxels has some great benefits.<br>
+Sampling dense grids is faster due to not having to go through the indirection of going through the structure of a sparse grid.<br>
+The dense grid can also be used to store extra data such as caching and precomputing lighting, which would be harder to store/update in a sparse grid.<br>
+This increase of speed is however at the cost of having to reduce the resolution of the voxels due to the increased memory usage.<br>
+                </p>              
             </div>
         </section>
         <section class="section-alt">
