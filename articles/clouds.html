@@ -252,6 +252,16 @@ However, storing voxels in a dense structure, thus having a fixed grid of voxels
 Sampling dense grids is faster due to not having to go through the indirection of going through the structure of a sparse grid.<br>
 The dense grid can also be used to store extra data such as caching and precomputing lighting, which would be harder to store/update in a sparse grid.<br>
 This increase of speed is however at the cost of having to reduce the resolution of the voxels due to the increased memory usage.<br>
+<br>
+<b>Implementating</b><br>
+For this implementation I'll be going with a dense voxel grid.<br>
+For loading the voxel data, I recommend using OpenVDB, which loads sparse voxel data files and allows you to store these as dense grids.<br>
+This can then be loaded into a 3D texture and sampled in the raymarcher.<br>
+<a href="https://www.openvdb.org/">https://www.openvdb.org/</a>
+<p style="opacity: 0.5;">Sampling voxel data in our basic raymarcher from earlier:</p>
+<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Voxel sampling illustration">
+
+
                 </p>              
             </div>
         </section>
