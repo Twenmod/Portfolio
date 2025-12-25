@@ -52,7 +52,14 @@
                 max-width: 600px !important;
                 }
             }
-                                
+                
+        @media (min-width:400px) {
+            .info-small {
+                max-width: 400px !important;
+                }
+            }
+              
+
             .info {
     box-shadow: none !important;
 }
@@ -260,16 +267,90 @@ This can then be loaded into a 3D texture and sampled in the raymarcher.<br>
 <a href="https://www.openvdb.org/">https://www.openvdb.org/</a>
 <p style="opacity: 0.5;">Sampling voxel data in our basic raymarcher from earlier:</p>
 <img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Voxel sampling illustration">
-
-
                 </p>              
             </div>
+        </section>
+                <section class="section-alt">
+            <div class="container article-content">
+                <h2 id="Choosing">Shaping</h2>
+                    <p>Like just mentioned choosing a dense voxel structure limits us in resolution of the grid, <br>
+                        this means we lose a lot of finer detail in the shape of the clouds.<br>
+                        Luckily there is a way we can get around this.<br> 
+                        <br>
+                        What we will do is use a higher resolution 3D noise texture to add detail and erode the smooth low detail base shape.
+                    </p>              
+                    <p style="opacity: 0.5;">Low detail clouds</p>   
+                    <h3>Profile</h3>
+                    <p>Since we already have a base shape of the clouds we want to use, <br>
+                        we cannot just add detail randomly but have to keep the shape in mind.<br>
+                        Just multiplying the base shape with noise would not achieve the right look, since clouds have somewhat uniform density in the center.<br>
+                        <br>
+                        Instead we just want to erode/remove some of the density at the edges of our main shape. <br>
+                        To do this we use our base shape as a profile, and make it have a gradient density at the edges</p>     
+                        <p style="opacity: 0.5;">A 2d slice of the low resolution density profile</p>         
+                        <img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Cloud profile slice">
+        
+                        <h3>Remapping</h3>
+                <p>To erode only the edges of the profile, we use a remap function.<br>
+                It takes input with a range and transforms it to fit into a different range</p>
+                <img class="info-small" src="../media/images/articles/clouds/remap.png" alt="Remap function visualization">
+                <pre class="code"><code class="language-glsl"># Remap function
+
+float Remap(float value, float inputMin, float inputMax, float outputMin, float outputMax)
+{
+    return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
+}
+</code></pre>   
+<p>By using the value of a noise texture as the minimum input range, it erodes the edges of the profile while correctly preserving the density gradient.</p>
+<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Profile 2D slice with remapping">
+<h3>Noise Texture</h3>
+<p>For the noise texture itself we need noise that correctly resembles clouds.<br>
+    For this I use <a href="https://drive.google.com/drive/folders/1VwpzrzLQ2ghDrTR3t4TlpfmhiUT1VJ2D">the noise texture supplied by Nubis.</a> Which contain versions of alligator noise generated in Houdini.<br>
+    The shape of clouds varies across the cloud, In low density areas the noise is more low frequency.<br>
+    And the bottom of the cloud is usually more wispy vs the top which is more billowy/fluffy.<br>
+    To achieve this the noise texture contains multiple channels with high frequency and low frequency billowy and wispy noise.<br>
+    You can then blend between the frequency using the profile (posibly to a power to control the gradient) to blend between high and low frequency noise.<br>
+    And use either the vertical position or a extra channel in the voxel data to blend between wispy and billowy noise.
+<br><br>
+<p style="opacity: 0.5;">Final cloud shape after applying noise based erosion</p>
+<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="detailed cloud shape">
+</div>
         </section>
         <section class="section-alt">
             <div class="container article-content">
                 <h2 id="Choosing">Lighting approximations</h2>
-                <h3>Ambient lighting</h3>
-                <p></p>              
+                <p>The lighting in real clouds is not as simple as a straight line towards the sun/light source. <br>
+                In fact there are more incomming sources and light bounces around the inside of the cloud. <br>
+            Simulating this would be very expensive but there are some good approximations that give us a more realistic look.</p>
+            <h3>Phase</h3>
+            <p>A important factor in lighting volumes is that they do not scatter light evenly in all directions,    
+                In fact they scatter light significantly more forward. <br>
+                This causes clouds between you and the sun to be way brighter than when looking at clouds opposite to the sun.<br>
+                <br>
+                This factor can be calculated by the henyey-greenstein function, <br>It takes a eccentricity factor. <br> lower values meaning the light is more biased towards the incomming light direction. <br>
+ <pre class="code"><code class="language-glsl"># Phase function
+
+float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference between look and light direction*/, float inG /*The eccentricity*/)
+{
+    float num = 1.0 - inG * inG;
+    float denom = 1.0 + inG * inG - 2.0 * inG * inCosAngle;
+    float rsqrt_denom = rsqrt(denom);
+    return num * rsqrt_denom * rsqrt_denom * rsqrt_denom * (1.0 / (4.0 * PI));
+}
+</code></pre>
+This can be directly applied to the lighting.
+    <pre class="code"><code class="language-glsl">
+    light += CalculateLighting() 
+    * HenyeyGreensteinPhase(dot(rayDir, LIGHT_DIRECTION), g /*0.2*/) &lt;changed&gt
+    * transmissance 
+    * density 
+    * stepSize;
+</code></pre>
+            </p>
+            <h3>Ambient lighting</h3>
+                <p>A important factor in lighting clouds is ambient light that comes from the sky.<br>
+                This causes clouds to be more lit with the color of the sky when not directly illuminated by the sun, and adds more realistic shadowing.<br>
+            </p>              
                 <h3>Multiple in scattering</h3>
                 <p></p>              
             </div>
