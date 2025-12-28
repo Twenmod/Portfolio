@@ -350,9 +350,42 @@ This can be directly applied to the lighting.
             <h3>Ambient lighting</h3>
                 <p>A important factor in lighting clouds is ambient light that comes from the sky.<br>
                 This causes clouds to be more lit with the color of the sky when not directly illuminated by the sun, and adds more realistic shadowing.<br>
-            </p>              
+                It would be way too expensive or noisy to calculate this by shooting actual rays in "random" directions. <br>
+                So instead we use a approximation, <br>
+                We can assume that most of the ambient light will come from the sky above, keeping this in mind we can combine the entire sky in one upwards ray.
+                <br>
+                <br>
+                What we do is first combine the sky into 1 light source, you do this by integrating the sky hemisphere once. I wont go over how to do this but it can be done by either random sampling or spherical harmonics.<br>
+                Alternatively you can just pick a color that resembles your sky.
+                <br>
+                For correct shadowing we shoot a ray upwards, since this light is not directional it is not affected by either phase or sundirection.<br>
+                That means that this upwards ray can be precalculated for a static grid. And since this data is already blury by itself it can be stored in a lower resolution grid.
+<br><br>
+To combine this all together we weight the ambient lighting by not only this ray but also by how far into the cloud the sample is.<br>
+This is because edges will receive more ambient light from the sides than in the center of the cloud, we can reuse the profile for this.
+    <pre class="code"><code class="language-glsl">
+//TODO: SHOW CODE
+</code></pre>
+
+<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="detailed cloud shape">
+            </p>               
                 <h3>Multiple in scattering</h3>
-                <p></p>              
+                <p>In clouds do not only receive light directly from the source, but light also scatters around the inside of the clouds and can hit our sample.
+                    <img class="info" src="../media/images/articles/clouds/mis.png" alt="Multiple scattering visualization">
+                    This would also be too expensive to calculate but we can approximate the results.<br>
+                    The main effect that comes from multiple in scattering is that the inner parts of the clouds become brighter.<br>
+                    This is because the inner parts receive more light from surrounding in scattering.<br>
+                    We also have to take into account the phase/the angle to the sun here since the scattering is still biased towards the light direction.<br>
+                    The approximation is not too accurate but gives a good looking result, and is very cheap, and this is not too bad since the effect of direct lighting is significantly stronger.<br>
+    <pre class="code"><code class="language-glsl">
+float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _accumulatedDensity)
+{
+    //                                This accounts for the phase
+    return exp(-_accumulatedDensity * Remap(_sun_dot, 0.0, 0.9, 0.25, Remap(_baseDimensionalProfile, 1.0, 0.0, 0.05, 0.25)));
+}
+
+    </code></pre>
+                </p>              
             </div>
         </section>
         <section class="section">
