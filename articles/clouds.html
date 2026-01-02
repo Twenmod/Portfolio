@@ -197,7 +197,8 @@ float3 marchVolume(float3 rayOrigin, float3 rayDir, float3 backgroundColor) {
 }
 </code></pre>
 
-                        To calculate the light coming in at a point, we need to account for the fact that the light also passed
+                        To calculate the light coming in at a point, we need to account for the fact that the light also
+                        passed
                         through the volume on the way, and thus was blocked by it.
                         <br>
                         To do this we do a secondary march towards the light, and also calculate the transmissance for
@@ -250,7 +251,7 @@ float3 CalculateLighting(float3 pos) {
                         There are multiple ways to store this data, and this is an important choice since there are
                         different benefits and drawbacks to choosing a specific one.
                     </p>
-                    
+
                     <p>
                         One commonly used technique is:<br>
                         <b>2.5D Cloud maps</b><br>
@@ -258,7 +259,8 @@ float3 CalculateLighting(float3 pos) {
                         This is cheap to sample since it's only 2D textures and allows you to quickly get a full sky map
                         and even blend between different types of clouds.
                         <br><br>
-                        However, there is not much control over the actual 3D look of the clouds, and it doesn't look too
+                        However, there is not much control over the actual 3D look of the clouds, and it doesn't look
+                        too
                         good when going through the clouds.
                         <br><br>
                         This technique can be great for a simpler background sky, but I'll be choosing a different
@@ -270,7 +272,7 @@ float3 CalculateLighting(float3 pos) {
                         Voxels allow you to fully control the look of the clouds in a 3D structure
                         and work well for both background clouds and clouds you can fly through.
                     </p>
-                    
+
                     <p>
                         <b>- Sparse</b><br>
                         It might seem good to store these voxels in a sparse structure, i.e., either storing only the
@@ -365,22 +367,24 @@ float Remap(float value, float inputMin, float inputMax, float outputMin, float 
                             texture supplied by Nubis</a>, which contains versions of alligator noise generated in
                         Houdini.
                     </p>
-                    
+
                     <p>
                         The shape of clouds varies across different areas; in low density areas the noise is more low
                         frequency, while in high density areas it's more high frequency.<br>
                         The bottom of the cloud is usually more wispy versus the top, which is more billowy/fluffy.
                     </p>
-                    
+
                     <p>
                         To achieve this, the noise texture contains multiple channels with high frequency and low
                         frequency billowy and wispy noise.<br>
-                        You can then blend between high and low frequency noise using the profile (possibly raised to a power to control the
+                        You can then blend between high and low frequency noise using the profile (possibly raised to a
+                        power to control the
                         gradient).<br>
-                        You can use either the vertical position or an extra channel in the voxel data to blend between wispy
+                        You can use either the vertical position or an extra channel in the voxel data to blend between
+                        wispy
                         and billowy noise.
                     </p>
-                        <br>
+                    <br>
                     <p style="opacity: 0.5;">Final cloud comparison after applying noise based erosion, blockiness at
                         the edges gets removed with more detail.</p>
                     <img class="info-small" src="../media/images/articles/clouds/uprez.png"
@@ -407,14 +411,15 @@ float Remap(float value, float inputMin, float inputMax, float outputMin, float 
                         This causes clouds between you and the sun to be way brighter than when looking at clouds
                         opposite to the sun.
                     </p>
-                    
+
                     <p>
                         This factor can be calculated by the Henyey-Greenstein function.<br>
-                        It takes an eccentricity factor; lower values mean the light is more biased towards the incoming light
+                        It takes an eccentricity factor; lower values mean the light is more biased towards the incoming
+                        light
                         direction.
                     </p>
-                    <pre class="code"><code class="language-glsl"># Phase function
 
+                    <pre class="code"><code class="language-glsl">//Phase function
 float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference between look and light direction*/, float inG /*The eccentricity*/)
 {
     float num = 1.0 - inG * inG;
@@ -422,15 +427,17 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
     float rsqrt_denom = rsqrt(denom);
     return num * rsqrt_denom * rsqrt_denom * rsqrt_denom * (1.0 / (4.0 * PI));
 }
-</code></pre>
-                    This can be directly applied to the lighting.
-                    <pre class="code"><code class="language-glsl">
-    light += CalculateLighting() 
-    * HenyeyGreensteinPhase(dot(rayDir, LIGHT_DIRECTION), g /*0.2*/) &lt;changed&gt
-    * transmissance 
-    * density 
-    * stepSize;
-</code></pre>
+                    </code></pre>
+
+                    <p>This can be directly applied to the lighting.</p>
+
+                    <pre class="code"><code class="language-glsl">light += CalculateLighting() 
+       * HenyeyGreensteinPhase(dot(rayDir, LIGHT_DIRECTION), g /*0.2*/) &lt;changed&gt
+       * transmissance 
+       * density 
+       * stepSize;
+                    </code></pre>
+
                     </p>
                     <h3>Ambient lighting</h3>
                     <p>
@@ -438,12 +445,12 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         This causes clouds to be more lit with the color of the sky when not directly illuminated by the
                         sun, and adds more realistic shadowing since covered parts get less sunlight.
                     </p>
-                    
+
                     <p style="opacity: 0.5;">Ambient light coming from all directions, deeper and lower parts are more
                         shadowed</p>
                     <img class="info" src="../media/images/articles/clouds/ambientrays.png"
                         alt="Ambient lighting illustration">
-                        
+
                     <p>
                         It would be way too expensive or noisy to calculate this by shooting actual rays in "random"
                         directions.
@@ -453,7 +460,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         brightest part of the sky.<br>
                         Keeping this in mind, we can combine the entire sky into one upwards ray.
                     </p>
-                    
+
                     <p>
                         What we do is first combine the sky into one light value/color by integrating the sky
                         hemisphere once.<br>
@@ -461,7 +468,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         harmonics.<br>
                         Alternatively, you can just pick a color that resembles your sky.
                     </p>
-                    
+
                     <p>
                         To approximate shadowing of the rays, we shoot a ray upwards.<br>
                         Since this light is not directional, it is not affected by either phase or sun direction.<br>
@@ -471,24 +478,26 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                     <p style="opacity: 0.5;">Single ray approximation</p>
                     <img class="info-small" src="../media/images/articles/clouds/ambientrayscheap.png"
                         alt="Ambient lighting illustration">
-                    <br><br>
-                    To combine this all together, we weight the ambient lighting by not only this ray but also by how far
-                    into the cloud the sample is.<br>
-                    This is because the edges of the cloud receive more ambient light from around than the center of the
-                    cloud does. We can reuse the profile for this.<br>
-                    <pre class="code"><code class="language-glsl">
-        for(int i = 0; i < NUM_SAMPLES; i++) { // sample loop
-        ...
-        //Ambient approximation
-        sampleLight += 
-            saturate(pow(profile, 0.5) // here we use a slightly modified profile to change the falloff of ambient light at edges, 
-                                       //this could also be a remapped distance field to the edge of the cloud (we get into this later) 
-            * exp(-GetSummedAmbientDensity(samplePosition))) //Summed density of the upwards ray, this can be a precalculated texture sample or an actual march.
-            * (AMBIENT_LIGHT); // Light from the sky, could be a single color or a preintegrated sky light
-        ...
-        totalLight += sampleLight * transmissance * sampleDensity * stepSize;
-        ...
-        }
+                    <p>
+                        To combine this all together, we weight the ambient lighting by not only this ray but also by
+                        how far
+                        into the cloud the sample is.<br>
+                        This is because the edges of the cloud receive more ambient light from around than the center of
+                        the
+                        cloud does. We can reuse the profile for this.<br>
+                    </p>
+                    <pre class="code"><code class="language-glsl">for(int i = 0; i < NUM_SAMPLES; i++) { // sample loop
+...
+    //Ambient approximation
+    sampleLight += 
+        saturate(pow(profile, 0.5) // here we use a slightly modified profile to change the falloff of ambient light at edges, 
+                                    //this could also be a remapped distance field to the edge of the cloud (we get into this later) 
+        * exp(-GetSummedAmbientDensity(samplePosition))) //Summed density of the upwards ray, this can be a precalculated texture sample or an actual march.
+        * (AMBIENT_LIGHT); // Light from the sky, could be a single color or a preintegrated sky light
+    ...
+    totalLight += sampleLight * transmissance * sampleDensity * stepSize;
+    ...
+}
     </code></pre>
                     <p style="opacity: 0.5;">Comparison, you see mainly that the parts away from the sun are not
                         unrealistically dark anymore<br>and shadowed parts (the underside) stay shadowed</p>
@@ -500,24 +509,24 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         Clouds do not only receive sunlight directly from the source.<br>
                         Light also scatters around the inside of the clouds and can hit our sample indirectly.
                     </p>
-                    
+
                     <img class="info" src="../media/images/articles/clouds/mis.png"
                         alt="Multiple scattering visualization">
-                        
+
                     <p>
                         This would also be too expensive to calculate, but we can approximate the results.<br>
                         The main effect that results from multiple scattering is that the inner parts of the clouds
                         become brighter.
                         <br><br>
                         This is because the inner parts have more cloud around them to scatter light from.<br>
-                        We also have to take into account the phase (so the angle to the sun) here since the scattering is
+                        We also have to take into account the phase (so the angle to the sun) here since the scattering
+                        is
                         still biased towards the light direction.
                         <br><br>
                         The approximation is not too accurate but gives a good-looking result and is very cheap.
                         This is not too bad since the effect of direct lighting is significantly stronger.
                     </p>
-                    <pre class="code"><code class="language-glsl">
-float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _accumulatedDensity)
+                    <pre class="code"><code class="language-glsl">float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _accumulatedDensity)
 {
     //                                This accounts for the phase     // how far inside the cloud, (should also use a distance field but this is fine for now)
     return exp(-_accumulatedDensity * Remap(_sun_dot, 0.0, 0.9, 0.25, Remap(_baseDimensionalProfile, 1.0, 0.0, 0.05, 0.25)));
@@ -557,7 +566,8 @@ float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _a
                     </p>
                     <h3>Random jitter</h3>
                     <p>
-                        An easy way to reduce banding from lower sample counts is to randomly sample instead of using fixed steps.<br>
+                        An easy way to reduce banding from lower sample counts is to randomly sample instead of using
+                        fixed steps.<br>
                         This removes banding but adds noise.
                     </p>
                     <img class="info-small" src="../media/images/articles/clouds/random.png"
@@ -566,50 +576,52 @@ float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _a
                         This noise can be reduced by accumulating multiple frames.<br>
                         This is done by reprojecting the old frame to the new one.
                         <br><br>
-                        I won't go into detail on how to do this, but the basis is to project a 3D hit back to the screen to get the
+                        I won't go into detail on how to do this, but the basis is to project a 3D hit back to the
+                        screen to get the
                         previous screen position.<br>
-                        Since clouds don't have an actual "hit" position, I use a position that gets updated in the march
+                        Since clouds don't have an actual "hit" position, I use a position that gets updated in the
+                        march
                         with a density maximum, so it will be somewhat deeper into the cloud.
                     </p>
-                    <pre class="code"><code class="language-glsl">
-    float3 reprojectionHitPosition;
-    ...
+                    <pre class="code"><code class="language-glsl">float3 reprojectionHitPosition;
+...
     //march Loop
     ...
-//Jitter
+  //Jitter
     float3 jitterPosition = samplePosition + RandomFloat() * stepSize;
     samplePosition += stepSize; // Keep track of steps without jitter.
     float sampleDensity = SampleDensity(jitterPosition); // Sample with jitter
     ...
-//Reprojection
+  //Reprojection
     if (accumulatedDensity < TRESHOLD) {
         reprojectionHitPosition = samplePosition;
     }
     ...
-    //After march
-    float2 prevScreenPos = WorldToScreen(reprojectionHitPosition, prevView);
-    float3 history = historyBuffer.Sample(reprojectionHitPosition);
-    float3 result = lerp(history, currentResult, weight); // weight based on camera motion and difference, must be relatively high since clouds dont reproject accurately
+//After march
+float2 prevScreenPos = WorldToScreen(reprojectionHitPosition, prevView);
+float3 history = historyBuffer.Sample(reprojectionHitPosition);
+float3 result = lerp(history, currentResult, weight); // weight based on camera motion and difference, must be relatively high since clouds dont reproject accurately
 </code></pre>
                     <p>This allows us to already reduce sample count and get similar results.</p>
                     <h3>Sphere tracing</h3>
                     <p>
                         One of the most important optimizations is adaptive step sizes.<br>
-                        Instead of sampling super accurately at every step, we should increase step sizes in less important areas.
+                        Instead of sampling super accurately at every step, we should increase step sizes in less
+                        important areas.
                     </p>
-                    
+
                     <p>
                         The least important areas are outside the clouds, so we want to skip these areas as quickly as
                         possible.<br>
                         To do this, we use sphere tracing: we store the distance to the nearest cloud in every voxel and
                         use that as the step size.
                     </p>
-                    
+
                     <p style="opacity: 0.5;">Every step has an imaginary sphere to the closest point, and uses that as
                         the step size. We switch to a fixed size inside the cloud.</p>
                     <img class="info" src="../media/images/articles/clouds/sphere.png"
                         alt="Sphere tracing illustration">
-                        
+
                     <p>
                         This distance field is precalculated and put into a separate 3D texture.<br>
                         So if you are outside the cloud, you can skip sampling density and calculating lighting.
@@ -627,53 +639,57 @@ float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _a
                         More accumulated density blocks light, so samples behind dense areas are also less important.
                         Therefore, we also increase the step size based on accumulated density.
                     </p>
-                    
+
                     <p>So when sampling, we get:</p>
-                    <pre class="code"><code class="language-glsl">
-                        //Ray march loop
-                        ...             
-                            float distanceField = SampleDistanceField(samplePosition); // Dont use the jitter position here
-                            
-                            stepSize = max(distanceField, minStepSize);
-                            if (distanceField <= 0) { // this means we are inside the cloud
-                                stepSize = minStepSize; // Swtich to minimum step
+                    <pre class="code"><code class="language-glsl">//Ray march loop
+...             
+    float distanceField = SampleDistanceField(samplePosition); // Dont use the jitter position here
+    
+    stepSize = max(distanceField, minStepSize);
+    if (distanceField <= 0) { // this means we are inside the cloud
+        stepSize = minStepSize; // Swtich to minimum step
 
-                                ... //Lighting and density calculations
+        ... //Lighting and density calculations
 
-                                minStepSize += STEP_INSCREASE_OVER_DENSITY * sampleDensity;
-                            }
+        minStepSize += STEP_INSCREASE_OVER_DENSITY * sampleDensity;
+    }
 
-                            samplePosition += rayDir * stepSize;
-                            minStepSize += STEP_INCREASE_OVER_DISTANCE * stepSize;
-                        ...
-                </p>
+    samplePosition += rayDir * stepSize;
+    minStepSize += STEP_INCREASE_OVER_DISTANCE * stepSize;
+...
+</code></pre>
                 </div>
             </section>
             <section class="section"> <!--Optimisations-->
                 <div class="container article-content">
                     <h2 id="Choosing">Further optimizations</h2>
                     <p>
-                        There are some further optimizations that can be made, which I will not go into detail about but will list:
+                        There are some further optimizations that can be made, which I will not go into detail about but
+                        will list:
                     </p>
                     <h4>Caching Direct Lighting</h4>
                     <p>
                         Since we use voxels, we can calculate direct lighting per voxel in a separate pass.<br>
-                        Then in our main pass, when doing the light ray after some (~2) real light sample steps, we can sample the cache.
+                        Then in our main pass, when doing the light ray after some (~2) real light sample steps, we can
+                        sample the cache.
                         <br><br>
                         This cache can be lower resolution than the actual voxels since the light is blurry by itself.
                     </p>
                     <h4>Compression</h4>
                     <p>
-                        Since our distance field is sampled a lot, it can benefit from compressing the texture using, for example, block compression.<br>
-                        But an important factor in this is that the value stays at least lower than the original to avoid overshooting.
+                        Since our distance field is sampled a lot, it can benefit from compressing the texture using,
+                        for example, block compression.<br>
+                        But an important factor in this is that the value stays at least lower than the original to
+                        avoid overshooting.
                     </p>
                     <h4>Upscaling</h4>
                     <p>
-                        Since clouds are inherently fluffy and blurry, we can render them at a lower resolution and upscale them to our screen.
+                        Since clouds are inherently fluffy and blurry, we can render them at a lower resolution and
+                        upscale them to our screen.
                     </p>
                 </div>
             </section>
-             <section class="section-alt">
+            <section class="section-alt">
                 <div class="container article-content">
                     <h2 id="improvements">Showcase</h2>
                     <p>Video of my implementation:</p>
@@ -687,10 +703,10 @@ float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _a
                 <div class="container article-content">
                     <h2 id="improvements">Source code/Implementation</h2>
                     <p>An open implementation of this code is available on GitHub.<br>
-                    This includes the renderer as a library and a demo application.</p>
+                        This includes the renderer as a library and a demo application.</p>
                     <a class="btn" href="https://github.com/Twenmod/Volumarcher" target="_blank"
                         rel="noopener">Github</a>
-                        <p>Additionally I also provide a Houdini asset to generate clouds and/or their SDF.</p>
+                    <p>Additionally I also provide a Houdini asset to generate clouds and/or their SDF.</p>
                     <a class="btn" href="https://drive.proton.me/urls/W4P23190MR#12x4VW36SSnS" target="_blank"
                         rel="noopener">Houdini Asset</a>
                     <div class="article-related" style="text-align:center; margin-top:1.5rem;">
