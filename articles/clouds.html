@@ -266,7 +266,7 @@ For loading the voxel data, I recommend using OpenVDB, which loads sparse voxel 
 This can then be loaded into a 3D texture and sampled in the raymarcher.<br>
 <a href="https://www.openvdb.org/">https://www.openvdb.org/</a>
 <p style="opacity: 0.5;">Sampling voxel data in our basic raymarcher from earlier:</p>
-<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Voxel sampling illustration">
+<img class="info" src="../media/images/articles/clouds/structure.png" alt="Voxel sampling illustration">
                 </p>              
             </div>
         </section>
@@ -279,7 +279,6 @@ This can then be loaded into a 3D texture and sampled in the raymarcher.<br>
                         <br>
                         What we will do is use a higher resolution 3D noise texture to add detail and erode the smooth low detail base shape.
                     </p>              
-                    <p style="opacity: 0.5;">Low detail clouds</p>   
                     <h3>Profile</h3>
                     <p>Since we already have a base shape of the clouds we want to use, <br>
                         we cannot just add detail randomly but have to keep the shape in mind.<br>
@@ -287,8 +286,8 @@ This can then be loaded into a 3D texture and sampled in the raymarcher.<br>
                         <br>
                         Instead we just want to erode/remove some of the density at the edges of our main shape. <br>
                         To do this we use our base shape as a profile, and make it have a gradient density at the edges</p>     
-                        <p style="opacity: 0.5;">A 2d slice of the low resolution density profile</p>         
-                        <img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Cloud profile slice">
+                        <p style="opacity: 0.5;">A 2d slice of the low resolution density profile of a cloud</p>         
+                        <img class="info-small" src="../media/images/articles/clouds/lowslice.png" alt="Cloud profile slice">
         
                         <h3>Remapping</h3>
                 <p>To erode only the edges of the profile, we use a remap function.<br>
@@ -302,7 +301,14 @@ float Remap(float value, float inputMin, float inputMax, float outputMin, float 
 }
 </code></pre>   
 <p>By using the value of a noise texture as the minimum input range, it erodes the edges of the profile while correctly preserving the density gradient.</p>
-<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="Profile 2D slice with remapping">
+                <pre class="code"><code class="language-glsl">Remap(
+    density,     /* value     */
+    noiseSample, /* inputMin  */
+    1.0,         /* inputMax  */
+    0.0,         /* outputMin */
+    1.0);        /* outputMax */
+</code></pre>   
+
 <h3>Noise Texture</h3>
 <p>For the noise texture itself we need noise that correctly resembles clouds.<br>
     For this I use <a href="https://drive.google.com/drive/folders/1VwpzrzLQ2ghDrTR3t4TlpfmhiUT1VJ2D">the noise texture supplied by Nubis.</a> Which contain versions of alligator noise generated in Houdini.<br>
@@ -311,9 +317,10 @@ float Remap(float value, float inputMin, float inputMax, float outputMin, float 
     To achieve this the noise texture contains multiple channels with high frequency and low frequency billowy and wispy noise.<br>
     You can then blend between the frequency using the profile (posibly to a power to control the gradient) to blend between high and low frequency noise.<br>
     And use either the vertical position or a extra channel in the voxel data to blend between wispy and billowy noise.
-<br><br>
-<p style="opacity: 0.5;">Final cloud shape after applying noise based erosion</p>
-<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="detailed cloud shape">
+<br>
+<p style="opacity: 0.5;">Final cloud comparison after applying noise based erosion, blockyness at the edges gets removed with more detail.</p>
+<img class="info-small" src="../media/images/articles/clouds/uprez.png" alt="low resolution cloud vs uprezzed cloud">
+<p>You can also move this noise over time to simulate wind.</p>
 </div>
         </section>
         <section class="section-alt">
@@ -349,42 +356,77 @@ This can be directly applied to the lighting.
             </p>
             <h3>Ambient lighting</h3>
                 <p>A important factor in lighting clouds is ambient light that comes from the sky.<br>
-                This causes clouds to be more lit with the color of the sky when not directly illuminated by the sun, and adds more realistic shadowing.<br>
+                This causes clouds to be more lit with the color of the sky when not directly illuminated by the sun, and adds more realistic shadowing, since covered parts get less sunlight.<br>
+                <p style="opacity: 0.5;">Ambient light coming from all directions, deeper and lower parts are more shadowed</p>
+                <img class="info" src="../media/images/articles/clouds/ambientrays.png" alt="Ambient lighting illustration">
                 It would be way too expensive or noisy to calculate this by shooting actual rays in "random" directions. <br>
                 So instead we use a approximation, <br>
-                We can assume that most of the ambient light will come from the sky above, keeping this in mind we can combine the entire sky in one upwards ray.
+                We can assume that most of the ambient light will come from the sky above since that is the brightest part of the sky, <br>
+                keeping this in mind we can combine the entire sky in one upwards ray.
                 <br>
                 <br>
-                What we do is first combine the sky into 1 light source, you do this by integrating the sky hemisphere once. I wont go over how to do this but it can be done by either random sampling or spherical harmonics.<br>
+                What we do is first combine the sky into 1 light value/color, you do this by integrating the sky hemisphere once.<br> 
+                I wont go over how to do this but it can be done by either random sampling or spherical harmonics.<br>
                 Alternatively you can just pick a color that resembles your sky.
                 <br>
-                For correct shadowing we shoot a ray upwards, since this light is not directional it is not affected by either phase or sundirection.<br>
+                <br>
+                To approximate shadowing the shadowing of the rays we shoot a ray upwards, since this light is not directional it is not affected by either phase or sundirection.<br>
                 That means that this upwards ray can be precalculated for a static grid. And since this data is already blury by itself it can be stored in a lower resolution grid.
+<p style="opacity: 0.5;">Single ray approximation</p>
+                <img class="info-small" src="../media/images/articles/clouds/ambientrayscheap.png" alt="Ambient lighting illustration">
 <br><br>
 To combine this all together we weight the ambient lighting by not only this ray but also by how far into the cloud the sample is.<br>
 This is because edges will receive more ambient light from the sides than in the center of the cloud, we can reuse the profile for this.
     <pre class="code"><code class="language-glsl">
-//TODO: SHOW CODE
-</code></pre>
-
-<img class="info" src="../media/images/articles/clouds/diffuse.jpg" alt="detailed cloud shape">
+        for(int i = 0; i < NUM_SAMPLES; i++) { // sample loop
+        ...
+        //Ambient approximation
+        sampleLight += 
+            saturate(pow(profile, 0.5) // here we use a slightly modified profile to change the falloff of ambient light at edges, 
+                                       //this could also be a remapped distance field to the edge of the cloud (we get into this later) 
+            * exp(-GetSummedAmbientDensity(samplePosition))) //Summed density of the upwards ray, this can be a precalculated texture sample or a actual march.
+            * (AMBIENT_LIGHT); // Light from the sky, could be a single color or a preintegrated sky light
+        ...
+        totalLight += sampleLight * transmissance * sampleDensity * stepSize;
+        ...
+        }
+    </code></pre>
+<p style="opacity: 0.5;">Comparison, you see mainly that the parts away from the sun are not unrealistically dark anymore<br>and shadowed parts (the underside) stay shadowed</p>
+<img class="info" src="../media/images/articles/clouds/ambient.png" alt="No ambient lighting vs Ambient lighting">
             </p>               
                 <h3>Multiple in scattering</h3>
-                <p>In clouds do not only receive light directly from the source, but light also scatters around the inside of the clouds and can hit our sample.
+                <p>Clouds do not only receive sunlight directly from the source. <br>
+                    Light also scatters around the inside of the clouds and can hit our sample indirectly.
                     <img class="info" src="../media/images/articles/clouds/mis.png" alt="Multiple scattering visualization">
                     This would also be too expensive to calculate but we can approximate the results.<br>
-                    The main effect that comes from multiple in scattering is that the inner parts of the clouds become brighter.<br>
-                    This is because the inner parts receive more light from surrounding in scattering.<br>
+                    The main effect that results from multiple scattering is that the inner parts of the clouds become brighter.<br>
+                    This is because the inner parts have more cloud around to scatter light from.<br>
                     We also have to take into account the phase/the angle to the sun here since the scattering is still biased towards the light direction.<br>
                     The approximation is not too accurate but gives a good looking result, and is very cheap, and this is not too bad since the effect of direct lighting is significantly stronger.<br>
     <pre class="code"><code class="language-glsl">
 float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _accumulatedDensity)
 {
-    //                                This accounts for the phase
+    //                                This accounts for the phase     // how far inside the cloud, (should also use a distance field but this is fine for now)
     return exp(-_accumulatedDensity * Remap(_sun_dot, 0.0, 0.9, 0.25, Remap(_baseDimensionalProfile, 1.0, 0.0, 0.05, 0.25)));
 }
 
+//In the march loop
+    ...
+    //March towards the sun adding up density. 
+    float inSunLightDensity = DirectLightMarch();  &lt;changed&gt
+    //                             // not using uprezzed profile 
+    float lightVolume = InScatteringApprox(1 - baseProfile, sunDot, inSunLightDensity);  &lt;changed&gt
+    sampleLight +=  
+        lightVolume  &lt;changed&gt
+        * HenyeyGreensteinPhase(dot(rayDir, LIGHT_DIRECTION), g/)
+        * SUN_LIGHT;
+    ...
+    totalLight += sampleLight * transmissance * sampleDensity * stepSize;
+    ...
     </code></pre>
+    <p style="opacity: 0.5;">Comparison, you see that the inner parts of the cloud are significantly brighter.<br>
+    You can also see inner edges in the middle of the cloud be slightly darker adding detail.</p>
+<img class="info" src="../media/images/articles/clouds/multiplescatter.png" alt="No multiple in scattering vs with multiple in scattering">
                 </p>              
             </div>
         </section>
