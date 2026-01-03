@@ -131,7 +131,7 @@
             <section class="section">
                 <div class="container article-content">
                     <h2 id="idea">Idea</h2>
-                    <img src="../media/images/articles/clouds/diffuse.jpg" alt="Denoising example">
+                    <img src="../media/images/articles/clouds/hero.jpg" alt="Denoising example">
                     <p>There are a lot of techniques for rendering volumetrics in games.<br>
                         In this article I'll cover specifically clouds,<br>
                         and more specifically implementing a voxel-based technique based on Nubis, the one talked
@@ -154,7 +154,7 @@
                         <p>
 
                             What Ray marching tries to achieve is finding the total density and lighting of a volume
-                            along a Ray.
+                            along a per pixel Ray.
                             Since getting the exact result would be impossible to get in real time we approximate it by
                             taking a set amount of steps/samples.
                             <br>
@@ -245,7 +245,7 @@ float3 CalculateLighting(float3 pos) {
                 <div class="container article-content">
                     <h2 id="Choosing">Choosing a structure</h2>
                     <p>
-                        Clouds aren't just simple spheres, so we need a way to store the density of clouds in a 3D
+                        Clouds aren't just simple primititives, so we need a way to store the density of clouds in a 3D
                         structure.
                         <br><br>
                         There are multiple ways to store this data, and this is an important choice since there are
@@ -261,7 +261,7 @@ float3 CalculateLighting(float3 pos) {
                         <br><br>
                         However, there is not much control over the actual 3D look of the clouds, and it doesn't look
                         too
-                        good when going through the clouds.
+                        good when going through the clouds without very high sample counts.
                         <br><br>
                         This technique can be great for a simpler background sky, but I'll be choosing a different
                         approach that allows for more versatility.
@@ -325,13 +325,13 @@ float3 CalculateLighting(float3 pos) {
                     </p>
                     <h3>Profile</h3>
                     <p>
-                        Since we already have a base shape of the clouds we want to use,
+                        Since we already have a base shape of the clouds that we want to use,
                         we cannot just add detail randomly but have to keep the shape in mind.<br>
                         Just multiplying the base shape with noise would not achieve the right look, since clouds have
-                        somewhat uniform density in the center.
+                        uniform density in their center.
                         <br><br>
-                        Instead, we just want to erode/remove some of the density at the edges of our main shape.<br>
-                        To do this, we use our base shape as a profile and make it have a gradient density at the edges.
+                        Instead, we just want to only erode/remove some of the density at the edges of our main shape.<br>
+                        To do this, we use our base shape as a density profile and make it have a gradient falloff at the edges.
                     </p>
                     <p style="opacity: 0.5;">A 2D slice of the low resolution density profile of a cloud</p>
                     <img class="info-small" src="../media/images/articles/clouds/lowslice.png"
@@ -349,8 +349,7 @@ float Remap(float value, float inputMin, float inputMax, float outputMin, float 
     return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
 </code></pre>
-                    <p>By using the value of a noise texture as the minimum input range, it erodes the edges of the
-                        profile while correctly preserving the density gradient.</p>
+                    <p>By using the value of a noise texture as the minimum input range, it smoothly erodes the lower values at our gradient edge, while preserving the higher inner densities.</p>
                     <pre class="code"><code class="language-glsl">Remap(
     density,     /* value     */
     noiseSample, /* inputMin  */
@@ -693,8 +692,9 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
                 <div class="container article-content">
                     <h2 id="improvements">Showcase</h2>
                     <p>Video of my implementation:</p>
+                    <p style="opacity: 0.5;">Running on a RTX 4060 Laptop GPU</p>
                     <video controls width="100%">
-                        <source src="../media/videos/clouds_demo.mp4" type="video/mp4">
+                        <source src="../media/videos/articles/clouds/showcase.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                 </div>
                 </div>
