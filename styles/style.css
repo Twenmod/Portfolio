@@ -7,6 +7,8 @@
     --card-bg: rgba(55, 48, 88, 0.137);
     --text: #e6eef8;
     --muted: #bab7dd;
+    --muted-2: #a3a0c0;
+    --muted-3: #838192;
     --accent: #4f8bf9;
     --accent-hover: #6b9fff;
 
@@ -704,8 +706,23 @@ p,
 .article-toc .toc-inner h3 {
     margin: 0 0 .5rem 0;
     font-size: .95rem;
-    color: var(--muted);
+    color: var(--muted-3);
     font-weight: 700;
+    position: relative;
+    padding-left: .6rem;
+    margin-bottom: 15px;
+}
+
+.article-toc .toc-inner h3::before {
+    content: "";
+    position: absolute;
+    display:flex;
+    left: 0;
+    top: calc(100% + 8px);
+    bottom: -10px;
+    width: 100%;
+    background: #4a4a5554;
+    border-radius: 2px;
 }
 .article-toc .toc-list {
     list-style: none;
@@ -724,7 +741,22 @@ p,
     font-size: .93rem;
 }
 .article-toc .toc-item a:hover { background: rgba(255,255,255,0.02); color: var(--text); }
-.article-toc .toc-item.toc-h3 a { padding-left: .9rem; font-size: .88rem; }
+.article-toc .toc-item.toc-h3 a { 
+    padding-left: 1.2rem; 
+    color : var(--muted-2);
+    font-size: .88rem;
+    position: relative;
+}
+.article-toc .toc-item.toc-h3 a::before {
+    content: "";
+    position: absolute;
+    left: .5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #4a4a5554;
+    border-radius: 2px;
+}
 .article-toc .toc-item a.active { background: linear-gradient(90deg, #1d1c29, #1a1923); color: var(--text); font-weight:700 }
 
 @media (max-width: 1000px) {
@@ -815,4 +847,52 @@ code {
 .toc-section {
     padding:0;
     border-top: 0;
+}
+
+.article-content details {
+    border-radius: var(--radius-medium);
+    
+    overflow: hidden;
+}
+
+
+.article-content details > summary {
+    list-style: none;
+    cursor: pointer;
+    display: block;
+    align-items: center;
+    padding: .75rem 1rem;
+    color: var(--text);
+    background: #201f2e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.article-content details > summary:hover {
+    background: #26253b;
+}
+
+.article-content details > summary:focus-visible {
+    outline: 2px solid rgba(79, 139, 249, 0.45);
+    outline-offset: 2px;
+}
+
+.article-content details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.article-content details > summary::before {
+    content: "▸";
+    display: inline-block;
+    color: var(--muted);
+    transform: translateY(-1px);
+    transition: transform .12s ease, color .12s ease;
+}
+
+.article-content details[open] > summary::before {
+    transform: rotate(90deg);
+    color: var(--accent);
+}
+
+.article-content details > *:not(summary) {
+    padding: 0.5rem;
 }
