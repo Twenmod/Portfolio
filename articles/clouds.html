@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Volumetric Cloud Rendering — Jack Tollenaar</title>
+    <title>Volumetric Cloud Rendering - Jack Tollenaar</title>
     <link rel="stylesheet" href="../styles/style.css">
     <link rel="icon" type="image/png" href="../media/images/favicon.png">
 
@@ -41,6 +41,131 @@
         .article-content ul {
             margin-left: 1.25rem;
             line-height: 1.6;
+        }
+
+        /* Inline carousel styling to keep the hero visuals engaging */
+        .carousel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: var(--shadow, 0 10px 30px rgba(10, 10, 10, .08));
+            margin: 1rem 0;
+            background: linear-gradient(135deg, rgba(26, 28, 35, 0.08), rgba(26, 28, 35, 0.02));
+        }
+
+        .carousel-window {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .carousel-track {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            width: 100%;
+            gap: 0;
+            transition: transform 240ms ease;
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            opacity: 0;
+            transition: opacity 220ms ease;
+        }
+
+        .carousel-slide.is-active {
+            opacity: 1;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: auto;
+            max-height: 520px;
+            object-fit: contain;
+            display: block;
+            margin: 0;
+            border-radius: 10px;
+        }
+
+        .carousel-slide figcaption {
+            margin: 0.4rem 0 0.8rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: rgba(10, 10, 10, 0.4);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 1.25rem;
+            transition: background 160ms ease, transform 160ms ease;
+            z-index: 3;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(10, 10, 10, 0.6);
+            transform: translateY(-50%) scale(1.04);
+        }
+
+        .carousel-btn:active {
+            transform: translateY(-50%) scale(0.98);
+        }
+
+        .carousel-btn.prev {
+            left: 12px;
+        }
+
+        .carousel-btn.next {
+            right: 12px;
+        }
+
+        .carousel-dots {
+            display: flex;
+            gap: 0.45rem;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem 0 1rem;
+        }
+
+        .carousel-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: rgba(10, 10, 10, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: transform 140ms ease, background 140ms ease;
+        }
+
+        .carousel-dot.is-active {
+            background: rgba(10, 10, 10, 0.65);
+            transform: scale(1.15);
+        }
+
+        @media (max-width: 640px) {
+            .carousel-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 1.05rem;
+            }
         }
 
         @media (max-width:700px) {
@@ -131,7 +256,25 @@
             <section class="section">
                 <div class="container article-content">
                     <h2 id="idea">Idea</h2>
-                    <img src="../media/images/articles/clouds/hero.jpg" alt="Denoising example">
+                    <div class="carousel" data-carousel>
+                        <div class="carousel-window">
+                            <button class="carousel-btn prev" type="button" aria-label="Previous image">&#8249;</button>
+                            <div class="carousel-track">
+                                <figure class="carousel-slide is-active">
+                                    <img src="../media/images/articles/clouds/hero2.jpg"
+                                        alt="Volumetric cloud denoising example">
+                                </figure>
+                                <figure class="carousel-slide">
+                                    <img src="../media/images/articles/clouds/hero.jpg" alt="Volumetric cloud render">
+                                </figure>
+                                <figure class="carousel-slide">
+                                    <img src="../media/images/articles/clouds/hero3.png" alt="Volumetric cloud render">
+                                </figure>
+                            </div>
+                            <button class="carousel-btn next" type="button" aria-label="Next image">&#8250;</button>
+                        </div>
+                        <div class="carousel-dots" role="tablist" aria-label="Cloud image carousel"></div>
+                    </div>
                     <p>There are a lot of techniques for rendering volumetrics in games.<br>
                         In this article I'll cover specifically clouds,<br>
                         and more specifically implementing a voxel-based technique based on Nubis, the one talked
@@ -330,8 +473,10 @@ float3 CalculateLighting(float3 pos) {
                         Just multiplying the base shape with noise would not achieve the right look, since clouds have
                         uniform density in their center.
                         <br><br>
-                        Instead, we just want to only erode/remove some of the density at the edges of our main shape.<br>
-                        To do this, we use our base shape as a density profile and make it have a gradient falloff at the edges.
+                        Instead, we just want to only erode/remove some of the density at the edges of our main
+                        shape.<br>
+                        To do this, we use our base shape as a density profile and make it have a gradient falloff at
+                        the edges.
                     </p>
                     <p style="opacity: 0.5;">A 2D slice of the low resolution density profile of a cloud</p>
                     <img class="info-small" src="../media/images/articles/clouds/lowslice.png"
@@ -349,7 +494,8 @@ float Remap(float value, float inputMin, float inputMax, float outputMin, float 
     return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
 </code></pre>
-                    <p>By using the value of a noise texture as the minimum input range, it smoothly erodes the lower values at our gradient edge, while preserving the higher inner densities.</p>
+                    <p>By using the value of a noise texture as the minimum input range, it smoothly erodes the lower
+                        values at our gradient edge, while preserving the higher inner densities.</p>
                     <pre class="code"><code class="language-glsl">Remap(
     density,     /* value     */
     noiseSample, /* inputMin  */
@@ -725,4 +871,58 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
                 </div>
             </section>
     </main>
+    <script>
+        // Lightweight carousel controller for inline image slider
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousels = document.querySelectorAll('[data-carousel]');
+            carousels.forEach(carousel => {
+                const track = carousel.querySelector('.carousel-track');
+                const slides = Array.from(track.querySelectorAll('.carousel-slide'));
+                const dotsContainer = carousel.querySelector('.carousel-dots');
+                const prevBtn = carousel.querySelector('.carousel-btn.prev');
+                const nextBtn = carousel.querySelector('.carousel-btn.next');
+
+                let activeIndex = Math.max(slides.findIndex(s => s.classList.contains('is-active')), 0);
+                let autoplayId = null;
+
+                const setSlide = (idx) => {
+                    activeIndex = (idx + slides.length) % slides.length;
+                    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === activeIndex));
+                    track.style.transform = `translateX(-${activeIndex * 100}%)`;
+                    dotsContainer.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                        dot.classList.toggle('is-active', i === activeIndex);
+                    });
+                };
+
+                const resetAutoplay = () => {
+                    if (autoplayId) clearInterval(autoplayId);
+                    autoplayId = setInterval(() => setSlide(activeIndex + 1), 8000);
+                };
+
+                slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'carousel-dot' + (i === activeIndex ? ' is-active' : '');
+                    dot.setAttribute('aria-label', `Show slide ${i + 1}`);
+                    dot.addEventListener('click', () => {
+                        setSlide(i);
+                        resetAutoplay();
+                    });
+                    dotsContainer.appendChild(dot);
+                });
+
+                prevBtn.addEventListener('click', () => { setSlide(activeIndex - 1); resetAutoplay(); });
+                nextBtn.addEventListener('click', () => { setSlide(activeIndex + 1); resetAutoplay(); });
+
+                carousel.setAttribute('tabindex', '0');
+                carousel.addEventListener('keydown', (evt) => {
+                    if (evt.key === 'ArrowLeft') { setSlide(activeIndex - 1); resetAutoplay(); evt.preventDefault(); }
+                    if (evt.key === 'ArrowRight') { setSlide(activeIndex + 1); resetAutoplay(); evt.preventDefault(); }
+                });
+
+                setSlide(activeIndex);
+                resetAutoplay();
+            });
+        });
+    </script>
 </body>
