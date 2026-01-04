@@ -476,34 +476,23 @@ float3 CalculateLighting(float3 pos) {
                         Instead, we just want to only erode/remove some of the density at the edges of our main
                         shape.<br>
                         To do this, we use our base shape as a density profile and make it have a gradient falloff at
-                        the edges.
+                        the edges.<br>
+                        This profile has a range from 0-1.
                     </p>
                     <p style="opacity: 0.5;">A 2D slice of the low resolution density profile of a cloud</p>
                     <img class="info-small" src="../media/images/articles/clouds/lowslice.png"
                         alt="Cloud profile slice">
 
-                    <h3>Remapping</h3>
+                    <h3>Eroding</h3>
                     <p>To erode only the edges of the profile, we use a remap function.<br>
-                        It takes an input with a range and transforms it to fit into a different range.</p>
-                    <img class="info-small" src="../media/images/articles/clouds/remap.png"
-                        alt="Remap function visualization">
-                    <pre class="code"><code class="language-glsl"># Remap function
-
-float Remap(float value, float inputMin, float inputMax, float outputMin, float outputMax)
+                    <pre class="code"><code class="language-glsl">float Remap(float value, float inputMin, float inputMax, float outputMin, float outputMax)
 {
     return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
 </code></pre>
-                    <p>By using the value of a noise texture as the minimum input range, it smoothly erodes the lower
-                        values at our gradient edge, while preserving the higher inner densities.</p>
-                    <pre class="code"><code class="language-glsl">Remap(
-    density,     /* value     */
-    noiseSample, /* inputMin  */
-    1.0,         /* inputMax  */
-    0.0,         /* outputMin */
-    1.0);        /* outputMax */
-</code></pre>
-
+                    <p>By using the value of a noise texture as the minimum input range while keeping the rest from 0-1, it smoothly erodes the lower
+                        values at our gradient edge, while preserving the higher inner densities.<br>
+                    <br>After eroding we can scale this final density to what we want, either using a uniform scale or an extra 3D texture.</p>
                     <h3>Noise Texture</h3>
                     <p>
                         For the noise texture itself, we need noise that correctly resembles clouds.<br>
