@@ -278,7 +278,8 @@
                     <p>There are a lot of techniques for rendering volumetrics in games.<br>
                         In this article I'll cover specifically clouds,<br>
                         and more specifically implementing a voxel technique based on Nubis, the system one talked
-                        about by Guerrilla Games <a href="https://www.guerrilla-games.com/read/nubis-cubed">(here)</a>.</p>
+                        about by Guerrilla Games <a href="https://www.guerrilla-games.com/read/nubis-cubed">(here)</a>.
+                    </p>
                 </div>
             </section>
             <section class="section-alt"> <!--Basic marching-->
@@ -490,9 +491,12 @@ float3 CalculateLighting(float3 pos) {
     return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
 </code></pre>
-                    <p>By using the value of a noise texture as the minimum input range while keeping the rest from 0-1, it smoothly erodes the lower
+                    <p>By using the value of a noise texture as the minimum input range while keeping the rest from 0-1,
+                        it smoothly erodes the lower
                         values at our gradient edge, while preserving the higher inner densities.<br>
-                    <br>After eroding we can scale this final density to what we want, either using a uniform scale or an extra 3D texture.</p>
+                        <br>After eroding we can scale this final density to what we want, either using a uniform scale
+                        or an extra 3D texture.
+                    </p>
                     <h3>Noise Texture</h3>
                     <p>
                         For the noise texture itself, we need noise that correctly resembles clouds.<br>
@@ -848,6 +852,38 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
                         <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back to
                             Articles</a>
                     </div>
+                </div>
+            </section>
+            <section class="section-alt">
+                <div class="container article-content">
+                    <h2 id="improvements">References</h2>
+                    <p>Here are the references that I used while researching and creating this article.<br>
+                        <br>
+                        Nubis talks from Guerrilla Games (main reference):<br>
+                        <span style="display:block; margin-left:1rem;">
+
+                            - <a
+                                href="https://www.guerrilla-games.com/read/synthesizing-realistic-clouds-for-video-games">Synthesizing
+                                realistic clouds for video games</a> <span style="opacity:0.5;"> (Summary of their techniques)</span><br>
+                            - <a href="https://www.guerrilla-games.com/read/nubis-cubed">Nubis<sup>3</sup></a><span style="opacity:0.5;"> (About their voxel technique)</span><br>
+                            - <a
+                                href="https://www.guerrilla-games.com/read/nubis-realtime-volumetric-cloudscapes-in-a-nutshell">Nubis:
+                                cloudscapes in a nutshell</a> <span style="opacity:0.5;"> (More about cloud maps)</span><br>
+                        </span>
+                        Raymarching basics:<br>
+                        <span style="display:block; margin-left:1rem;">
+                            - <a
+                                href="https://www.scratchapixel.com/lessons/3d-basic-rendering/volume-rendering-for-developers/intro-volume-rendering.html">Scratchapixel:
+                                Introduction
+                                to volume rendering</a><br>
+                        </span>
+                        Raymarching structures:<br>
+                        <span style="display:block; margin-left:1rem;">
+                            - <a href="https://blog.traverseresearch.nl/intro-to-rendering-of-animated-volumetric-models-in-breda-6e942466e6df">Jasper de winther @ Traverse: Intro to rendering of animated volumetric models</a><br>
+                        </span>
+
+                    </p>
+                </div>
                 </div>
             </section>
             <section class="section-alt">
