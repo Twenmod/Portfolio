@@ -226,6 +226,13 @@
 
                 codeEl.innerHTML = renderedLines.join('\n');
                 codeEl.innerHTML = codeEl.innerHTML.replace(/\b(float3|float4|half4|float2|float|unity_ObjectToWorld|frag|Hash)\b/g, '<span class="hljs-type">$1</span>');
+                
+                // Highlight custom function calls (word followed by opening parenthesis)
+                // But exclude keywords and built-ins that are already highlighted
+                codeEl.innerHTML = codeEl.innerHTML.replace(/\b([A-Z][a-zA-Z0-9_]*)\s*(?=\()/g, function(match, funcName) {
+                    // Only wrap if not already inside a span
+                    return '<span class="hljs-title function_">' + funcName + '</span>';
+                });
             });
         });
     </script>

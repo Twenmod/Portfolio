@@ -840,11 +840,11 @@ code {
 }
 
 .hljs-built_in {
-    color: #1b58d1 !important;
+    color: #4ec9b0 !important;
 }
 
 .hljs-number {
-    color: #eeffe6 !important;
+    color: #dcf7cf !important;
 }
 
 .hljs-string {
@@ -854,6 +854,11 @@ code {
 .hljs-comment {
     color: #6a9955 !important;
     font-style: italic;
+}
+
+.hljs-title,
+.hljs-title.function {
+    color: #fcfc9d !important;
 }
 
 .toc-section {
