@@ -913,3 +913,11 @@ code {
 .article-content details > *:not(summary) {
     padding: 0.5rem;
 }
+
+
+p a  {
+    color: rgb(150, 213, 255) !important;
+}
+p a:visited {
+    color: rgb(126, 162, 185) !important;
+}
