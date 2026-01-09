@@ -5,7 +5,7 @@
     <link>https://www.jacktollenaar.top</link>
     <description>Articles on graphics, rendering, and game development</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 06 Dec 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 06 Dec 2025</lastBuildDate>
     <atom:link href="https://www.jacktollenaar.top/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>Mesh seam blending</title>
@@ -17,7 +17,7 @@
         <p>A Guide to implementing blending of mesh seams as a post process</p>
         <p>Using a new technique that mirrors pixels accross seams to smooth out hard edges.</p>
       ]]></content:encoded>
-      <pubDate>Sun, 27 Jul 2025 00:00:00 +0000</pubDate>
+      <pubDate>Sun, 27 Jul 2025</pubDate>
     </item>
 
     <item>
@@ -29,7 +29,7 @@
       <content:encoded><![CDATA[
         <p>A simple guide to implementing basic denoising techniques for raytraced images using weighted gaussian blur strategies.</p>
       ]]></content:encoded>
-      <pubDate>Thu, 13 Mar 2025 00:00:00 +0000</pubDate>
+      <pubDate>Thu, 13 Mar 2025</pubDate>
     </item>
 
   </channel>
