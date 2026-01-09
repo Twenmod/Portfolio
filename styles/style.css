@@ -926,3 +926,7 @@ p a  {
 p a:visited {
     color: rgb(126, 162, 185) !important;
 }
+.btn:visited,
+.btn {
+    color: var(--text) !important;
+}
