@@ -846,7 +846,8 @@ code {
 .hljs-built_in,
 .function_rsqrt,
 .function_lerp,
-.function_Sample
+.function_Sample,
+.function_saturate
  {
     color: #aad8e6 !important;
 }

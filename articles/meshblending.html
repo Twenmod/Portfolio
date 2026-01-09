@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="A guide on real time mesh blending as a post processing effect in games.">
-    <title>Mesh seam smoothing &amp; blending — Jack Tollenaar</title>
+    <title>Mesh seam smoothing & blending - Jack Tollenaar</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/png" href="../media/images/favicon.png">
     <style>
@@ -84,6 +84,13 @@
 
                 codeEl.innerHTML = renderedLines.join('\n');
                 codeEl.innerHTML = codeEl.innerHTML.replace(/\b(float3|float4|half4|float2|float|unity_ObjectToWorld|frag|Hash)\b/g, '<span class="hljs-type">$1</span>');
+            
+                                // Highlight custom function calls (any identifier followed by opening parenthesis)
+                codeEl.innerHTML = codeEl.innerHTML.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, function(match, funcName) {
+                    // Skip if already wrapped in a span (e.g., built-in functions, keywords)
+                    if (match.includes('<span')) return match;
+                    return '<span class="hljs-title function_' + funcName + '">' + funcName + '</span>';
+                });
             });
         });
     </script>
@@ -103,8 +110,8 @@
     <main>
         <section class="hero container articles-hero">
             <div class="container">
-                <h1>Mesh seam/edge blending</h1>
-                <p class="muted">Smoothing of mesh seams as a real time post process</p>
+                <h1>Mesh seam smoothing&blending</h1>
+                <p class="muted">Smoothing of mesh seams as a post process</p>
     <script src="/includes/load-footer.js"></script>
     <script src="/includes/load-toc.js"></script>
             </div>
@@ -316,10 +323,9 @@ half4 Frag(Varyings input) : SV_Target
     float maxSearchDistance = (KernelRadius)/sceneDepth; 
 
     // We subtract 0.5 to make the transition line up on the seam
-    // you can tweak this 0.5 if it does not line up perfectly.
     float spatialWeight = saturate(0.5 - sqrt(minimumDistance ) / maxSearchDistance); &lt;changed&gt;
     float depthWeight = saturate(1.0 - depthDiff / _DepthFalloff*_KernelRadius); &lt;changed&gt;
-    float totalWeight = depthWeight*spatialWeight; &lt;changed&gt;
+    float totalWeight = (depthWeight+spatialWeight)*0.5; &lt;changed&gt;
     return lerp(sceneColor, otherColor, totalWeight);
 }
 </code></pre>
