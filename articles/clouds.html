@@ -234,7 +234,7 @@
                 codeEl.innerHTML = codeEl.innerHTML.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, function(match, funcName) {
                     // Skip if already wrapped in a span (e.g., built-in functions, keywords)
                     if (match.includes('<span')) return match;
-                    return '<span class="hljs-title function_">' + funcName + '</span>';
+                    return '<span class="hljs-title function_' + funcName + '">' + funcName + '</span>';
                 });
             });
         });
@@ -334,18 +334,18 @@ float3 marchVolume(float3 rayOrigin, float3 rayDir, float3 backgroundColor) {
     float3 pos = rayOrigin;
     float totalDensity = 0.0;
     float3 light = float3(0.0, 0.0, 0.0);
-    //Step along the ray
+    // Step along the ray
     for (int i = 0; i < NUM_STEPS; i++) {
         pos += rayDir * stepSize;
         float density = sampleDensity(pos);
-        //Important to scale by stepsize since we're only sampling a single point
+        // Important to scale by stepsize since we're only sampling a single point
         totalDensity += density * stepSize;
-        //Calculate how much light is blocked using Beer's law
+        // Calculate how much light is blocked using Beer's law
         float transmissance = exp(-totalDensity);
-        //Calculate lighting at this point, scale by amount blocked and density of this point.
+        // Calculate lighting at this point, scale by amount blocked and density of this point.
         light += CalculateLighting() * transmissance * density * stepSize;
     }
-    //The background behind the cloud is also passed light, so we also add it to the final lighting
+    // The background behind the cloud is also passed light, so we also add it to the final lighting
     light += backgroundColor * transmissance;
     return light;
 }
@@ -377,7 +377,7 @@ float3 CalculateLighting(float3 pos) {
     float stepSize = MAX_LIGHT_DISTANCE / NUM_LIGHT_STEPS;
     float totalDensity = 0.0;
     float3 sample = pos;
-    //Step towards the light
+    // Step towards the light
     for (int i = 0; i < NUM_LIGHT_STEPS; i++) {
         sample += LIGHT_DIRECTION * stepSize;
         float density = SampleDensity(sample);
@@ -567,7 +567,7 @@ float3 CalculateLighting(float3 pos) {
                         direction.
                     </p>
 
-                    <pre class="code"><code class="language-glsl">//Phase function
+                    <pre class="code"><code class="language-glsl">// Phase function
 float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference between look and light direction*/, float inG /*The eccentricity*/)
 {
     float num = 1.0 - inG * inG;
@@ -636,11 +636,11 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                     </p>
                     <pre class="code"><code class="language-glsl">for(int i = 0; i < NUM_SAMPLES; i++) { // sample loop
 ...
-    //Ambient approximation
+    // Ambient approximation
     sampleLight += 
         saturate(pow(profile, 0.5) // here we use a slightly modified profile to change the falloff of ambient light at edges, 
-                                    //this could also be a remapped distance field to the edge of the cloud, we get into this later 
-        * exp(-GetSummedAmbientDensity(samplePosition))) //Summed density of the upwards ray, this can be a precalculated texture sample or an actual march.
+                                    // this could also be a remapped distance field to the edge of the cloud, we get into this later 
+        * exp(-GetSummedAmbientDensity(samplePosition))) // Summed density of the upwards ray, this can be a precalculated texture sample or an actual march.
         * (AMBIENT_LIGHT); // Light from the sky, could be a single color or a preintegrated sky light
     ...
     totalLight += sampleLight * transmissance * sampleDensity * stepSize;
@@ -680,9 +680,9 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
     return exp(-_accumulatedDensity * Remap(_sun_dot, 0.0, 0.9, 0.25, Remap(_baseDimensionalProfile, 1.0, 0.0, 0.05, 0.25)));
 }
 
-//In the march loop
+// In the march loop
     ...
-    //March towards the sun adding up density. 
+    // March towards the sun adding up density. 
     float inSunLightDensity = DirectLightMarch();  &lt;changed&gt
     //                             // not using uprezzed profile 
     float lightVolume = InScatteringApprox(1 - baseProfile, sunDot, inSunLightDensity);  &lt;changed&gt
@@ -733,19 +733,19 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                     </p>
                     <pre class="code"><code class="language-glsl">float3 reprojectionHitPosition;
 ...
-    //march Loop
+    // march Loop
     ...
-  //Jitter
+  // Jitter
     float3 jitterPosition = samplePosition + RandomFloat() * stepSize;
     samplePosition += stepSize; // Keep track of steps without jitter.
     float sampleDensity = SampleDensity(jitterPosition); // Sample with jitter
     ...
-  //Reprojection
+  // Reprojection
     if (accumulatedDensity < TRESHOLD) {
         reprojectionHitPosition = samplePosition;
     }
     ...
-//After march
+// After march
 float2 prevScreenPos = WorldToScreen(reprojectionHitPosition, prevView);
 float3 history = historyBuffer.Sample(reprojectionHitPosition);
 float3 result = lerp(history, currentResult, weight); // weight based on camera motion and difference, must be relatively high since clouds dont reproject accurately
@@ -789,7 +789,7 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
                     </p>
 
                     <p>So when sampling, we get:</p>
-                    <pre class="code"><code class="language-glsl">//Ray march loop
+                    <pre class="code"><code class="language-glsl">// Ray march loop
 ...             
     float distanceField = SampleDistanceField(samplePosition); // Dont use the jitter position here
     
@@ -797,7 +797,7 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
     if (distanceField <= 0) { // this means we are inside the cloud
         stepSize = minStepSize; // Swtich to minimum step
 
-        ... //Lighting and density calculations
+        ... // Lighting and density calculations
 
         minStepSize += STEP_INSCREASE_OVER_DENSITY * sampleDensity;
     }
