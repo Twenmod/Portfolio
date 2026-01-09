@@ -639,7 +639,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
     //Ambient approximation
     sampleLight += 
         saturate(pow(profile, 0.5) // here we use a slightly modified profile to change the falloff of ambient light at edges, 
-                                    //this could also be a remapped distance field to the edge of the cloud (we get into this later) 
+                                    //this could also be a remapped distance field to the edge of the cloud, we get into this later 
         * exp(-GetSummedAmbientDensity(samplePosition))) //Summed density of the upwards ray, this can be a precalculated texture sample or an actual march.
         * (AMBIENT_LIGHT); // Light from the sky, could be a single color or a preintegrated sky light
     ...
