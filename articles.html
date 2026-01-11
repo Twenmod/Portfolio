@@ -80,6 +80,16 @@
                 flex: 1 1 100%;
             }
         }
+
+                .card .project-year {
+            color: var(--muted);
+            font-size: .9rem;
+            padding: 0 1rem;
+            margin-top: 0.25rem;
+            text-align: right;
+            opacity: 0.6;
+            margin-bottom: 0.75rem;
+        }
     </style>
 </head>
   <header class="site-header">
@@ -106,20 +116,32 @@
             <div class="container">
                 <div class="cards">
                     <article class="card">
-                        <a href="articles/basic-denoising.html">
-                            <img src="./media/images/denoising-card.png" alt="Basic Denoising">
-                            <h3>Basic Denoising</h3>
-                            <p class="muted">Weighted gaussian blurs as denoising for raytracers.</p>
+                        <a href="articles/clouds.html">
+                            <img src="./media/images/clouds-card.png" alt="Clouds">
+                            <h3>Volumetric cloud rendering</h3>
+                            <p class="muted">Implementing a voxel cloud renderer based on Nubis.</p>
+                            <div class="project-year">Jan 11 2026</div>
+                            
                         </a>
                     </article>
-
                     <article class="card">
                         <a href="articles/meshblending.html">
                             <img src="./media/images/seamblend-card.png" alt="Mesh seam blending">
                             <h3>Mesh seam blending</h3>
                             <p class="muted">Smooth transitioning of mesh seam as a post process.</p>
+                            <div class="project-year">Jul 27 2025</div>
+                            
                         </a>
                     </article>
+                    <article class="card">
+                        <a href="articles/basic-denoising.html">
+                            <img src="./media/images/denoising-card.png" alt="Basic Denoising">
+                            <h3>Basic Denoising</h3>
+                            <p class="muted">Weighted gaussian blurs as denoising for raytracers.</p>
+                            <div class="project-year">Mar 13 2025</div>
+                        </a>
+                    </article>
+
                 </div>
             </div>
         </section>
