@@ -930,3 +930,122 @@ p a:visited {
 .btn {
     color: var(--text) !important;
 }
+
+/* Image Comparison Slider */
+.img-compare {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: var(--shadow, 0 10px 30px rgba(10, 10, 10, .08));
+    margin: 1rem 0;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    user-select: none;
+    transition: none;
+}
+
+.img-compare img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+    pointer-events: none;
+    transition: none;
+    margin: 0 !important;
+}
+
+.img-compare .img-after {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+.img-compare .img-before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    clip-path: inset(0 0 0 0);
+}
+
+.img-compare .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    transition: opacity 200ms ease;
+}
+
+.img-compare .handle {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.438);
+    cursor: ew-resize;
+    transform: translateX(-50%);
+    transition: background 120ms ease, box-shadow 120ms ease;
+    z-index: 5;
+}
+
+.img-compare .handle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgb(255, 255, 255);
+    z-index: 10;
+}
+
+.img-compare .handle::after {
+    content: '<>';
+    position: absolute;
+    top: 50%;
+    left: calc(50% + 2px);
+    transform: translate(-50%, -50%);
+    color: rgba(20, 20, 30, 0.7);
+    font-size: 10px;
+    white-space: nowrap;
+    font-weight: 700;
+    letter-spacing: 5px;
+    z-index: 10;
+}
+
+.img-compare .handle:hover {
+    background: rgba(255, 255, 255, 0.644);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.img-compare .label {
+    position: absolute;
+    top: 12px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 4px;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 2;
+}
+
+.img-compare .before-label {
+    left: 12px;
+}
+
+.img-compare .after-label {
+    right: 12px;
+}

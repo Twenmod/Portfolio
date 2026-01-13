@@ -238,6 +238,91 @@
                 });
             });
         });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const containers = document.querySelectorAll(".img-compare");
+  
+  containers.forEach(container => {
+    const imgAfter = container.querySelector(".img-after");
+    const imgBefore = container.querySelector(".img-before");
+    const handle = container.querySelector(".handle");
+    const overlay = container.querySelector(".overlay");
+    const beforeLabel = container.querySelector(".before-label");
+    const afterLabel = container.querySelector(".after-label");
+
+    const beforeSrc = container.dataset.before;
+    const afterSrc = container.dataset.after;
+
+    let offset = parseFloat(container.dataset.offset || 0.5);
+    let hideOnSlide = container.dataset.hideOnSlide !== "false";
+    let overlayEnabled = container.dataset.overlay !== "false";
+
+    let sliding = false;
+    let bounds = null;
+
+    if (beforeSrc) imgBefore.src = beforeSrc;
+    if (afterSrc) imgAfter.src = afterSrc;
+
+    function updateBounds() {
+      bounds = container.getBoundingClientRect();
+      update();
+    }
+
+    function update() {
+      if (!bounds) return;
+
+      const x = offset * 100;
+
+      imgBefore.style.clipPath = `inset(0 ${100 - x}% 0 0)`;
+      handle.style.left = `${x}%`;
+
+      const opacity = hideOnSlide && sliding ? 0 : 1;
+      //beforeLabel.style.opacity = opacity;
+      //afterLabel.style.opacity = opacity;
+      if (overlayEnabled && overlay) overlay.style.opacity = opacity;
+    }
+
+    function pointerX(e) {
+      return e.touches ? e.touches[0].clientX : e.clientX;
+    }
+
+    function start(e) {
+      sliding = true;
+      move(e);
+      e.preventDefault();
+    }
+
+    function move(e) {
+      if (!sliding || !bounds) return;
+
+      let x = pointerX(e) - bounds.left;
+      x = Math.max(0, Math.min(x, bounds.width));
+      offset = x / bounds.width;
+      update();
+    }
+
+    function end() {
+      sliding = false;
+      update();
+    }
+
+    window.addEventListener("resize", updateBounds);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", end);
+    window.addEventListener("touchmove", move);
+    window.addEventListener("touchend", end);
+
+    container.addEventListener("mousedown", start);
+    container.addEventListener("touchstart", start);
+
+    imgAfter.addEventListener("load", updateBounds);
+    
+    // Initial update
+    updateBounds();
+  });
+});
+
     </script>
 </head>
 
@@ -537,8 +622,13 @@ float3 CalculateLighting(float3 pos) {
                     <br>
                     <p style="opacity: 0.5;">Final cloud comparison after applying noise based erosion, blockiness at
                         the edges gets removed with more detail.</p>
-                    <img class="info-small" src="../media/images/articles/clouds/uprez.png"
-                        alt="low resolution cloud vs uprezzed cloud">
+                    <div class="img-compare info-small" data-before="../media/images/articles/clouds/uprez-before.png" data-after="../media/images/articles/clouds/uprez-after.png">
+                        <img class="img-after" src="../media/images/articles/clouds/uprez-after.png" alt="Uprezzed cloud">
+                        <img class="img-before" src="../media/images/articles/clouds/uprez-before.png" alt="Low resolution cloud">
+                        <div class="handle"></div>
+                        <div class="label before-label">Low Res</div>
+                        <div class="label after-label">Uprezzed</div>
+                    </div>
                     <p>You can also move this noise over time to simulate wind.</p>
                 </div>
             </section>
@@ -651,8 +741,13 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
     </code></pre>
                     <p style="opacity: 0.5;">Comparison, you see mainly that the parts away from the sun are not
                         unrealistically dark anymore<br>and shadowed parts (the underside) stay shadowed</p>
-                    <img class="info" src="../media/images/articles/clouds/ambient.png"
-                        alt="No ambient lighting vs Ambient lighting">
+                    <div class="img-compare info" data-before="../media/images/articles/clouds/ambient-before.png" data-after="../media/images/articles/clouds/ambient-after.png">
+                        <img class="img-after" src="../media/images/articles/clouds/ambient-after.png" alt="With ambient lighting">
+                        <img class="img-before" src="../media/images/articles/clouds/ambient-before.png" alt="Without ambient lighting">
+                        <div class="handle"></div>
+                        <div class="label before-label">No Ambient</div>
+                        <div class="label after-label">With Ambient</div>
+                    </div>
                     </p>
                     <h3>Multiple in-scattering</h3>
                     <p>
@@ -699,8 +794,14 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                     <p style="opacity: 0.5;">Comparison, you see that the inner parts of the cloud are significantly
                         brighter.<br>
                         You can also see inner edges in the middle of the cloud be slightly darker adding detail.</p>
-                    <img class="info" src="../media/images/articles/clouds/multiplescatter.png"
-                        alt="No multiple in scattering vs with multiple in scattering">
+                    <div class="img-compare info" data-before="../media/images/articles/clouds/mis-before.png" data-after="../media/images/articles/clouds/mis-after.png">
+                        <img class="img-after" src="../media/images/articles/clouds/mis-after.png" alt="With multiple in-scattering">
+                        <img class="img-before" src="../media/images/articles/clouds/mis-before.png" alt="Without multiple in-scattering">
+                        <div class="overlay"></div>
+                        <div class="handle"></div>
+                        <div class="label before-label">No Scattering</div>
+                        <div class="label after-label">With Scattering</div>
+                    </div>
                     </p>
                 </div>
             </section>
