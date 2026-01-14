@@ -214,7 +214,8 @@ main {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 3rem 0rem;
+    padding: 2rem 0rem;
+    padding-top: 1rem;
 }
 
 .hero h1 {
