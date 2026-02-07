@@ -316,6 +316,7 @@ main {
     align-items: center;
     justify-content: flex-start;
     padding-left: 2rem;
+    gap: 2rem;
 }
 
 
@@ -341,6 +342,29 @@ main {
     margin: 1rem 0;
     min-width: 80ch;
     max-width: 80ch;
+}
+
+.hero-visual {
+    position: relative;
+    z-index: 2;
+    flex: 1 1 40%;
+    min-width: 260px;
+    max-width: 520px;
+    margin-right: 2rem;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+}
+
+.hero-cloud {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    border-radius: var(--radius-medium);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(6, 10, 20, 0.45);
+    box-shadow: 0 12px 40px rgba(2, 6, 23, 0.45);
+    display: block;
 }
 
 .hero-actions {
@@ -829,6 +853,13 @@ p,
         max-width: 100%;
         margin: 1rem;
         padding: 1rem;
+    }
+
+    .hero-visual {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 1rem 1rem;
+        min-height: 220px;
     }
 
 
