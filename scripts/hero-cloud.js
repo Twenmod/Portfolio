@@ -17,7 +17,7 @@
         "}\n";
 
     var fragmentUrl = "/scripts/hero-cloud.frag.glsl";
-    var fixedResolution = { longSide: 360 };
+    var fixedResolution = { longSide: 240 };
     var textureConfig = {
         profile: { url: "/media/textures/profile.raw", width: 145, height: 132, depth: 41 },
         noise: { url: "/media/textures/noise.raw", width: 128, height: 128, depth: 128 }
@@ -91,7 +91,7 @@
         var idleSpinRange = 0.4;
         var targetYaw = camera.yaw;
         var idleSpinDir = 1;
-        var boxSize = { x: 1.4, y: 1.3, z: 0.5 };
+        var boxSize = { x: 1.5, y: 1.3, z: 0.5 };
         var drag = { x: 0, y: 0 };
 
         function resize() {

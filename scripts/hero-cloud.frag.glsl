@@ -18,6 +18,29 @@ float Remap(float value, float low1, float high1, float low2, float high2) {
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1);
 }
 
+uint WangHash(uint s) {
+    s = (s ^ 61u) ^ (s >> 16);
+    s *= 9u, s = s ^ (s >> 4);
+    s *= 0x27d4eb2du;
+    s = s ^ (s >> 15);
+    return s;
+}
+
+uint InitSeed(uint seedBase) {
+    return WangHash((seedBase + 1u) * 17u);
+}
+
+uint RandomUInt(uint customSeed) {
+    customSeed ^= customSeed << 13;
+    customSeed ^= customSeed >> 17;
+    customSeed ^= customSeed << 5;
+    return customSeed;
+}
+float RandomFloat01(uint seed) {
+    seed = (seed & 0x007FFFFFu) | 0x3F800000u;
+    return uintBitsToFloat(seed) - 1.0f;
+}
+
 vec2 rayBox(vec3 ro, vec3 rd, vec3 boxSize) {
     vec3 m = 1.0f / rd;
     vec3 n = m * ro;
@@ -95,11 +118,16 @@ void main() {
     const float lightStepSize = 0.16f;
     const vec3 sun_light = vec3(1.f, 0.9f, 0.9f) * 1.f;
     float sun_dot = dot(lightDir, rd);
+
+    vec2 pixel = ((uv + 1.f) * 0.5f) * vec2(u_resolution);
+    uint seed = InitSeed(uint(pixel.x + pixel.y * u_resolution.x));
+
     for(int i = 0; i < steps; i++) {
         if(t > tEnd)
             break;
+        seed = RandomUInt(seed);
 
-        vec3 p = ro + rd * t;
+        vec3 p = ro + rd * (t + (RandomFloat01(seed) * stepSize));
         float profile = SampleProfile(p);
         float sampleDensity = SampleDensity(p, profile);
 
