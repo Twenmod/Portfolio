@@ -3,7 +3,10 @@
     if (!canvas) return;
 
     var gl = canvas.getContext('webgl2', { antialias: true, premultipliedAlpha: true });
-    if (!gl) return;
+    if (!gl) {
+        canvas.style.display = 'none';
+        return;
+    }
 
     var vertexSource = "#version 300 es\n" +
         "layout(location = 0) in vec2 a_pos;\n" +
@@ -36,7 +39,10 @@
 
         var vertexShader = compileShader(gl.VERTEX_SHADER, vertexSource);
         var fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
-        if (!vertexShader || !fragmentShader) return;
+        if (!vertexShader || !fragmentShader) {
+            canvas.style.display = 'none';
+            return;
+        }
 
         var program = gl.createProgram();
         gl.attachShader(program, vertexShader);
@@ -44,6 +50,7 @@
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             if (window.console) console.error(gl.getProgramInfoLog(program));
+            canvas.style.display = 'none';
             return;
         }
 
@@ -84,7 +91,7 @@
         var idleSpinRange = 0.4;
         var targetYaw = camera.yaw;
         var idleSpinDir = 1;
-        var boxSize = { x: 1.5, y: 1.5, z: 1.5 };
+        var boxSize = { x: 1.4, y: 1.3, z: 0.5 };
         var drag = { x: 0, y: 0 };
 
         function resize() {
@@ -241,15 +248,15 @@
                 var texture = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_3D, texture);
                 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
                 gl.texImage3D(
                     gl.TEXTURE_3D,
                     0,
-                    gl.R32F,
+                    gl.R16F,
                     config.width,
                     config.height,
                     config.depth,
@@ -276,5 +283,6 @@
         })
         .catch(function (err) {
             if (window.console) console.warn('Cloud resources failed:', err);
+            canvas.style.display = 'none';
         });
 })();

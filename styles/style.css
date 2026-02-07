@@ -257,6 +257,11 @@ main {
     }
 }
 
+@media (max-width: 800px) {
+    .hero-cloud {
+        display: none !important;
+    }
+}
 
 
 .brand {
@@ -348,7 +353,7 @@ main {
     z-index: 2;
     flex: 1 1 40%;
     min-width: 260px;
-    max-width: 520px;
+    max-width: 820px;
     margin-right: 2rem;
     align-self: stretch;
     display: flex;
