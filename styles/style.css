@@ -92,6 +92,54 @@ main {
     max-width: 90%;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-separator {
+    width: 1px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-icon {
+    width: 26px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-small);
+    background: rgba(255, 255, 255, 0);
+    color: var(--muted);
+    text-decoration: none;
+    transition: background .12s ease, color .12s ease, transform .08s ease;
+}
+
+.header-icon:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    transform: translateY(-1px);
+}
+
+.header-icon-img {
+    width: 24px;
+    height: 24px;
+    display: block;
+    object-fit: contain;
+}
+
+.header-icon:hover .header-icon-img {
+    filter: none;
+}
+
 
 .main-nav {
     display: flex;
@@ -218,7 +266,7 @@ main {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2rem 0rem;
+    padding: 1rem 0rem;
     padding-top: 1rem;
 }
 
@@ -230,8 +278,8 @@ main {
 
 .lead {
     color: var(--muted);
-    max-width: 60ch;
-    margin: 0 0 1rem
+    max-width: 100%;
+    margin: 0 0 0.2rem
 }
 
 .hero-card {
@@ -244,10 +292,11 @@ main {
     overflow: hidden;
     box-shadow: var(--shadow-strong);
 
-    min-height: 60vh;
+    min-height: 45vh;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-left: 2rem;
 }
 
 
@@ -270,9 +319,87 @@ main {
     background: rgba(6, 10, 20, 0.55);
 
     border-radius: var(--radius-medium);
-    margin: 2rem auto;
+    margin: 1rem 0;
     min-width: 80ch;
     max-width: 80ch;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.feature-section {
+    padding: 0rem;
+}
+
+.feature-section .feature-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: center;
+    padding: 2rem;
+    padding-left: 5rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-strong);
+    background: rgba(6, 10, 20, 0.6);
+    max-width: 100%;
+}
+
+.feature-section .feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--feature-bg);
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.55) contrast(0.95);
+    transform: scale(1.02);
+    z-index: 0;
+}
+
+.feature-section .feature-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(6, 10, 20, 0.88) 0%, rgba(6, 10, 20, 0.45) 55%, rgba(6, 10, 20, 0.2) 100%);
+    z-index: 1;
+}
+
+.feature-content,
+.feature-media {
+    position: relative;
+    z-index: 2;
+}
+
+.feature-content h2 {
+    margin: 0 0 0.5rem;
+}
+
+.feature-content p {
+    margin: 0 0 1rem;
+    max-width: 52ch;
+}
+
+.feature-media img {
+    width: 80%;
+    height: auto;
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-soft);
+    display: block;
+}
+
+@media (max-width: 900px) {
+    .feature-section .feature-card {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+    }
+
+    .feature-section .feature-card::after {
+        background: linear-gradient(180deg, rgba(6, 10, 20, 0.9) 0%, rgba(6, 10, 20, 0.5) 60%, rgba(6, 10, 20, 0.25) 100%);
+    }
 }
 
 
@@ -310,6 +437,18 @@ main {
     flex: 1 1 calc(50% - 0.375rem);
     width: auto;
     max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.media-grid img {
+    width: 100%;
     height: auto;
     display: block;
 }
