@@ -374,6 +374,18 @@ main {
     display: block;
 }
 
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.media-grid img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 @media (max-width: 800px) {
     .project-row:has(.media img + img) .media img {
         flex-basis: 100%;
