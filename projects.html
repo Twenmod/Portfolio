@@ -6,16 +6,15 @@
     <meta name="description" content="Portfolio projects of a graphics programmer studying at BUAS">
     <title>Projects - Jack Tollenaar</title>
     <link rel="stylesheet" href="styles/style.css">
-      <link rel="icon" type="image/png" href="media/images/favicon.png">
+    <link rel="icon" type="image/png" href="media/images/favicon.png">
 
     <style>
-        
         .projects-hero {
             padding: 4rem 0 2rem;
         }
 
 
-        
+
         .cards {
             display: grid;
             grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr);
@@ -23,10 +22,11 @@
             align-items: stretch;
             justify-content: center;
         }
-@media (max-width: 530px) {
-                    .cards {
-            display: inline;
-                    }
+
+        @media (max-width: 530px) {
+            .cards {
+                display: inline;
+            }
         }
 
         .card {
@@ -39,7 +39,7 @@
             text-decoration: none;
             transition: transform .18s ease, box-shadow .18s ease;
             min-height: 260px;
-            
+
         }
 
         .card:hover {
@@ -63,7 +63,7 @@
 
         .card h3 {
             margin: .35rem 0 0 0;
-            
+
             padding: 0 1rem;
             font-size: 1.03rem;
             line-height: 1.2;
@@ -71,10 +71,10 @@
 
         .card .card-body {
             padding: 1.0rem 0.9rem 0.9rem 0.9rem;
-            
+
         }
 
-        
+
         .card .project-grade {
             padding: .18rem .5rem;
             font-size: .9rem;
@@ -87,7 +87,7 @@
             font-size: .95rem;
         }
 
-        
+
         .card .project-year {
             color: var(--muted);
             font-size: .9rem;
@@ -100,23 +100,10 @@
         h2 {
             margin-bottom: 2rem;
         }
-
-
     </style>
 </head>
 
 <body>
-    <header class="site-header">
-        <div class="container">
-      <a class="brand" href="/index.html"><img src="../media/images/iconhigh.png" alt="" class="brand-icon" style="height: 2em; vertical-align: middle; margin-right: 1.5rem; border-radius: 5px;">Jack Tollenaar</a>
-            <nav class="main-nav">
-                <a href="/index.html">Home</a>
-                <a href="/projects.html" aria-current="page">Projects</a>
-                <a href="/articles.html">Articles</a>
-            </nav>
-        </div>
-    </header>
-
     <main>
         <section class="hero container projects-hero">
             <div class="container">
@@ -129,6 +116,18 @@
                 <h2>BUAS projects Y2 | 2025-2026</h2>
                 <div class="cards">
 
+                    <article class="card">
+                        <a href="/projects/cloudsproject.html">
+                            <img src="./media/images/clouds2-card.jpg" alt="Clouds">
+                            <div class="card-body">
+                                <h3>Cloud rendering research project</h3>
+                                <div class="project-meta-row">
+                                    <p class="muted">BUAS Y2 Block B</p>
+                                    <div class="project-grade">97/100</div>
+                                </div>
+                            </div>
+                        </a>
+                    </article>
 
                     <article class="card">
                         <a href="/projects/ps5.html">
@@ -250,6 +249,7 @@
         </section>
 
 
+        <script src="/includes/load-header.js"></script>
         <script src="/includes/load-footer.js"></script>
 
     </main>

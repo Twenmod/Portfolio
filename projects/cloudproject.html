@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Cloud Renderer - Jack Tollenaar</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="icon" type="image/png" href="../media/images/favicon.png">
+</head>
+
+<body>
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Cloud Renderer</h1>
+                <p class="lead">Voxel cloud raymarcher based on Nubis</p>
+
+            </div>
+        </section>
+
+        <section class="toc-section">
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-row">
+                        <div class="text">
+                            <div class="project-meta-row">
+                                <p class="project-meta">Role | Research · Rendering · Optimisation</p>
+                                <div class="project-grade">Grade: <strong>97/100</strong></div>
+                            </div>
+                            <h2>Overview</h2>
+                            <p>For BUAS Y2 block B, I did a research project.<br>
+                                For this project I chose to create a volumetric renderer, since I was very interested in
+                                how they work and their pretty results.<br> <br>
+                                For this project I did a lot of research into different techniques, and ended up writing
+                                a technical article that explains the specifics.
+                            </p>
+                            <p class="project-cta">
+                                <a id="Article" class="external btn btn-icon" href="../articles/clouds.html"
+                                    target="_blank" rel="noopener">
+                                    <img src="../media/images/article.png" class="icon">Article
+                                </a>
+                                <a id="Git" class="external btn btn-icon" href="https://github.com/Twenmod/Volumarcher"
+                                    target="_blank" rel="noopener">
+                                    <img src="../media/images/git.png" class="icon">Source
+                                </a>
+                            </p>
+                        </div>
+                        <div class="media">
+                            <img src="../media/images/projects/clouds/overview.png" alt="The disney cloud">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 id="details">Research</h2>
+                            <p>I researched multiple sources and techniques for this project. <br>
+                                I ended up mostly following the voxel technique in Nubis^3<br>
+                                since that aligned most with what I wanted, I explained more about my choices in <a
+                                    href="../articles/clouds.html">my article</a> <br> <br>
+                                This allowed me to give a lot of artistic control to the clouds
+                            </p>
+                        </div>
+
+
+                        <div class="media media-grid" role="region" aria-label="gallery">
+                            <img src="../media/images/projects/clouds/rainbow.png" alt="Rainbow cloud">
+                            <img src="../media/images/projects/clouds/kraken.png" alt="kraken cloud">
+                            <img src="../media/images/projects/clouds/spacecloud.png" alt="Space Nebula">
+                            <img src="../media/images/projects/clouds/lights.png" alt="Cloud with lightning">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 id="details">Optimisation</h2>
+                            <p>Rendering clouds is quite expensive so performance was a big concern while making this
+                                project<br>
+                                During the project I ran scalability tests and profiled using multiple tools like Pix
+                                and NSight<br><br>
+                                I implemented multiple high and lower level optimisations including:<br>
+                                - Adaptive sampling based on distance fields<br>
+                                - Caching of lighting data<br>
+                                - Block Compression <br>
+                                - Temporal, i.e. Reprojection, Jittering<br><br>
+                                <a href="../media/documents/clouds/optimisations.pdf">Here</a> is a document detailing
+                                some of my optimisations
+                            </p>
+                            <p style="opacity: 0.5;">Video showing runtime performance<br>Running on a RTX 4060 Laptop
+                                GPU at 1080p<br> Volumetric pass is under
+                                "Volumarcher: ..."</p>
+                        </div>
+                        <video class="media" controls>
+                            <source src="../media/videos/projects/clouds/performance.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 id="details">Usability</h2>
+                            <p>Since I planned on porting this to next block's custom engine team project Usability was
+                                a important factor.<br>
+                                For this I made the API simple to use, mainly having to supply settings and existing
+                                scene targets.<br><br>
+                                I also communicated with artists to make sure it would be usable for them to make
+                                clouds, <br>From this I created a houdini asset to generate VDB files to be rendered.
+                        </div>
+                        <div class="media media-grid" role="region" aria-label="gallery">
+                            <img src="../media/images/projects/clouds/houdini.png" alt="Clouds in houdini">
+                            <img src="../media/images/projects/clouds/real.png" alt="Same clouds in renderer">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 id="details">Showcase</h2>
+                        </div>
+                        <video class="media" controls>
+                            <source src="../media/videos/projects/clouds/show.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="/includes/load-header.js"></script>
+    <script src="/includes/load-footer.js"></script>
+    <script src="/includes/load-toc.js"></script>
+
+</body>
+
+</html>
