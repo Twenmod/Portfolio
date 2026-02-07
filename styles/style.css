@@ -328,7 +328,7 @@ main {
     object-fit: cover;
     display: block;
     transform: scale(1.02);
-    filter: brightness(.6) contrast(.95);
+    filter: brightness(.3) contrast(.95);
 }
 
 .hero-content {

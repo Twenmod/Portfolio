@@ -76,7 +76,14 @@
         var start = performance.now();
         var last = start;
         var mouse = { x: 0, y: 0, down: false };
-        var camera = { yaw: 0.2 + 3.14, pitch: 0.18, radius: 4.2 };
+        var camera = { yaw: 3.14, pitch: 0.18, radius: 4.2 };
+        var idleSpinDelay = 2.0;
+        var idleSpinSpeed = 0.25;
+        var lastCameraInput = -idleSpinDelay * 1000;
+        var idleCenterYaw = camera.yaw;
+        var idleSpinRange = 0.85;
+        var targetYaw = camera.yaw;
+        var idleSpinDir = 1;
         var boxSize = { x: 1.5, y: 1.5, z: 1.5 };
         var drag = { x: 0, y: 0 };
 
@@ -107,6 +114,7 @@
             mouse.down = true;
             drag.x = event.clientX;
             drag.y = event.clientY;
+            lastCameraInput = performance.now();
             canvas.setPointerCapture(event.pointerId);
         });
 
@@ -128,10 +136,12 @@
             drag.y = event.clientY;
             camera.yaw += dx * 0.004;
             camera.pitch = Math.max(-0.6, Math.min(0.6, camera.pitch - dy * 0.004));
+            lastCameraInput = performance.now();
         });
 
         canvas.addEventListener('wheel', function (event) {
             camera.radius = Math.max(1.4, Math.min(6.0, camera.radius + event.deltaY * 0.002));
+            lastCameraInput = performance.now();
         }, { passive: true });
 
         var observer = new ResizeObserver(resize);
@@ -142,6 +152,27 @@
             var elapsed = (now - start) * 0.001;
             var delta = (now - last) * 0.001;
             last = now;
+
+            if (!mouse.down && (now - lastCameraInput) * 0.001 > idleSpinDelay) {
+                var speed = idleSpinSpeed;
+                var diff = targetYaw - camera.yaw;
+                if (diff < 0) diff = -diff;
+                if (diff <= 0.5) {
+                    targetYaw += speed * delta * idleSpinDir;
+                    if (targetYaw > idleCenterYaw + idleSpinRange) {
+                        targetYaw = idleCenterYaw + idleSpinRange;
+                        idleSpinDir = -1;
+                    } else if (targetYaw < idleCenterYaw - idleSpinRange) {
+                        targetYaw = idleCenterYaw - idleSpinRange;
+                        idleSpinDir = 1;
+                    }
+                }
+                var alpha = delta * 2;
+                camera.yaw = camera.yaw * (1 - alpha) + targetYaw * alpha;
+
+                camera.pitch = camera.pitch * (1 - alpha) + 0.18 * alpha;
+
+            }
 
             var camPos = [
                 Math.sin(camera.yaw) * Math.cos(camera.pitch) * camera.radius,
