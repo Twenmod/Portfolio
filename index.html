@@ -4,16 +4,52 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Jack Tollenaar - Game programmer focused on graphics programming. Explore my projects and articles on C++, Unity, and Unreal Engine.">
+  <meta name="description"
+    content="Jack Tollenaar - Game programmer focused on graphics programming. Explore my projects and articles on C++, Unity, and Unreal Engine.">
   <title>Jack Tollenaar - Portfolio</title>
   <link rel="stylesheet" href="./styles/style.css">
   <link rel="icon" type="image/png" href="media/images/favicon.png">
+  <style>
+    .hero {
+      text-align: left !important;
+    }
+
+    .hero-card {
+      width: 170% !important;
+      justify-content: flex-start !important;
+      padding-left: 2rem;
+      border-radius: 6px !important;
+    }
+
+    .hero-content {
+      text-align: left;
+      margin: 1rem 2rem !important;
+    }
+
+    .hero h1 {
+      padding: 0.5rem 0 !important;
+    }
+
+    .hero a {
+      margin-right: 1rem;
+    }
+
+    .hero-divider {
+      border: 0;
+      height: 1px;
+      width: 100%;
+      margin: 0.25rem 0 0.25rem;
+      background: rgba(255, 255, 255, 0.18);
+    }
+  </style>
+
 </head>
 
 <body>
   <header class="site-header">
     <div class="container">
-      <a class="brand" href="/index.html"><img src="media/images/iconhigh.png" alt="" class="brand-icon" style="height: 2em; vertical-align: middle; margin-right: 1.5rem; border-radius: 5px;">Jack Tollenaar</a>
+      <a class="brand" href="/index.html"><img src="media/images/iconhigh.png" alt="" class="brand-icon"
+          style="height: 2em; vertical-align: middle; margin-right: 1.5rem; border-radius: 5px;">Jack Tollenaar</a>
       <nav class="main-nav">
         <a href="/index.html" aria-current="page">Home</a>
         <a href="/projects.html">Projects</a>
@@ -24,13 +60,21 @@
 
   <main>
     <section id="hero" class="hero container">
-      
+
       <div class="hero-card">
         <img class="hero-bg" src="./media/images/index-header.png" alt="Hero background">
         <div class="hero-content">
-          <h1>Portfolio - Jack Tollenaar</h1>
-          <p class="lead">Game programmer focused on graphics programming.<br>Comfortable with C++, Unity, and Unreal
-            Engine.</p>
+          <h1>Jack Tollenaar</h1>
+          <p class="lead">Hi, I'm Jack.<br>Currently studying y2 game programming at Breda University of Applied
+            Sciences.</p>
+          <hr class="hero-divider">
+          <p class="lead">I focus on graphics programming and love creating cool graphics features.<br>I have experience
+            in C++, Unity & Unreal </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="/articles.html">View Articles</a>
+            <a class="btn btn-primary" href="/projects.html">View Projects</a>
+          </div>
+
         </div>
       </div>
     </section>
@@ -39,7 +83,6 @@
       <div class="container">
         <h2>Articles</h2>
         <p>Some Articles/detailed explanation's of things I worked on.</p>
-        <p><a class="btn btn-primary" href="/articles.html">View Articles</a></p>
       </div>
     </section>
 
@@ -47,7 +90,6 @@
       <div class="container">
         <h2>Projects</h2>
         <p>Some of my projects and demos.</p>
-        <p><a class="btn btn-primary" href="/projects.html">View Projects</a></p>
       </div>
     </section>
 
