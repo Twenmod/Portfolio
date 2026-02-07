@@ -92,6 +92,54 @@ main {
     max-width: 90%;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-separator {
+    width: 1px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-icon {
+    width: 26px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-small);
+    background: rgba(255, 255, 255, 0);
+    color: var(--muted);
+    text-decoration: none;
+    transition: background .12s ease, color .12s ease, transform .08s ease;
+}
+
+.header-icon:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    transform: translateY(-1px);
+}
+
+.header-icon-img {
+    width: 24px;
+    height: 24px;
+    display: block;
+    object-fit: contain;
+}
+
+.header-icon:hover .header-icon-img {
+    filter: none;
+}
+
 
 .main-nav {
     display: flex;
