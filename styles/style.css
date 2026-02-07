@@ -149,24 +149,43 @@ main {
 
 }
 
-@media (max-width: 800px) {
-    .brand {
-        display: inline;
-        text-wrap: nowrap;
-        font-size: 3vw !important;
+@media (max-width: 500px) {
+    .header-icon {
+        width: 18px;
     }
 
-    .main-nav {
-        display: flex;
-        align-items: center;
-        margin-left: 15px;
-    }
-
-    .main-nav a {
-        margin-left: 0rem !important;
+    .header-icon-img {
+        width: 18px;
+        height: 18px;
     }
 
 }
+
+@media (max-width: 800px) {
+    .brand-text {
+        display: none;
+    }
+
+    .brand {
+        width: 30px;
+    }
+
+    .brand-icon {
+        margin-right: 0.5rem;
+    }
+
+}
+
+.main-nav {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.main-nav a {
+    margin-left: 0rem !important;
+}
+
 
 @media (max-width: 380px) {
     .main-nav a {
