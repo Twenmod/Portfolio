@@ -14,6 +14,7 @@
         "}\n";
 
     var fragmentUrl = "/scripts/hero-cloud.frag.glsl";
+    var fixedResolution = { longSide: 360 };
 
     function init(fragmentSource) {
 
@@ -68,17 +69,22 @@
         var start = performance.now();
         var last = start;
         var mouse = { x: 0, y: 0, down: false };
-        var camera = { yaw: 0.6, pitch: 0.18, radius: 3.6 };
+        var camera = { yaw: 0.6, pitch: 0.18, radius: 1.6 };
         var drag = { x: 0, y: 0 };
 
         function resize() {
             var rect = canvas.getBoundingClientRect();
-            var dpr = Math.min(window.devicePixelRatio || 1, 2);
-            var width = Math.max(1, Math.floor(rect.width * dpr));
-            var height = Math.max(1, Math.floor(rect.height * dpr));
-            if (canvas.width !== width || canvas.height !== height) {
-                canvas.width = width;
-                canvas.height = height;
+            var aspect = rect.width > 0 && rect.height > 0 ? rect.width / rect.height : 1;
+            var targetWidth = fixedResolution.longSide;
+            var targetHeight = fixedResolution.longSide;
+            if (aspect >= 1) {
+                targetHeight = Math.max(1, Math.round(fixedResolution.longSide / aspect));
+            } else {
+                targetWidth = Math.max(1, Math.round(fixedResolution.longSide * aspect));
+            }
+            if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
             }
             gl.viewport(0, 0, canvas.width, canvas.height);
         }
@@ -117,7 +123,7 @@
         });
 
         canvas.addEventListener('wheel', function (event) {
-            camera.radius = Math.max(2.4, Math.min(6.0, camera.radius + event.deltaY * 0.002));
+            camera.radius = Math.max(1.4, Math.min(3.0, camera.radius + event.deltaY * 0.002));
         }, { passive: true });
 
         var observer = new ResizeObserver(resize);
