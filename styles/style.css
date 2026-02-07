@@ -361,9 +361,6 @@ main {
     height: 100%;
     min-height: 240px;
     border-radius: var(--radius-medium);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(6, 10, 20, 0.45);
-    box-shadow: 0 12px 40px rgba(2, 6, 23, 0.45);
     display: block;
 }
 
