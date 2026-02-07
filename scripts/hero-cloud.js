@@ -151,6 +151,7 @@
         function render(now) {
             var elapsed = (now - start) * 0.001;
             var delta = (now - last) * 0.001;
+            if (delta > 0.32) delta = 0.32;
             last = now;
 
             if (!mouse.down && (now - lastCameraInput) * 0.001 > idleSpinDelay) {
