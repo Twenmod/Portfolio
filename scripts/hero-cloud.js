@@ -78,10 +78,10 @@
         var mouse = { x: 0, y: 0, down: false };
         var camera = { yaw: 3.14, pitch: 0.18, radius: 4.2 };
         var idleSpinDelay = 2.0;
-        var idleSpinSpeed = 0.25;
+        var idleSpinSpeed = 0.05;
         var lastCameraInput = -idleSpinDelay * 1000;
         var idleCenterYaw = camera.yaw;
-        var idleSpinRange = 0.85;
+        var idleSpinRange = 0.4;
         var targetYaw = camera.yaw;
         var idleSpinDir = 1;
         var boxSize = { x: 1.5, y: 1.5, z: 1.5 };
@@ -110,11 +110,17 @@
             mouse.y = 1 - (event.clientY - rect.top) / rect.height;
         }
 
+        function markCameraInput() {
+            lastCameraInput = performance.now();
+            idleCenterYaw = camera.yaw;
+            targetYaw = camera.yaw;
+        }
+
         canvas.addEventListener('pointerdown', function (event) {
             mouse.down = true;
             drag.x = event.clientX;
             drag.y = event.clientY;
-            lastCameraInput = performance.now();
+            markCameraInput();
             canvas.setPointerCapture(event.pointerId);
         });
 
@@ -127,21 +133,34 @@
             mouse.down = false;
         });
 
-        canvas.addEventListener('pointermove', function (event) {
-            updateMouseFromEvent(event);
-            if (!mouse.down) return;
+        function handleDrag(event) {
             var dx = event.clientX - drag.x;
             var dy = event.clientY - drag.y;
             drag.x = event.clientX;
             drag.y = event.clientY;
-            camera.yaw += dx * 0.004;
-            camera.pitch = Math.max(-0.6, Math.min(0.6, camera.pitch - dy * 0.004));
-            lastCameraInput = performance.now();
+            var speed = 0.004;
+            if (!mouse.down) speed *= 0.05;
+            camera.yaw += dx * speed;
+            camera.pitch = Math.max(-0.6, Math.min(0.6, camera.pitch - dy * speed));
+        }
+
+        canvas.addEventListener('pointermove', function (event) {
+            updateMouseFromEvent(event);
+            handleDrag(event);
+        });
+
+        window.addEventListener('pointermove', function (event) {
+            updateMouseFromEvent(event);
+            if (event.target !== canvas) handleDrag(event);
+        });
+
+        window.addEventListener('pointerup', function () {
+            mouse.down = false;
         });
 
         canvas.addEventListener('wheel', function (event) {
             camera.radius = Math.max(1.4, Math.min(6.0, camera.radius + event.deltaY * 0.002));
-            lastCameraInput = performance.now();
+            markCameraInput();
         }, { passive: true });
 
         var observer = new ResizeObserver(resize);
@@ -154,19 +173,15 @@
             if (delta > 0.32) delta = 0.32;
             last = now;
 
-            if (!mouse.down && (now - lastCameraInput) * 0.001 > idleSpinDelay) {
+            if ((now - lastCameraInput) * 0.001 > idleSpinDelay) {
                 var speed = idleSpinSpeed;
-                var diff = targetYaw - camera.yaw;
-                if (diff < 0) diff = -diff;
-                if (diff <= 0.5) {
-                    targetYaw += speed * delta * idleSpinDir;
-                    if (targetYaw > idleCenterYaw + idleSpinRange) {
-                        targetYaw = idleCenterYaw + idleSpinRange;
-                        idleSpinDir = -1;
-                    } else if (targetYaw < idleCenterYaw - idleSpinRange) {
-                        targetYaw = idleCenterYaw - idleSpinRange;
-                        idleSpinDir = 1;
-                    }
+                targetYaw += speed * delta * idleSpinDir;
+                if (targetYaw > idleCenterYaw + idleSpinRange) {
+                    targetYaw = idleCenterYaw + idleSpinRange;
+                    idleSpinDir = -1;
+                } else if (targetYaw < idleCenterYaw - idleSpinRange) {
+                    targetYaw = idleCenterYaw - idleSpinRange;
+                    idleSpinDir = 1;
                 }
                 var alpha = delta * 2;
                 camera.yaw = camera.yaw * (1 - alpha) + targetYaw * alpha;
