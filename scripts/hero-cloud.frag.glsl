@@ -52,13 +52,16 @@ vec2 rayBox(vec3 ro, vec3 rd, vec3 boxSize) {
     return vec2(tN, tF);
 }
 
-float SampleProfile(vec3 p) {
+float SampleProfile(vec3 p, vec3 m) {
     vec3 puvw = p / (normalize(vec3(145, 132, 41)) * 2.2f) * 0.5f + 0.5f;
     puvw.y = 1.f - puvw.y;
     if(any(lessThan(puvw, vec3(0.f))) || any(greaterThan(puvw, vec3(1.f)))) {
         return 0.f;
     }
     float profile = texture(u_profileTex, puvw).r;
+
+    profile -= 1.f - smoothstep(0.f, 0.7f, length(p - m));
+
     profile = min(max(profile, 0.f), 1.f);
     return profile;
 }
@@ -77,6 +80,14 @@ float SampleDensity(vec3 p, float profile) {
 
 float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _sunDensitySamples) {
     return exp(-_sunDensitySamples * Remap(_sun_dot, 0.0f, 0.9f, 0.25f, Remap(_baseDimensionalProfile, 1.0f, 0.0f, 0.05f, 0.25f)));
+}
+
+float SegmentDistance(vec2 p, vec2 a, vec2 b) {
+    vec2 ab = b - a;
+    float t = dot(p - a, ab) / max(dot(ab, ab), 1e-6f);
+    t = clamp(t, 0.0f, 1.0f);
+    vec2 c = a + ab * t;
+    return length(p - c);
 }
 
 void main() {
@@ -107,6 +118,20 @@ void main() {
         return;
     }
 
+//mouse overlay
+    vec2 mouseUv = u_mouse * 2.0f - 1.0f;
+    vec3 mousePoint = vec3(-50.f);
+    if(!any(lessThan(mouseUv, vec2(-1.f))) || any(greaterThan(mouseUv, vec2(1.f)))) {
+
+        mouseUv.x *= aspect;
+        vec3 rdMouse = normalize(forward + right * mouseUv.x * fov + up * mouseUv.y * fov);
+        vec2 tMouseHit = rayBox(ro, rdMouse, boxSize);
+        if(tMouseHit.x <= tMouseHit.y && tMouseHit.y > 0.0f) {
+            float tMid = max(tMouseHit.x, 0.0f) * 0.5f + tMouseHit.y * 0.5f;
+            mousePoint = ro + rdMouse * tMid;
+        }
+    }
+
     float t = max(tHit.x, 0.0f);
     float tEnd = tHit.y;
 
@@ -115,7 +140,7 @@ void main() {
     vec3 lightDir = normalize(vec3(0.6f, 0.7f, 0.2f));
     vec3 light = vec3(0.f);
     float transmittance = 1.0f;
-    const float lightStepSize = 0.16f;
+    const float lightStepSize = 0.05f;
     const vec3 sun_light = vec3(1.f, 0.9f, 0.9f) * 1.f;
     float sun_dot = dot(lightDir, rd);
 
@@ -128,14 +153,18 @@ void main() {
         seed = RandomUInt(seed);
 
         vec3 p = ro + rd * (t + (RandomFloat01(seed) * stepSize));
-        float profile = SampleProfile(p);
+        t += stepSize;
+
+        float profile = SampleProfile(p, mousePoint);
+        if(profile <= 0.0f)
+            continue;
         float sampleDensity = SampleDensity(p, profile);
 
         float lightDensity = 0.0f;
 
-        for(int j = 0; j < 16; j++) {
+        for(int j = 0; j < 8; j++) {
             vec3 lightSample = p - lightDir * float(j) * lightStepSize;
-            float lprofile = SampleProfile(lightSample);
+            float lprofile = SampleProfile(lightSample, mousePoint);
 
             lightDensity += SampleDensity(lightSample, lprofile) * lightStepSize;
         }
@@ -143,9 +172,9 @@ void main() {
         float lightVolume = InScatteringApprox(1.f - profile, sun_dot, lightDensity);
         vec3 scatter = sun_light * lightVolume;
         float ambientDens = 0.f;
-        for(int j = 0; j < 16; j++) {
-            vec3 lightSample = p - vec3(0.f, 1.f, 0.f) * float(j) * lightStepSize;
-            float lprofile = SampleProfile(lightSample);
+        for(int j = 0; j < 8; j++) {
+            vec3 lightSample = p - vec3(0.f, 1.f, 0.f) * float(j) * lightStepSize * 2.0f;
+            float lprofile = SampleProfile(lightSample, mousePoint);
 
             ambientDens += SampleDensity(lightSample, lprofile) * lightStepSize;
         }
@@ -156,8 +185,8 @@ void main() {
 
         transmittance *= exp(-sampleDensity * stepSize);
 
-        t += stepSize;
     }
 
     outColor = vec4(light, 1.f - transmittance);
+
 }
