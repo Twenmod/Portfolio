@@ -316,6 +316,7 @@ main {
     align-items: center;
     justify-content: flex-start;
     padding-left: 2rem;
+    gap: 2rem;
 }
 
 
@@ -327,7 +328,7 @@ main {
     object-fit: cover;
     display: block;
     transform: scale(1.02);
-    filter: brightness(.6) contrast(.95);
+    filter: brightness(.3) contrast(.95);
 }
 
 .hero-content {
@@ -341,6 +342,26 @@ main {
     margin: 1rem 0;
     min-width: 80ch;
     max-width: 80ch;
+}
+
+.hero-visual {
+    position: relative;
+    z-index: 2;
+    flex: 1 1 40%;
+    min-width: 260px;
+    max-width: 520px;
+    margin-right: 2rem;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+}
+
+.hero-cloud {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    border-radius: var(--radius-medium);
+    display: block;
 }
 
 .hero-actions {
@@ -829,6 +850,13 @@ p,
         max-width: 100%;
         margin: 1rem;
         padding: 1rem;
+    }
+
+    .hero-visual {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 1rem 1rem;
+        min-height: 220px;
     }
 
 
