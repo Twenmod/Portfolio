@@ -44,10 +44,12 @@ float SampleDensity(vec3 p, float profile) {
     //float profile = 1.f - smoothstep(0.f, 1.f, length(p));
     //profile *= 5.f;
 
-    vec3 uvw = p / u_boxSize * 0.5f + 0.5f;
-    uvw.y = 1.f - uvw.y;
-    float noise = texture(u_noiseTex, uvw * 2.0f + u_time * 0.01f).r;
-    return min(max((Remap(profile, noise, 1.f, 0.f, 1.f)), 0.f), 1.f) * 4.5f;
+    vec3 uvw = p;
+    uvw.x += u_time * 0.085f;
+    uvw.z += u_time * 0.045f;
+    uvw.y += u_time * 0.015f;
+    float noise = texture(u_noiseTex, fract(uvw)).r;
+    return min(max((Remap(profile, noise, 1.f, 0.f, 1.f)), 0.f), 1.f) * 5.f;
 }
 
 float InScatteringApprox(float _baseDimensionalProfile, float _sun_dot, float _sunDensitySamples) {
