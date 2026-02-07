@@ -41,6 +41,26 @@
       margin: 0.25rem 0 0.25rem;
       background: rgba(255, 255, 255, 0.18);
     }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.75rem 0 0.5rem;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
   </style>
 
 </head>
@@ -53,6 +73,7 @@
         <img class="hero-bg" src="./media/images/index-header.png" alt="Hero background">
         <div class="hero-content">
           <h1>Jack Tollenaar</h1>
+
           <p class="lead">Hi, I'm Jack.<br>Currently studying y2 game programming at Breda University of Applied
             Sciences.</p>
           <hr class="hero-divider">
@@ -66,11 +87,72 @@
         </div>
       </div>
     </section>
+    <section class="section feature-section">
+      <div class="container feature-card" style="--feature-bg: url('/media/images/clouds2-card.jpg');">
+        <div class="feature-content">
+          <h2>Cloud renderer</h2>
+          <div class="hero-tags">
+            <span class="hero-tag">School</span>
+            <span class="hero-tag">Research</span>
+            <span class="hero-tag">DX12</span>
+          </div>
+          <p>Fast voxel cloud renderer based on Nubis^3.</p>
+          <a class="btn btn-primary" href="/projects/ps5.html">View project</a>
+        </div>
+        <div class="feature-media">
+          <img src="/media/images/projects/clouds/hero.jpg" alt="Cloud rendering sample">
+        </div>
+      </div>
+    </section>
+    <section class="section feature-section">
+      <div class="container feature-card" style="--feature-bg: url('/media/images/projects/ps5/card.png');">
+        <div class="feature-content">
+          <h2>PBR GLTF Viewer</h2>
+          <div class="hero-tags">
+            <span class="hero-tag">School</span>
+            <span class="hero-tag">Rendering</span>
+            <span class="hero-tag">PS5</span>
+          </div>
+          <p>PlayStation 5 renderer focused on physically based rendering and image-based lighting.</p>
+          <a class="btn btn-primary" href="/projects/ps5.html">View project</a>
+        </div>
+        <div class="feature-media">
+          <img src="/media/images/projects/ps5/helmet.png" alt="PBR GLTF Viewer sample">
+        </div>
+      </div>
+    </section>
+
+
+    <section class="section feature-section">
+      <div class="container feature-card" style="--feature-bg: url('/media/images/projects/resonance/flipdebug.gif');">
+        <div class="feature-content">
+          <h2>Resonance</h2>
+          <div class="hero-tags">
+            <span class="hero-tag">School Team</span>
+            <span class="hero-tag">Unreal</span>
+            <span class="hero-tag">Simulation</span>
+          </div>
+          <p>UE5 team project working on gameplay systems and rendering features,<br>PIC Fluid simulation for dynamic
+            fog.</p>
+          <a class="btn btn-primary" href="/projects/resonance.html">View project</a>
+        </div>
+        <div class="feature-media">
+          <img src="/media/images/projects/resonance.png" alt="Resonance DGA icon">
+        </div>
+      </div>
+    </section>
 
 
     <section id="links" class="section">
       <div class="container links">
-        <h2>Where to find my projects</h2>
+        <h2>More Projects</h2>
+        <div class="links-grid">
+
+          <a class="external btn-icon" href="/projects.html" target="_blank" rel="noopener">
+            Project Overview
+          </a>
+        </div>
+        <h2><br>Code & Downloads</h2>
         <div class="links-grid">
           <a class="external btn-icon" href="https://github.com/Twenmod" target="_blank" rel="noopener">
             <img src="./media/images/git.png" alt="GitHub" class="icon"> Github
@@ -82,13 +164,6 @@
       </div>
     </section>
 
-    <section id="info" class="section section-alt">
-      <div class="container">
-        <h2>About</h2>
-        <p>Hi, I'm Jack, a Dutch game programming student at Breda University of Applied Sciences. I focus on graphics
-          programming. <br> I'm comfortable with C++, Unity, and Unreal Engine.</p>
-      </div>
-    </section>
 
   </main>
   <script src="/includes/load-header.js"></script>
@@ -97,7 +172,3 @@
 </body>
 
 </html>
-
-<head>
-  <link rel="stylesheet" href="./styles/style.css">
-</head>
