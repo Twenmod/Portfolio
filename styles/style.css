@@ -61,6 +61,11 @@ main {
     padding-top: var(--header-height, 64px);
 }
 
+.site-header .container {
+    margin: 0;
+}
+
+
 .container {
     max-width: var(--container-max-width);
     margin: 0 auto;
@@ -187,10 +192,14 @@ main {
 }
 
 
-@media (max-width: 380px) {
+@media (max-width: 430px) {
     .main-nav a {
 
         font-size: 3vw;
+    }
+
+    .site-header .container {
+        padding-left: 0.5rem;
     }
 }
 
@@ -363,6 +372,10 @@ main {
 @media(max-width: 800px) {
     .hero-visual {
         display: none;
+    }
+
+    .hero-card {
+        padding-left: 0 !important;
     }
 }
 
