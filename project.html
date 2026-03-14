@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Video</title>
+	<style>
+		html,
+		body {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			overflow: hidden;
+			background: #000;
+		}
+
+		video {
+			position: fixed;
+			inset: 0;
+			width: 100vw;
+			height: 100vh;
+			object-fit: cover;
+			background: #000;
+		}
+
+		#fullscreenBtn {
+			position: fixed;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 2;
+			display: none;
+			padding: 0.7rem 1rem;
+			border: 1px solid rgba(255, 255, 255, 0.65);
+			background: rgba(0, 0, 0, 0.55);
+			color: #fff;
+			font: 600 1rem/1.2 sans-serif;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+	<video id="bgVideo" autoplay loop playsinline webkit-playsinline preload="auto">
+		<source src="/media/videos/rick.mp4" type="video/mp4">
+	</video>
+	<script>
+		const video = document.getElementById("bgVideo");
+		const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+		async function ensurePlayback() {
+			try {
+				await video.play();
+				return true;
+			} catch (e) {
+				return false;
+			}
+		}
+
+		async function enterFullscreen() {
+			const el = document.documentElement;
+			if (document.fullscreenElement) {
+				return true;
+			}
+
+			try {
+				if (el.requestFullscreen) {
+					await el.requestFullscreen();
+					return true;
+				}
+				if (video.requestFullscreen) {
+					await video.requestFullscreen();
+					return true;
+				}
+				if (video.webkitEnterFullscreen) {
+					video.webkitEnterFullscreen();
+					return true;
+				}
+			} catch (e) {
+				return false;
+			}
+
+			return false;
+		}
+
+		window.addEventListener("load", async () => {
+			const playing = await ensurePlayback();
+			const fullscreenOk = await enterFullscreen();
+			if (fullscreenBtn && !fullscreenOk) {
+				fullscreenBtn.style.display = "block";
+			}
+			if (!playing) {
+				document.addEventListener("pointerdown", ensurePlayback, { once: true });
+			}
+		});
+
+		if (fullscreenBtn) {
+			fullscreenBtn.addEventListener("click", async () => {
+				await ensurePlayback();
+				const ok = await enterFullscreen();
+				if (ok) {
+					fullscreenBtn.style.display = "none";
+				}
+			});
+		}
+
+		video.addEventListener("click", async () => {
+			await ensurePlayback();
+			await enterFullscreen();
+		});
+	</script>
+</body>
+
+</html>
