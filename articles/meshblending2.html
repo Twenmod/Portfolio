@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="A guide on real time mesh blending as a post processing effect in games.">
+    <title>Fast Mesh seam blending - Jack Tollenaar</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="icon" type="image/png" href="../media/images/favicon.png">
+    <style>
+        .articles-hero {
+            background: none;
+            width: 100%;
+            max-width: 100% !important;
+        }
+
+        .articles-hero .container h1 {
+            margin: 0;
+            font-size: 2rem;
+            line-height: 1.15;
+        }
+
+
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: var(--shadow, 0 10px 30px rgba(10, 10, 10, .08));
+            margin: 1rem 0;
+            display: block;
+        }
+
+        .article-content ul,
+        .article-content li {
+            color: var(--muted);
+        }
+
+        .article-content ul {
+            margin-left: 1.25rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width:700px) {
+            .articles-hero .container h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/glsl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/hlsl.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.hljs) return;
+
+            const markerFinder = /<changed>/i;
+            const markerFinderG = /<changed>/gi;
+
+            document.querySelectorAll('pre.code code').forEach(codeEl => {
+                const original = codeEl.textContent || '';
+                const textLines = original.split('\n');
+                const toHighlight = textLines.map(l => markerFinder.test(l));
+
+                const tokenized = original.replace(markerFinderG, '');
+                codeEl.textContent = tokenized;
+
+                try { hljs.highlightElement(codeEl); } catch (e) { /* ignore highlight errors */ }
+
+                const renderedLines = (codeEl.innerHTML || '').split('\n');
+
+                for (let i = 0; i < renderedLines.length; i++) {
+                    if (toHighlight[i]) {
+                        renderedLines[i] = renderedLines[i].replace(/&lt;changed&gt;/gi, '');
+                        renderedLines[i] = renderedLines[i].replace(/<\/?changed[^>]*>/gi, '');
+                        renderedLines[i] = '<span class="changed-line">' + renderedLines[i] + '</span>';
+                    }
+                }
+
+                codeEl.innerHTML = renderedLines.join('\n');
+                codeEl.innerHTML = codeEl.innerHTML.replace(/\b(float3|float4|half4|float2|float|unity_ObjectToWorld|frag|Hash)\b/g, '<span class="hljs-type">$1</span>');
+
+                // Highlight custom function calls (any identifier followed by opening parenthesis)
+                codeEl.innerHTML = codeEl.innerHTML.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, function (match, funcName) {
+                    // Skip if already wrapped in a span (e.g., built-in functions, keywords)
+                    if (match.includes('<span')) return match;
+                    return '<span class="hljs-title function_' + funcName + '">' + funcName + '</span>';
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <main>
+        <section class="hero container articles-hero">
+            <div class="container">
+                <button class="btn"
+                    style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 17.5%; transform: translateY(-50%); cursor: pointer; z-index: 100;"
+                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
+                        src="../media/images/rss.png" alt="RSS Icon"
+                        style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
+
+                <h1>Fast mesh blending</h1>
+                <p class="muted">Post process blending of meshes using indirect compute shaders</p>
+            </div>
+        </section>
+
+        <section class="toc-section">
+            <section class="section">
+                <div class="container article-content">
+                    <div class="img-compare info-small" data-before="../media/images/articles/blending2/blendoff.png"
+                        data-after="../media/images/articles/blending2/blendon.png">
+                        <img class=" img-after" src="../media/images/articles/blending2/blendoff.png"
+                            style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
+                            alt="Uprezzed cloud">
+                        <img class="img-before" src="../media/images/articles/blending2/blendon.png"
+                            style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
+                            alt="Low resolution cloud">
+                        <div class="handle"></div>
+                        <div class="label before-label">Blending Off</div>
+                        <div class="label after-label">Blending On</div>
+                    </div>
+                    <h2 id="Recap">Idea</h2>
+                    <p>In a previous article we went over a technique to blend seams of meshes by mirroring pixels in
+                        post processing.<br>
+                        However the basic implementation ran very slow and was not practical.
+                        In this article I'll go over how to improve the technique using indirect compute shaders.
+                        <br><br>
+                        We'll be using openGL for simplicity but the code is practically identical on different
+                        platforms
+                    </p>
+                    <h3>- Recap</h3>
+                    <p>We will go over the steps briefly again but the previous article goes more in depth in the base
+                        technique</p>
+                    <a class="btn" href="/articles/meshblending.html" target="_blank" rel="noopener"
+                        style="margin-left:.75rem;">Previous article</a>
+                    <p><br></p>
+                    <h3 id="detection">- Passes</h2>
+                        <p>The technique relies on 3 logical passes, <br>
+                            First we have to find where object seams are.
+                        </p>
+                        <img class="img-small" src="../media/images/articles/blending2/outlines.jpg" />
+                        <p>
+                            Then we have to find the <u>exact</u> offset to each closest seam to mirror around after.
+                            <br>
+                            This is the expensive part so we should only do this on the pixels close to the seams
+                        </p>
+                        <p style="opacity: 0.5;">Image shows UV offsets to seam</p>
+                        <img class="img-small" src="../media/images/articles/blending2/locations.jpg" />
+                        <p>Then by using these offsets to sample the other side of the seam, we can mirror the pixels.
+                            <br>
+                            This allows us to blend while keeping the texture detail of the object.
+                        </p>
+                        <p style="opacity: 0.5;">Outlined rock to show where the seam is, the mirror is not perfect but
+                            that is barely visible</p>
+                        <div class="img-compare info-small"
+                            data-before="../media/images/articles/blending2/mirroroff.jpg"
+                            data-after="../media/images/articles/blending2/mirroron.jpg">
+                            <img class=" img-after" src="../media/images/articles/blending2/mirroroff.jpg"
+                                alt="no mirror">
+                            <img class="img-before" src="../media/images/articles/blending2/mirroron.jpg"
+                                alt="mirrored pixels">
+                            <div class="handle"></div>
+                            <div class="label before-label">Mirror Off</div>
+                            <div class="label after-label">Mirror On</div>
+                        </div>
+                        <h2>Masking</h2>
+                        <p>Our first step is masking where the seams are. <br>
+                            There are a lot of ways of checking this, to allow the most control of where the seams are I
+                            will be using a per object ID<br>
+                            <br>
+                            As an example you can do this using either a stencil ID or an seperate output in your
+                            shading or GBuffer pass. <br>
+                            If you draw this to a screen This should get you something like this:
+                        </p>
+                        <img src="../media/images/articles/blending/objectid.png" alt="Preview">
+                        <p>To find the seams we can run a basic outline shader on this:
+                        </p>
+                        <pre class="code"><code class="language-glsl">// GLSL, Compute:
+
+float aspect = float(u_resolution.x) / float(u_resolution.y);
+vec2 directions[4] =
+{
+    vec2(1, 0),
+    vec2(-1, 0),
+    vec2(0, aspect),
+    vec2(0, -aspect)
+};
+
+bool foundSeam = false;
+
+//Scale by pixel's depth to make outlines not grow over distance
+float maxRange = u_blendRadius / sceneDepth;
+//Check in 4 cardinal directions for ID change
+for (int i = 0; i < 4; i++)
+{
+    vec2 offset = directions[i] * maxRange;
+    vec2 sampleUV = uv + offset;
+    uint otherId = textureLod(u_id, sampleUV,0).x;
+    
+    // check if differing id
+    if (otherId != objectId) 
+    {
+        foundSeam = true; // -  Found seam!
+    }
+}
+
+if (foundSeam) {} // Now we can check if we found a seam
+
+</code></pre>
+                        <p>Now it might seem tempting to just return here if there is no seam and then run the expensive
+                            part of the shader.<br>
+                            However this would barely improve performance, that is why we will use indirect dispatches
+                        </p>
+                        <h3 id="Indirect">Indirect compute shaders</h3>
+                        <h4>GPU warps</h4>
+                        <p>
+                            But why would a return statement be so slow on the gpu?<br>
+                            This is due to how the GPU orders tasks, keep in mind i will be oversimplifying here<br>
+                            When we run a compute dispatch on the GPU our dispatch groups of threads are ran in even
+                            bigger groups <br>
+                            also called warps(or waves).<br>
+                            <br>
+                            Lets say we run this
+                        </p>
+                        <pre class="code"><code class="language-glsl">layout(local_size_x = 4, local_size_y = 4) in;
+void main()
+{
+    //Logic
+}
+
+</code></pre>
+                        <pre class="code"><code class="language-cpp">glDispatchCompute(num_groups_x: 8, num_groups_y: 8, num_groups_z: 1);
+</code></pre>
+                        <p>This will run 32x32x1=1024 threads on our GPU<br>
+                            Lets say our GPU supports 32 threads in a warp, <br>
+                            That means our program will run in 32 warps of 32 threads.
+                        </p>
+                        <img src="../media/images/articles/blending2/warp1.png" alt="Visualisation of the warps">
+                        <p>Since these warps are executed together it has to wait for all threads in the warp to be
+                            finished before starting a next one.<br>
+                            This is fine when all threads are basically the same duration but will slow things down
+                            if
+                            our threads have a lot of branching. <br>
+                            <br>For example, if our program looked like this:
+                        <pre class="code"><code class="language-glsl">layout(local_size_x = 1, local_size_y = 1) in;
+void main()
+{
+    uint id = gl_GlobalInvocationID.x;
+    if (id % 2 != 0) // If the id is an uneven number
+    {
+        sleep(500ms); // example, (sleep function doesnt actually exist)
+    }else {
+        return;
+    }
+}
+</code></pre>
+                        <p>This means our warp will look like this</p>
+
+                        <img src="../media/images/articles/blending2/warp2.png"
+                            alt="Visualisation showing warp has to wait for the longest thread">
+                        <p>The warp takes ~500ms since it has to wait for the longest thread.<br>
+                            <br>
+                            That means adding a mask to our effect doesnt help a lot if a warp contains an unmasked
+                            pixel.<br>
+                            Luckily there is a solution.
+                        </p>
+                        <h3 id="Indirect dispatches">Indirect dispatches</h2>
+                            <p>
+                                Instead of putting everything in 1 compute shader, we can seperate it into 2
+                                seperate
+                                dispatches. <br>
+                                In our first shader we just run the mask code and output the found locations in a
+                                buffer:
+                            </p>
+                            <p>
+                            <pre class="code"><code class="language-glsl">// GLSL, Compute:
+layout(local_size_x = 8, local_size_y = 8) in;                   
+
+//This is the buffer we will output in &lt;changed&gt;
+layout(std430, binding = 0) buffer ArgBuffer { &lt;changed&gt;
+    //The arguments the second pass will be dispatched with &lt;changed&gt;
+    uint  dispatch_x; &lt;changed&gt;
+    uint  dispatch_y; &lt;changed&gt;
+	uint  dispatch_z; &lt;changed&gt;
+ &lt;changed&gt;
+    // how many locations we written &lt;changed&gt;
+    uint  count; &lt;changed&gt;
+    // pixel locations for second pass &lt;changed&gt;
+    uvec2 pixels[]; &lt;changed&gt;
+}; &lt;changed&gt;
+/* In HLSL we would instead use
+AppendStructuredBuffer&lt;uint2&gt; pixelLocations;
+*/
+
+void main() {
+    uvec2 coord = gl_GlobalInvocationID.xy;
+    //Guard for over dispatching
+    if (any(greaterThanEqual(coord, u_resolution))) return;
+    vec2 uv = (coord+0.5) / vec2(u_resolution);
+
+    float rawDepth = textureLod(u_depth, uv,0).x;
+    float sceneDepth = LinearizeDepth(rawDepth, u_nearfarplane.x, u_nearfarplane.y);
+
+    uint objectId = textureLod(u_id, uv,0).x;
+
+    float aspect = float(u_resolution.x) / float(u_resolution.y);
+    vec2 directions[4] =
+    {
+        vec2(1, 0),
+        vec2(-1, 0),
+        vec2(0, aspect),
+        vec2(0, -aspect)
+    };
+
+    bool foundSeam = false;
+
+    //Scale by pixel's depth to make outlines not grow over distance
+    float maxRange = u_blendRadius / sceneDepth;
+    //Check in 4 cardinal directions for ID change
+    for (int i = 0; i < 4; i++)
+    {
+        vec2 offset = directions[i] * maxRange;
+        vec2 sampleUV = uv + offset;
+        uint otherId = textureLod(u_id, sampleUV,0).x;
+        
+        // check if differing id
+        if (otherId != objectId) 
+        {
+            //Add the found location to our buffer &lt;changed&gt;
+            uint slot = atomicAdd(count, 1u); // Thread safe way of counting where we are in the buffer &lt;changed&gt;
+            pixels[slot] = coord; &lt;changed&gt;
+            return; &lt;changed&gt;
+        }
+    }
+}
+</code></pre>
+                            <p>
+                                This creates our final effect</p>
+                            <img src="../media/images/articles/blending/idea.gif" alt="Preview">
+                            <h2 id="improvements">Improvements</h2>
+                            <p>In this article I went over a simpler way to implement this but it is very slow and
+                                has
+                                some
+                                artifacts.</p>
+
+                            <p>There are a lots of improvements still left to be done which i will not cover in this
+                                article,
+                                here
+                                are some examples:</p>
+
+                            <ul>
+                                <li>Compute, There are a lot of performance benefits available if you port this to
+                                    compute,
+                                    for
+                                    example by running a cheap masking pass you can only run the expensive search on
+                                    pixels
+                                    with
+                                    edges.</li>
+                                <li>Better searching, A search kernel is a very limited way of searching and there
+                                    are
+                                    way
+                                    better
+                                    ways like a spiral pattern that refines over multiple iterations.</li>
+                                <li>Custom id's using material property blocks you can set custom id's for objects
+                                    allowing
+                                    you
+                                    to
+                                    control what blends with what or even blend sizes.</li>
+                                <li>Normal-based filtering,adding a check for normal difference, This fixes
+                                    transitioning
+                                    happening
+                                    around corners or weird angles.</li>
+                                <li>Multiple-seam support,adding support for detecting multiple seams this fixes
+                                    incorrect
+                                    blending
+                                    when more than 2 objects intersect at a point</li>
+                            </ul>
+
+                            <h2 id="improvements">Source code/Implementation</h2>
+                            <p>An open implementation of this code is available for free on the Unity Asset Store:
+                            </p>
+                            <a class="btn"
+                                href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-326839"
+                                target="_blank" rel="noopener">Free &amp; Open - Asset Store</a>
+                            <p>There is also a paid version which implements most of the improvements mentioned
+                                above
+                                and
+                                more
+                            </p>
+                            <a class="btn btn-primary"
+                                href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-pro-330717#description"
+                                target="_blank" rel="noopener" style="margin-left:.75rem;">Pro (Paid) - Asset
+                                Store</a>
+                            <div class="article-related" style="text-align:center; margin-top:1.5rem;">
+                                <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
+                                    to
+                                    Articles</a>
+                            </div>
+            </section>
+        </section>
+        <section class="section-alt">
+            <div class="container article-content">
+                <script src="https://giscus.app/client.js" data-repo="Twenmod/Portfolio" data-repo-id="R_kgDOQMtnaw"
+                    data-category="Announcements" data-category-id="DIC_kwDOQMtna84CzeLr" data-mapping="url"
+                    data-strict="0" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top"
+                    data-theme="catppuccin_mocha" data-lang="en" data-loading="lazy" crossorigin="anonymous" async>
+                    </script>
+            </div>
+        </section>
+        </div>
+    </main>
+    <script src="/includes/load-header.js"></script>
+    <script src="/includes/load-footer.js"></script>
+    <script src="/includes/load-toc.js"></script>
+    <script>
+        // Lightweight carousel controller for inline image slider
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousels = document.querySelectorAll('[data-carousel]');
+            carousels.forEach(carousel => {
+                const track = carousel.querySelector('.carousel-track');
+                const slides = Array.from(track.querySelectorAll('.carousel-slide'));
+                const dotsContainer = carousel.querySelector('.carousel-dots');
+                const prevBtn = carousel.querySelector('.carousel-btn.prev');
+                const nextBtn = carousel.querySelector('.carousel-btn.next');
+
+                let activeIndex = Math.max(slides.findIndex(s => s.classList.contains('is-active')), 0);
+                let autoplayId = null;
+
+                const setSlide = (idx) => {
+                    activeIndex = (idx + slides.length) % slides.length;
+                    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === activeIndex));
+                    track.style.transform = `translateX(-${activeIndex * 100}%)`;
+                    dotsContainer.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                        dot.classList.toggle('is-active', i === activeIndex);
+                    });
+                };
+
+                const resetAutoplay = () => {
+                    if (autoplayId) clearInterval(autoplayId);
+                    autoplayId = setInterval(() => setSlide(activeIndex + 1), 8000);
+                };
+
+                slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'carousel-dot' + (i === activeIndex ? ' is-active' : '');
+                    dot.setAttribute('aria-label', `Show slide ${i + 1}`);
+                    dot.addEventListener('click', () => {
+                        setSlide(i);
+                        resetAutoplay();
+                    });
+                    dotsContainer.appendChild(dot);
+                });
+
+                prevBtn.addEventListener('click', () => { setSlide(activeIndex - 1); resetAutoplay(); });
+                nextBtn.addEventListener('click', () => { setSlide(activeIndex + 1); resetAutoplay(); });
+
+                carousel.setAttribute('tabindex', '0');
+                carousel.addEventListener('keydown', (evt) => {
+                    if (evt.key === 'ArrowLeft') { setSlide(activeIndex - 1); resetAutoplay(); evt.preventDefault(); }
+                    if (evt.key === 'ArrowRight') { setSlide(activeIndex + 1); resetAutoplay(); evt.preventDefault(); }
+                });
+
+                setSlide(activeIndex);
+                resetAutoplay();
+            });
+        });
+    </script>
+</body>

@@ -1,13 +1,13 @@
 // Fetch and inject a floating Table-of-Contents for article pages.
-(function(){
-  function slugify(text){
+(function () {
+  function slugify(text) {
     return text.toString().toLowerCase().trim()
-      .replace(/\s+/g,'-')
-      .replace(/[^a-z0-9\-]/g,'')
-      .replace(/-+/g,'-');
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '')
+      .replace(/-+/g, '-');
   }
 
-  function buildTOC(tocEl){
+  function buildTOC(tocEl) {
     var _tocRevealed = false;
     // Prefer an explicit `.toc-section` (used on projects) so we collect headings
     // from multiple `.article-content` blocks. Fallback to a single `.article-content`.
@@ -26,7 +26,7 @@
 
     // ensure unique ids (some pages reuse the same id attribute) by tracking used ids
     var usedIds = Object.create(null);
-    headings.forEach(function(h){
+    headings.forEach(function (h) {
       var base = (h.id && h.id.trim()) ? h.id.trim() : slugify(h.textContent || h.innerText || 'heading');
       var uid = base;
       var i = 1;
@@ -41,7 +41,7 @@
       var a = document.createElement('a');
       a.href = '#' + h.id;
       a.textContent = h.textContent || h.innerText;
-      a.addEventListener('click', function(e){
+      a.addEventListener('click', function (e) {
         e.preventDefault();
         var rect = document.getElementById(h.id).getBoundingClientRect();
         var offset = window.scrollY + rect.top - (document.querySelector('.site-header') ? document.querySelector('.site-header').offsetHeight + 12 : 80);
@@ -60,7 +60,7 @@
     var headerOffset = (siteHeader ? siteHeader.offsetHeight + 16 : 80);
     var gap = 24; // gap between article and toc
 
-    function recalc(){
+    function recalc() {
       headerOffset = (siteHeader ? siteHeader.offsetHeight + 16 : 80);
       // unlock width first so it can shrink/grow on resize, then lock after measurement
       tocEl.style.width = '';
@@ -68,7 +68,7 @@
       tocEl.style.width = measured + 'px'; // lock width to avoid reflow jumps while scrolling
     }
 
-    function updateScrollState(){
+    function updateScrollState() {
       var sectionRect = section.getBoundingClientRect();
       var articleRect = container.getBoundingClientRect();
       var tocRect = tocEl.getBoundingClientRect();
@@ -91,10 +91,10 @@
       if (leftRelativeToSection > maxLeft) leftRelativeToSection = maxLeft;
 
       // decide state
-      if (window.scrollY + fixedTop*0.75 <= sectionTopPage) {
+      if (window.scrollY + fixedTop * 0.75 <= sectionTopPage) {
         // stick to top of section (absolute)
         tocEl.style.position = 'absolute';
-        tocEl.style.top = Math.max(section.offsetTop+fixedTop*0.25, 0) + 'px';
+        tocEl.style.top = Math.max(section.offsetTop + fixedTop * 0.25, 0) + 'px';
         tocEl.style.left = (leftRelativeToSection) + 'px';
       } else if (window.scrollY + fixedTop + tocHeight >= sectionBottomPage) {
         // stick to bottom of section
@@ -116,20 +116,21 @@
       // scrollspy: highlight current section
       var fromTop = window.scrollY + headerOffset;
       var current = headings[0];
-      for (var i = 0; i < headings.length; i++){
+      for (var i = 0; i < headings.length; i++) {
         var h = headings[i];
         if (window.scrollY + h.getBoundingClientRect().top <= fromTop + 4) current = h;
       }
-      tocLinks.forEach(function(a){ a.classList.remove('active'); });
+      tocLinks.forEach(function (a) { a.classList.remove('active'); });
       var active = tocEl.querySelector('a[href="#' + (current.id) + '"]');
       if (active) active.classList.add('active');
     }
 
-    window.addEventListener('scroll', updateScrollState, {passive:true});
-    window.addEventListener('resize', function(){ recalc(); updateScrollState(); });
+    window.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', function () { recalc(); updateScrollState(); });
     // initial: run once immediately, then again shortly after to stabilise measurements
     recalc(); updateScrollState();
-    setTimeout(function(){ recalc(); updateScrollState();
+    setTimeout(function () {
+      recalc(); updateScrollState();
       // reveal TOC after we've positioned it (only once)
       try {
         if (!_tocRevealed) {
@@ -137,19 +138,19 @@
           tocEl.style.visibility = 'visible';
           tocEl.style.opacity = '1';
           // remove the transition after it finishes so subsequent position updates don't animate
-          var _cleanup = function(){ try{ tocEl.style.transition = ''; }catch(e){}; tocEl.removeEventListener('transitionend', _cleanup); };
+          var _cleanup = function () { try { tocEl.style.transition = ''; } catch (e) { }; tocEl.removeEventListener('transitionend', _cleanup); };
           tocEl.addEventListener('transitionend', _cleanup);
         }
-      } catch(e){}
+      } catch (e) { }
     }, 120);
   }
 
-  function loadTOC(){
+  function loadTOC() {
     var path = '/includes/article-toc.html';
-    fetch(path, {cache: 'no-store'}).then(function(res){
+    fetch(path, { cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('Failed to load toc');
       return res.text();
-    }).then(function(html){
+    }).then(function (html) {
       var container = document.createElement('div');
       container.innerHTML = html;
       var tocEl = container.querySelector('#article-toc') || container.firstElementChild;
@@ -162,12 +163,102 @@
 
       document.body.appendChild(tocEl);
       buildTOC(tocEl);
-    }).catch(function(err){
+    }).catch(function (err) {
       if (window.console) console.warn('Could not load article toc:', err);
     });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadTOC);
-  else loadTOC();
+  function initImageCompare() {
+    var containers = document.querySelectorAll('.img-compare');
+    if (!containers.length) return;
+
+    containers.forEach(function (container) {
+      var imgAfter = container.querySelector('.img-after');
+      var imgBefore = container.querySelector('.img-before');
+      var handle = container.querySelector('.handle');
+      var overlay = container.querySelector('.overlay');
+
+      // Skip incomplete markup so generic initialization remains safe across pages.
+      if (!imgAfter || !imgBefore || !handle) return;
+
+      var beforeSrc = container.dataset.before;
+      var afterSrc = container.dataset.after;
+
+      var offset = parseFloat(container.dataset.offset || '0.5');
+      if (!isFinite(offset)) offset = 0.5;
+      offset = Math.max(0, Math.min(1, offset));
+
+      var hideOnSlide = container.dataset.hideOnSlide !== 'false';
+      var overlayEnabled = container.dataset.overlay !== 'false';
+
+      var sliding = false;
+      var bounds = null;
+
+      if (beforeSrc) imgBefore.src = beforeSrc;
+      if (afterSrc) imgAfter.src = afterSrc;
+
+      function updateBounds() {
+        bounds = container.getBoundingClientRect();
+        update();
+      }
+
+      function update() {
+        if (!bounds) return;
+
+        var x = offset * 100;
+        imgBefore.style.clipPath = 'inset(0 ' + (100 - x) + '% 0 0)';
+        handle.style.left = x + '%';
+
+        if (overlayEnabled && overlay) {
+          overlay.style.opacity = (hideOnSlide && sliding) ? 0 : 1;
+        }
+      }
+
+      function pointerX(e) {
+        if (e.touches && e.touches.length) return e.touches[0].clientX;
+        return e.clientX;
+      }
+
+      function move(e) {
+        if (!sliding || !bounds) return;
+        var x = pointerX(e) - bounds.left;
+        x = Math.max(0, Math.min(x, bounds.width));
+        offset = x / bounds.width;
+        update();
+      }
+
+      function start(e) {
+        sliding = true;
+        move(e);
+        e.preventDefault();
+      }
+
+      function end() {
+        if (!sliding) return;
+        sliding = false;
+        update();
+      }
+
+      window.addEventListener('resize', updateBounds);
+      window.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      window.addEventListener('touchmove', move, { passive: true });
+      window.addEventListener('touchend', end, { passive: true });
+
+      container.addEventListener('mousedown', start);
+      container.addEventListener('touchstart', start, { passive: false });
+
+      imgAfter.addEventListener('load', updateBounds);
+      updateBounds();
+    });
+  }
+
+  function initArticleEnhancements() {
+    loadTOC();
+    initImageCompare();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initArticleEnhancements);
+  else initArticleEnhancements();
 
 })();
