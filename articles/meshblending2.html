@@ -113,7 +113,8 @@
         <section class="toc-section">
             <section class="section">
                 <div class="container article-content">
-                    <div class="img-compare info-small" data-before="../media/images/articles/blending2/blendoff.png"
+                    <div class="img-compare info-small idle-animation"
+                        data-before="../media/images/articles/blending2/blendoff.png"
                         data-after="../media/images/articles/blending2/blendon.png">
                         <img class=" img-after" src="../media/images/articles/blending2/blendoff.png"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
@@ -134,54 +135,51 @@
                         We'll be using openGL for simplicity but the code is practically identical on different
                         platforms
                     </p>
-                    <h3>- Recap</h3>
-                    <p>We will go over the steps briefly again but the previous article goes more in depth in the base
+                    <h3>Recap</h3>
+                    <p>We will go over the steps briefly again but the previous article goes more in depth into the base
                         technique</p>
                     <a class="btn" href="/articles/meshblending.html" target="_blank" rel="noopener"
                         style="margin-left:.75rem;">Previous article</a>
+                    <h4 id="detection">Passes</h4>
+                    <p>The technique relies on 3 logical passes, <br>
+                        First we have to find where object seams are.
+                    </p>
+                    <img class="img-small" src="../media/images/articles/blending2/outlines.jpg" />
+                    <p>
+                        Then we have to find the <u>exact</u> uv offset to each closest seam to mirror around after.
+                        <br>
+                        This is the expensive part so we should only do this on the pixels close to the seams
+                    </p>
+                    <p style="opacity: 0.5;">Image shows UV offsets to seam</p>
+                    <img class="img-small" src="../media/images/articles/blending2/locations.jpg" />
+                    <p>Then by using these offsets to sample the other side of the seam, we can mirror the pixels.
+                        <br>
+                        This allows us to blend while keeping the texture detail of the object.
+                    </p>
+                    <p style="opacity: 0.5;">Outlined rock to show where the seam is, the mirror is not perfect but
+                        that is barely in practice</p>
+                    <div class="img-compare info-small" data-before="../media/images/articles/blending2/mirroroff.jpg"
+                        data-after="../media/images/articles/blending2/mirroron.jpg">
+                        <img class=" img-after" src="../media/images/articles/blending2/mirroroff.jpg" alt="no mirror">
+                        <img class="img-before" src="../media/images/articles/blending2/mirroron.jpg"
+                            alt="mirrored pixels">
+                        <div class="handle"></div>
+                        <div class="label before-label">Mirror Off</div>
+                        <div class="label after-label">Mirror On</div>
+                    </div>
                     <p><br></p>
-                    <h3 id="detection">- Passes</h2>
-                        <p>The technique relies on 3 logical passes, <br>
-                            First we have to find where object seams are.
-                        </p>
-                        <img class="img-small" src="../media/images/articles/blending2/outlines.jpg" />
-                        <p>
-                            Then we have to find the <u>exact</u> offset to each closest seam to mirror around after.
-                            <br>
-                            This is the expensive part so we should only do this on the pixels close to the seams
-                        </p>
-                        <p style="opacity: 0.5;">Image shows UV offsets to seam</p>
-                        <img class="img-small" src="../media/images/articles/blending2/locations.jpg" />
-                        <p>Then by using these offsets to sample the other side of the seam, we can mirror the pixels.
-                            <br>
-                            This allows us to blend while keeping the texture detail of the object.
-                        </p>
-                        <p style="opacity: 0.5;">Outlined rock to show where the seam is, the mirror is not perfect but
-                            that is barely visible</p>
-                        <div class="img-compare info-small"
-                            data-before="../media/images/articles/blending2/mirroroff.jpg"
-                            data-after="../media/images/articles/blending2/mirroron.jpg">
-                            <img class=" img-after" src="../media/images/articles/blending2/mirroroff.jpg"
-                                alt="no mirror">
-                            <img class="img-before" src="../media/images/articles/blending2/mirroron.jpg"
-                                alt="mirrored pixels">
-                            <div class="handle"></div>
-                            <div class="label before-label">Mirror Off</div>
-                            <div class="label after-label">Mirror On</div>
-                        </div>
-                        <h2>Masking</h2>
-                        <p>Our first step is masking where the seams are. <br>
-                            There are a lot of ways of checking this, to allow the most control of where the seams are I
-                            will be using a per object ID<br>
-                            <br>
-                            As an example you can do this using either a stencil ID or an seperate output in your
-                            shading or GBuffer pass. <br>
-                            If you draw this to a screen This should get you something like this:
-                        </p>
-                        <img src="../media/images/articles/blending/objectid.png" alt="Preview">
-                        <p>To find the seams we can run a basic outline shader on this:
-                        </p>
-                        <pre class="code"><code class="language-glsl">// GLSL, Compute:
+                    <h2>Masking</h2>
+                    <p>Our first step is masking where the seams are. <br>
+                        There are a lot of ways of checking this, to allow the most control of where the seams are I
+                        will be using a per object ID<br>
+                        <br>
+                        As an example you can do this using either a stencil ID or an seperate output in your
+                        shading or GBuffer pass. <br>
+                    </p>
+                    <img src="../media/images/articles/blending/objectid.png" alt="Preview">
+                    <p>To find the seams we can run a basic outline shader on this:
+                    </p>
+                    <pre class="code"><code class="language-glsl">// GLSL, Compute:
 
 float aspect = float(u_resolution.x) / float(u_resolution.y);
 vec2 directions[4] =
@@ -213,42 +211,42 @@ for (int i = 0; i < 4; i++)
 if (foundSeam) {} // Now we can check if we found a seam
 
 </code></pre>
-                        <p>Now it might seem tempting to just return here if there is no seam and then run the expensive
-                            part of the shader.<br>
-                            However this would barely improve performance, that is why we will use indirect dispatches
-                        </p>
-                        <h3 id="Indirect">Indirect compute shaders</h3>
-                        <h4>GPU warps</h4>
-                        <p>
-                            But why would a return statement be so slow on the gpu?<br>
-                            This is due to how the GPU orders tasks, keep in mind i will be oversimplifying here<br>
-                            When we run a compute dispatch on the GPU our dispatch groups of threads are ran in even
-                            bigger groups <br>
-                            also called warps(or waves).<br>
-                            <br>
-                            Lets say we run this
-                        </p>
-                        <pre class="code"><code class="language-glsl">layout(local_size_x = 4, local_size_y = 4) in;
+                    <p>Now it might seem tempting to just return here if there is no seam and then run the expensive
+                        part of the shader.<br>
+                        However this would barely improve performance, that is why we will use indirect dispatches
+                    </p>
+                    <h3 id="Indirect">Indirect compute shaders</h3>
+                    <h4>GPU warps</h4>
+                    <p>
+                        But why would a return statement be so slow on the gpu?<br>
+                        This is due to how the GPU orders tasks.
+                        <span style="opacity: 0.5;"> (keep in mind i will be oversimplifying here)</span><br>
+                        When we run a compute dispatch on the GPU our dispatch groups of threads are ran in even
+                        bigger groups <br>
+                        also called warps(or waves).<br>
+                        <br>
+                        Lets say we run this
+                    </p>
+                    <pre class="code"><code class="language-glsl">layout(local_size_x = 4, local_size_y = 4) in;
 void main()
 {
     //Logic
 }
-
 </code></pre>
-                        <pre class="code"><code class="language-cpp">glDispatchCompute(num_groups_x: 8, num_groups_y: 8, num_groups_z: 1);
+                    <pre class="code"><code class="language-cpp">glDispatchCompute(num_groups_x: 8, num_groups_y: 8, num_groups_z: 1);
 </code></pre>
-                        <p>This will run 32x32x1=1024 threads on our GPU<br>
-                            Lets say our GPU supports 32 threads in a warp, <br>
-                            That means our program will run in 32 warps of 32 threads.
-                        </p>
-                        <img src="../media/images/articles/blending2/warp1.png" alt="Visualisation of the warps">
-                        <p>Since these warps are executed together it has to wait for all threads in the warp to be
-                            finished before starting a next one.<br>
-                            This is fine when all threads are basically the same duration but will slow things down
-                            if
-                            our threads have a lot of branching. <br>
-                            <br>For example, if our program looked like this:
-                        <pre class="code"><code class="language-glsl">layout(local_size_x = 1, local_size_y = 1) in;
+                    <p>This will run 32x32x1=1024 threads on our GPU<br>
+                        Lets say our GPU supports 32 threads in a warp, <br>
+                        That means our program will run in 32 warps of 32 threads.
+                    </p>
+                    <img src="../media/images/articles/blending2/warp1.png" alt="Visualisation of the warps">
+                    <p>Since these warps are executed together it has to wait for all threads in the warp to be
+                        finished before starting a next one.<br>
+                        This is fine when all threads are basically the same duration but will slow things down
+                        if
+                        our threads have a lot of branching. <br>
+                        <br>For example, if our program looked like this:
+                    <pre class="code"><code class="language-glsl">layout(local_size_x = 1, local_size_y = 1) in;
 void main()
 {
     uint id = gl_GlobalInvocationID.x;
@@ -260,26 +258,26 @@ void main()
     }
 }
 </code></pre>
-                        <p>This means our warp will look like this</p>
+                    <p>This means our warp will look like this</p>
 
-                        <img src="../media/images/articles/blending2/warp2.png"
-                            alt="Visualisation showing warp has to wait for the longest thread">
-                        <p>The warp takes ~500ms since it has to wait for the longest thread.<br>
-                            <br>
-                            That means adding a mask to our effect doesnt help a lot if a warp contains an unmasked
-                            pixel.<br>
-                            Luckily there is a solution.
-                        </p>
-                        <h3 id="Indirect dispatches">Indirect dispatches</h2>
-                            <p>
-                                Instead of putting everything in 1 compute shader, we can seperate it into 2
-                                seperate
-                                dispatches. <br>
-                                In our first shader we just run the mask code and output the found locations in a
-                                buffer:
-                            </p>
-                            <p>
-                            <pre class="code"><code class="language-glsl">// GLSL, Compute:
+                    <img src="../media/images/articles/blending2/warp2.png"
+                        alt="Visualisation showing warp has to wait for the longest thread">
+                    <p>The warp takes ~500ms since it has to wait for the longest thread.<br>
+                        <br>
+                        That means adding a mask to our effect doesnt help a lot if a warp contains an unmasked
+                        pixel.<br>
+                        Luckily there is a solution.
+                    </p>
+                    <h4 id="Indirect dispatches">Indirect dispatches</h4>
+                    <p>
+                        Instead of putting everything in 1 compute shader, we can seperate it into 2
+                        seperate
+                        dispatches. <br>
+                        In our first shader we just run the mask code and output the found locations in a
+                        buffer:
+                    </p>
+                    <p>
+                    <pre class="code"><code class="language-glsl">// GLSL, Compute:
 layout(local_size_x = 8, local_size_y = 8) in;                   
 
 //This is the buffer we will output in &lt;changed&gt;
@@ -340,68 +338,86 @@ void main() {
     }
 }
 </code></pre>
-                            <p>
-                                This creates our final effect</p>
-                            <img src="../media/images/articles/blending/idea.gif" alt="Preview">
-                            <h2 id="improvements">Improvements</h2>
-                            <p>In this article I went over a simpler way to implement this but it is very slow and
-                                has
-                                some
-                                artifacts.</p>
+                    <p>We can then run our second pass only on the pixels that we got from this buffer.<br>
+                        For this we have to fill in the dispatchcounts in our buffer, <br>
+                        In some api's there are functions for this but we'll be using a small compute shader.
+                    </p>
+                    <pre class="code"><code class="language-glsl">// GLSL, Compute:
+layout(local_size_x = 1) in;
 
-                            <p>There are a lots of improvements still left to be done which i will not cover in this
-                                article,
-                                here
-                                are some examples:</p>
+layout(std430, binding = 0) buffer ArgBuffer {
+    uint  dispatch_x;
+    uint  dispatch_y;
+    uint  dispatch_z;
+    uint  count;
+    uvec2 pixels[];
+};
 
-                            <ul>
-                                <li>Compute, There are a lot of performance benefits available if you port this to
-                                    compute,
-                                    for
-                                    example by running a cheap masking pass you can only run the expensive search on
-                                    pixels
-                                    with
-                                    edges.</li>
-                                <li>Better searching, A search kernel is a very limited way of searching and there
-                                    are
-                                    way
-                                    better
-                                    ways like a spiral pattern that refines over multiple iterations.</li>
-                                <li>Custom id's using material property blocks you can set custom id's for objects
-                                    allowing
-                                    you
-                                    to
-                                    control what blends with what or even blend sizes.</li>
-                                <li>Normal-based filtering,adding a check for normal difference, This fixes
-                                    transitioning
-                                    happening
-                                    around corners or weird angles.</li>
-                                <li>Multiple-seam support,adding support for detecting multiple seams this fixes
-                                    incorrect
-                                    blending
-                                    when more than 2 objects intersect at a point</li>
-                            </ul>
+void main() {
+    // Copy the count into the dispatchSize
+    // We devide by the local group size of the next pass which in my case is 64
+    dispatch_x = ceil(count / 64.0);
+    dispatch_y = 1u;
+    dispatch_z = 1u;
+}
+</code></pre>
+                    <p>Then we can run all this from the cpu like this:</p>
+                    <pre class="code"><code class="language-cpp">//First clear our argumentBuffer
+uint32_t resetData[4] = {0, 1, 1, 0};  // dX=0, dY=1, dZ=1, count=0
+glNamedBufferSubData(buffer.meshSeamData.ssbo, 0, sizeof(resetData), resetData);
 
-                            <h2 id="improvements">Source code/Implementation</h2>
-                            <p>An open implementation of this code is available for free on the Unity Asset Store:
-                            </p>
-                            <a class="btn"
-                                href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-326839"
-                                target="_blank" rel="noopener">Free &amp; Open - Asset Store</a>
-                            <p>There is also a paid version which implements most of the improvements mentioned
-                                above
-                                and
-                                more
-                            </p>
-                            <a class="btn btn-primary"
-                                href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-pro-330717#description"
-                                target="_blank" rel="noopener" style="margin-left:.75rem;">Pro (Paid) - Asset
-                                Store</a>
-                            <div class="article-related" style="text-align:center; margin-top:1.5rem;">
-                                <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
-                                    to
-                                    Articles</a>
-                            </div>
+// Mask pass
+glUseProgram(m_meshblendMaskProgram);
+glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer.meshSeamData.ssbo);
+
+... /// Set uniforms
+
+static constexpr int KERNEL_SIZE = 8;
+glDispatchCompute((buffer.width + (KERNEL_SIZE - 1)) / KERNEL_SIZE,
+                  (buffer.height + (KERNEL_SIZE - 1)) / KERNEL_SIZE, 1);
+
+// Wait till arg buffer filled
+glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+// Copy counter into dispatchX
+glUseProgram(m_meshblendArgCountProgram);
+glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer.meshSeamData.ssbo);
+glDispatchCompute(1, 1, 1);
+
+// Wait till arg buffer filled
+glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+// Blend/Search pass
+glUseProgram(m_meshblendBlendProgram);
+
+... // Set uniforms
+
+//Bind the argumentbuffer as use for the dispatch size
+glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer.meshSeamData.ssbo);
+glDispatchComputeIndirect(0);
+</code></pre>
+
+
+                    <h2 id="improvements">Source code/Implementation</h2>
+                    <p>An open implementation of this code is available for free on the Unity Asset Store:
+                    </p>
+                    <a class="btn"
+                        href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-326839"
+                        target="_blank" rel="noopener">Free &amp; Open - Asset Store</a>
+                    <p>There is also a paid version which implements most of the improvements mentioned
+                        above
+                        and
+                        more
+                    </p>
+                    <a class="btn btn-primary"
+                        href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-pro-330717#description"
+                        target="_blank" rel="noopener" style="margin-left:.75rem;">Pro (Paid) - Asset
+                        Store</a>
+                    <div class="article-related" style="text-align:center; margin-top:1.5rem;">
+                        <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
+                            to
+                            Articles</a>
+                    </div>
             </section>
         </section>
         <section class="section-alt">

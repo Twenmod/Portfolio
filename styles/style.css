@@ -908,7 +908,7 @@ p,
     /* Default to absolute within the section; JS will toggle fixed/absolute states */
     position: absolute;
     top: 0;
-    width: 220px;
+    width: 240px;
     max-height: calc(100vh - (var(--header-height, 64px) + 48px));
     overflow: auto;
     background: #10101b;
@@ -990,6 +990,24 @@ p,
     content: "";
     position: absolute;
     left: .5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #4a4a5554;
+    border-radius: 2px;
+}
+
+.article-toc .toc-item.toc-h4 a {
+    padding-left: 1.9rem;
+    color: var(--muted-3);
+    font-size: .84rem;
+    position: relative;
+}
+
+.article-toc .toc-item.toc-h4 a::before {
+    content: "";
+    position: absolute;
+    left: 1.2rem;
     top: 0;
     bottom: 0;
     width: 2px;
@@ -1180,6 +1198,8 @@ p a:visited {
     max-width: 100%;
     user-select: none;
     transition: none;
+    cursor: ew-resize;
+
 }
 
 .img-compare img {

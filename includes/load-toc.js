@@ -17,8 +17,8 @@
     // place the toc inside the nearest section-like container so sticky is bounded by that section
     var section = container.closest('.toc-section') || container.closest('.section') || container.parentElement;
 
-    // collect headings we want in the TOC (scan the chosen container for all h2/h3)
-    var headings = container.querySelectorAll('h2, h3');
+    // collect headings we want in the TOC (scan the chosen container for all h2/h3/h4)
+    var headings = container.querySelectorAll('h2, h3, h4');
     if (!headings.length) return;
 
     var list = tocEl.querySelector('.toc-list');
@@ -190,9 +190,14 @@
 
       var hideOnSlide = container.dataset.hideOnSlide !== 'false';
       var overlayEnabled = container.dataset.overlay !== 'false';
+      var hasIdleAnimation = container.classList.contains('idle-animation');
 
       var sliding = false;
       var bounds = null;
+      var idleTimer = null;
+      var isAnimating = false;
+      var animationStartTime = null;
+      var lastInteractionTime = Date.now();
 
       if (beforeSrc) imgBefore.src = beforeSrc;
       if (afterSrc) imgAfter.src = afterSrc;
@@ -229,6 +234,8 @@
 
       function start(e) {
         sliding = true;
+        isAnimating = false;
+        if (idleTimer) clearTimeout(idleTimer);
         move(e);
         e.preventDefault();
       }
@@ -236,7 +243,33 @@
       function end() {
         if (!sliding) return;
         sliding = false;
+        lastInteractionTime = Date.now();
         update();
+
+        if (hasIdleAnimation) {
+          if (idleTimer) clearTimeout(idleTimer);
+          idleTimer = setTimeout(function () {
+            startIdleAnimation();
+          }, 5000);
+        }
+      }
+
+      function startIdleAnimation() {
+        if (sliding || isAnimating) return;
+        isAnimating = true;
+        animationStartTime = Date.now();
+        animateIdle();
+      }
+
+      function animateIdle() {
+        if (!isAnimating || sliding) return;
+
+        var elapsed = (Date.now() - animationStartTime) / 1000;
+        var sine = Math.sin(elapsed * Math.PI * 0.1);
+        offset = 0.5 + sine * 0.5;
+        update();
+
+        requestAnimationFrame(animateIdle);
       }
 
       window.addEventListener('resize', updateBounds);
@@ -250,6 +283,10 @@
 
       imgAfter.addEventListener('load', updateBounds);
       updateBounds();
+
+      if (hasIdleAnimation) {
+        startIdleAnimation();
+      }
     });
   }
 
