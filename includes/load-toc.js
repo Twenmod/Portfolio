@@ -183,6 +183,8 @@
 
       var beforeSrc = container.dataset.before;
       var afterSrc = container.dataset.after;
+      var beforeLabel = container.querySelector('.before-label');
+      var afterLabel = container.querySelector('.after-label');
 
       var offset = parseFloat(container.dataset.offset || '0.5');
       if (!isFinite(offset)) offset = 0.5;
@@ -201,6 +203,24 @@
 
       if (beforeSrc) imgBefore.src = beforeSrc;
       if (afterSrc) imgAfter.src = afterSrc;
+
+      function makeLabelLink(labelEl, href) {
+        if (!labelEl || !href) return;
+
+        var link = document.createElement('a');
+        link.className = labelEl.className;
+        link.textContent = labelEl.textContent || '';
+        link.href = href;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+        link.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+        link.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+        labelEl.replaceWith(link);
+      }
+
+      makeLabelLink(beforeLabel, beforeSrc);
+      makeLabelLink(afterLabel, afterSrc);
 
       function updateBounds() {
         bounds = container.getBoundingClientRect();
@@ -233,6 +253,7 @@
       }
 
       function start(e) {
+        if (e.target && e.target.closest && e.target.closest('a, button, input, textarea, select, option, label')) return;
         sliding = true;
         isAnimating = false;
         if (idleTimer) clearTimeout(idleTimer);

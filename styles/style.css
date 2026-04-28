@@ -1293,9 +1293,18 @@ p a:visited {
     font-size: 0.85rem;
     font-weight: 600;
     border-radius: 4px;
-    pointer-events: none;
+    pointer-events: auto;
     transition: opacity 200ms ease;
     z-index: 2;
+}
+
+.img-compare .label:hover {
+    text-decoration: underline;
+}
+
+.img-compare .label:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.9);
+    outline-offset: 2px;
 }
 
 .img-compare .before-label {

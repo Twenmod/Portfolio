@@ -114,8 +114,8 @@
             <section class="section">
                 <div class="container article-content">
                     <div class="img-compare info-small idle-animation"
-                        data-before="../media/images/articles/blending2/blendoff.png"
-                        data-after="../media/images/articles/blending2/blendon.png">
+                        data-before="../media/images/articles/blending2/blendon.png"
+                        data-after="../media/images/articles/blending2/blendoff.png">
                         <img class=" img-after" src="../media/images/articles/blending2/blendoff.png"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Uprezzed cloud">
@@ -123,8 +123,8 @@
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Low resolution cloud">
                         <div class="handle"></div>
-                        <div class="label before-label">Blending Off</div>
-                        <div class="label after-label">Blending On</div>
+                        <div class="label before-label">Blending On</div>
+                        <div class="label after-label">Blending Off</div>
                     </div>
                     <h2 id="Recap">Idea</h2>
                     <p>In a previous article we went over a technique to blend seams of meshes by mirroring pixels in
@@ -192,9 +192,9 @@ vec2 directions[4] =
 
 bool foundSeam = false;
 
-//Scale by pixel's depth to make outlines not grow over distance
+// Scale by pixel's depth to make outlines not grow over distance
 float maxRange = u_blendRadius / sceneDepth;
-//Check in 4 cardinal directions for ID change
+// Check in 4 cardinal directions for ID change
 for (int i = 0; i < 4; i++)
 {
     vec2 offset = directions[i] * maxRange;
@@ -230,7 +230,7 @@ if (foundSeam) {} // Now we can check if we found a seam
                     <pre class="code"><code class="language-glsl">layout(local_size_x = 4, local_size_y = 4) in;
 void main()
 {
-    //Logic
+    // Logic
 }
 </code></pre>
                     <pre class="code"><code class="language-cpp">glDispatchCompute(num_groups_x: 8, num_groups_y: 8, num_groups_z: 1);
@@ -280,9 +280,9 @@ void main()
                     <pre class="code"><code class="language-glsl">// GLSL, Compute:
 layout(local_size_x = 8, local_size_y = 8) in;                   
 
-//This is the buffer we will output in &lt;changed&gt;
+// This is the buffer we will output in &lt;changed&gt;
 layout(std430, binding = 0) buffer ArgBuffer { &lt;changed&gt;
-    //The arguments the second pass will be dispatched with &lt;changed&gt;
+    // The arguments the second pass will be dispatched with &lt;changed&gt;
     uint  dispatch_x; &lt;changed&gt;
     uint  dispatch_y; &lt;changed&gt;
 	uint  dispatch_z; &lt;changed&gt;
@@ -298,7 +298,7 @@ AppendStructuredBuffer&lt;uint2&gt; pixelLocations;
 
 void main() {
     uvec2 coord = gl_GlobalInvocationID.xy;
-    //Guard for over dispatching
+    // Guard for over dispatching
     if (any(greaterThanEqual(coord, u_resolution))) return;
     vec2 uv = (coord+0.5) / vec2(u_resolution);
 
@@ -318,9 +318,9 @@ void main() {
 
     bool foundSeam = false;
 
-    //Scale by pixel's depth to make outlines not grow over distance
+    // Scale by pixel's depth to make outlines not grow over distance
     float maxRange = u_blendRadius / sceneDepth;
-    //Check in 4 cardinal directions for ID change
+    // Check in 4 cardinal directions for ID change
     for (int i = 0; i < 4; i++)
     {
         vec2 offset = directions[i] * maxRange;
@@ -330,7 +330,7 @@ void main() {
         // check if differing id
         if (otherId != objectId) 
         {
-            //Add the found location to our buffer &lt;changed&gt;
+            // Add the found location to our buffer &lt;changed&gt;
             uint slot = atomicAdd(count, 1u); // Thread safe way of counting where we are in the buffer &lt;changed&gt;
             pixels[slot] = coord; &lt;changed&gt;
             return; &lt;changed&gt;
@@ -362,7 +362,7 @@ void main() {
 }
 </code></pre>
                     <p>Then we can run all this from the cpu like this:</p>
-                    <pre class="code"><code class="language-cpp">//First clear our argumentBuffer
+                    <pre class="code"><code class="language-cpp">// First clear our argumentBuffer
 uint32_t resetData[4] = {0, 1, 1, 0};  // dX=0, dY=1, dZ=1, count=0
 glNamedBufferSubData(buffer.meshSeamData.ssbo, 0, sizeof(resetData), resetData);
 
@@ -396,14 +396,166 @@ glUseProgram(m_meshblendBlendProgram);
 glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer.meshSeamData.ssbo);
 glDispatchComputeIndirect(0);
 </code></pre>
-
-
-                    <h2 id="improvements">Source code/Implementation</h2>
-                    <p>Bla bla bla
+                    <h2>Searching</h2>
+                    <p>Now that we know where to run our blend we have to find the actual seams<br>
+                        For every blended pixel we need the exact offset, we need this for 2 things.<br>
+                        We use double this offset as the sample location to get the mirrored side<br>
+                        and we need the length of this offset to know how much to blend the pixel</p>
+                    <img src="../media/images/articles/blending2/sample.png" />
+                    <p>In the previous article we used square search kernel, however this becomes either very slow or
+                        creates a lot of artifacts at blend sizes more than a few pixels<br>
+                        Instead we will be using a refining search which allows to us to find the seam more accurately
+                        with less samples.<br>
+                        <br>
+                        We sample a big circle around our pixel to find the seam direction, <br>
+                        then using the direction we find we sample a smaller circle around that direction. <br>
+                        We do this for a set amount of iterations
                     </p>
-                    <a class="btn"
-                        href="https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mesh-seam-blending-326839"
-                        target="_blank" rel="noopener">Source Code</a>
+                    <img src="../media/images/articles/blending2/searchanim.gif" />
+                    <p><br>The code would then look something like this:</p>
+                    <pre class="code"><code class="language-glsl">//GLSL Compute, Blend Pass
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= count) return;
+
+    // We get the coords from the first pass
+    uvec2 coord = pixels[idx];
+    vec2 uv = (coord+0.5)/vec2(u_resolution);
+
+    float rawDepth = textureLod(u_depth, uv,0).x;
+    float sceneDepth = LinearizeDepth(rawDepth, u_nearfarplane.x, u_nearfarplane.y);
+
+    uint objectId = textureLod(u_id, uv,0).x;
+    bool selfBlendsSelf   = (objectId & (1u << 11)) != 0u;
+    bool selfBlendsOthers = (objectId & (1u << 10)) != 0u;
+
+    float maxRange = u_blendRadius / sceneDepth;
+
+    float aspect = float(u_resolution.x) / float(u_resolution.y);
+
+    float minDist = 9999999;
+    vec2 closestSeamLocation = vec2(0, 0);
+
+    // iteration settings
+    const int refineIterations = 8;
+    const int circleSteps = 16;
+
+    // The refining search
+    for (int iter = 0; iter < refineIterations; iter++) 
+    {
+        // Stepsize halves every iteration
+        float stepSize = maxRange / pow(2, iter);
+
+        // We use the previous iteration's offset as a starting location
+        vec2 closestFound = closestSeamLocation;
+        for (int i = 0; i < circleSteps; i++)
+        {
+            //          this is ~2*pi
+            float angle = (6.283185 * (i)) / circleSteps;
+
+            // Since this is UV space we have to device by aspect
+            vec2 dir = vec2(cos(angle), sin(angle))/aspect;
+            vec2 sampleOffset = closestFound + dir * stepSize;
+
+            vec2 sampleUV = uv+sampleOffset;
+
+            uint sampleId = textureLod(u_id, sampleUV,0).x;
+            if (sampleId != objectId)
+            {
+                //Calculate the length of the offset,
+                float dist = length(sampleOffset*vec2(aspect,1.0));
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closestSeamLocation = offset;
+                }
+            }
+        }
+    }
+</code></pre>
+                    <h2>Blending</h2>
+                    <p>Now that we have the seam offsets we can mirror and blend them.<br>
+                        To do this we just use double the seam offset as a sample position and lerp based on the offset
+                        length.<br>
+                        We then combine with a weight based on depth to make sure we only blend edges that are actually
+                        connected.
+                    </p>
+                    <pre class="code"><code class="language-glsl">//GLSL Compute, Blend Pass
+
+    ... /// Search loop
+
+    // The distance from the search
+    float dist = minDist; 
+    
+    // Color of the current pixel
+    vec4 sceneColor = textureLod(u_color, uv,0);
+
+    // Doubling the offset gives us a mirrored location
+    vec2 finalOffsetUV = uv + closestSeamLocation * 2;
+
+    vec4 otherColor = textureLod(u_color,finalOffsetUV,0);
+    float otherDepth = LinearizeDepth(textureLod(u_depth, finalOffsetUV,0).x, u_nearfarplane.x, u_nearfarplane.y);
+
+    // Difference between our depth and mirrored depth, in linear space
+    float depthDiff = abs(otherDepth - sceneDepth);
+
+    // Weight from 0.5-0 how close we are to the seam. 
+    // We make this from 0.5-0 since we want to blend halfway when distance is close to zero.
+    float spatialWeight = clamp(0.5 - (dist / maxRange),0.0,1.0);
+
+    // Weight based on depth difference of the 2 blended objects
+    float depthWeight = clamp(1.0 - depthDiff / (u_depthfall * u_blendRadius),0.0,1.0);
+    
+    // Combine the weights
+    float finalWeight = spatialWeight * depthWeight;
+
+    // Optional smooth function makes the blend a bit smoother
+    finalWeight = finalWeight * finalWeight * (3 - 2 * finalWeight);
+	
+    imageStore(u_output, ivec2(coord), mix(sceneColor, otherColor, finalWeight));
+</code></pre>
+                    <h2>Performance & Conclusions</h2>
+                    <p>Even with these optimisations the effect is still somewhat expensive running at around ~2-4ms at
+                        8(refine)*16(circle) iterations,<br>dependent on how much blends are on screen and blend size
+                        settings. On my RTX 4060 Laptop GPU at 1920x1080<br>
+                        <br>
+                        But since this is post processing it is largely independent from scene complexity, and the cost
+                        of the ID generation is very dependent on render setup.<br>
+                        So the amount of work this saves when kitbashing levels is in my opinion worth it.<br>
+                        <br>
+                        Also keep in mind I simplified most of the code in this article, there are definitely more
+                        optimisations to be had.
+                        <br>
+                        <br>
+                        Here are some more varied showcases of the effect:
+                    </p>
+                    <div class="img-compare info-small idle-animation"
+                        data-before="../media/images/articles/blending2/iceon.png"
+                        data-after="../media/images/articles/blending2/iceoff.png">
+                        <img class=" img-after" src="../media/images/articles/blending2/iceoff.png"
+                            style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
+                            alt="Uprezzed cloud">
+                        <img class="img-before" src="../media/images/articles/blending2/iceon.png"
+                            style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
+                            alt="Low resolution cloud">
+                        <div class="handle"></div>
+                        <div class="label before-label">Blending On</div>
+                        <div class="label after-label">Blending Off</div>
+                    </div>
+                    <div class="img-compare info-small idle-animation"
+                        data-before="../media/images/articles/blending2/lavaon.png"
+                        data-after="../media/images/articles/blending2/lavaoff.png">
+                        <img class=" img-after" src="../media/images/articles/blending2/lavaon.png"
+                            style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
+                            alt="Uprezzed cloud">
+                        <img class="img-before" src="../media/images/articles/blending2/lavaoff.png"
+                            style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
+                            alt="Low resolution cloud">
+                        <div class="handle"></div>
+                        <div class="label before-label">Blending On</div>
+                        <div class="label after-label">Blending Off</div>
+                    </div>
                     <div class="article-related" style="text-align:center; margin-top:1.5rem;">
                         <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
                             to
