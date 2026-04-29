@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://www.jacktollenaar.top/articles.html</loc>
-    <lastmod>2026-01-11</lastmod>
+    <lastmod>2026-04-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -27,6 +27,12 @@
   <url>
     <loc>https://www.jacktollenaar.top/articles/meshblending.html</loc>
     <lastmod>2025-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+    <url>
+    <loc>https://www.jacktollenaar.top/articles/meshblending2.html</loc>
+    <lastmod>2026-04-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>

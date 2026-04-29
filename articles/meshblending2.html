@@ -5,6 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="A guide on real-time mesh blending as a post-processing effect in games.">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Fast Mesh seam blending - Jack Tollenaar">
+    <meta property="og:description"
+        content="A guide on using indirect compute shaders for real time mesh blending as a post process.">
+    <meta property="og:url" content="https://www.jacktollenaar.top/articles/meshblending2.html">
+    <meta property="og:image" content="https://www.jacktollenaar.top/media/images/seamblend2-card.png">
     <title>Fast Mesh seam blending - Jack Tollenaar</title>
     <link rel="stylesheet" href="../styles/style.css">
     <link rel="icon" type="image/png" href="../media/images/favicon.png">
@@ -114,12 +120,12 @@
             <section class="section">
                 <div class="container article-content">
                     <div class="img-compare info-small idle-animation"
-                        data-before="../media/images/articles/blending2/blendon.png"
-                        data-after="../media/images/articles/blending2/blendoff.png">
-                        <img class=" img-after" src="../media/images/articles/blending2/blendoff.png"
+                        data-before="../media/images/articles/blending2/blendon2.png"
+                        data-after="../media/images/articles/blending2/blendoff2.png">
+                        <img class=" img-after" src="../media/images/articles/blending2/blendoff2.png"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="No blending">
-                        <img class="img-before" src="../media/images/articles/blending2/blendon.png"
+                        <img class="img-before" src="../media/images/articles/blending2/blendon2.png"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Blending">
                         <div class="handle"></div>
@@ -527,6 +533,8 @@ void main() {
                         But since this is post-processing it is largely independent from scene complexity, and the cost
                         of the ID generation is very dependent on render setup.<br>
                         So the amount of work this saves when kitbashing levels is, in my opinion, worth it.<br>
+                        And keeping the technique only in between (certain?) objects makes it so it doesn't impact
+                        artistic intention<br>
                         <br>
                         Also keep in mind I simplified most of the code in this article, there are definitely more
                         optimisations to be had.
@@ -560,11 +568,14 @@ void main() {
                         <div class="label before-label">Blending On</div>
                         <div class="label after-label">Blending Off</div>
                     </div>
-                    <div class="article-related" style="text-align:center; margin-top:1.5rem;">
-                        <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
-                            to
-                            Articles</a>
-                    </div>
+                    <video controls width="100%">
+                        <source src="../media/videos/articles/blend2.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                        <div class="article-related" style="text-align:center; margin-top:1.5rem;">
+                            <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
+                                to
+                                Articles</a>
+                        </div>
             </section>
         </section>
         <section class="section-alt">

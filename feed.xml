@@ -5,9 +5,22 @@
     <link>https://www.jacktollenaar.top</link>
     <description>Articles on graphics, rendering, and game development</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 11 Jan 2026 15:45:00 +01:00</lastBuildDate>
+    <lastBuildDate>Wed, 29 Apr 2026 15:35:00 +01:00</lastBuildDate>
     <atom:link href="https://www.jacktollenaar.top/feed.xml" rel="self" type="application/rss+xml"/>
     
+    <item>
+      <title>Fast mesh seam blending</title>
+      <link>https://www.jacktollenaar.top/articles/meshblending2.html</link>
+      <guid>https://www.jacktollenaar.top/articles/meshblending2.html</guid>
+      <description><![CDATA[<img src="https://www.jacktollenaar.top/media/images/seamblend2-card.png" alt="Post process mesh transitions" style="max-width: 100%; height: auto;" />
+        <p>Implementing fast mesh blending as a post process.<br>Using indirect compute shaders!</p>]]></description>
+      <content:encoded><![CDATA[
+        <p>A guide on indirect compute shaders and how to use them for fast blending of meshes in post processing,</p>
+      ]]></content:encoded>
+      <pubDate>Wed, 29 Apr 2026 15:35:00 +01:00</pubDate>
+    </item>
+
+
     <item>
       <title>Volumetric cloud rendering</title>
       <link>https://www.jacktollenaar.top/articles/clouds.html</link>
