@@ -538,8 +538,12 @@ void main() {
                         <br>
                         Also keep in mind I simplified most of the code in this article, there are definitely more
                         optimisations to be had.
+                        <br><br>
+                        The performance can also be massively improved by adding noise which I have seen some others do,
                         <br>
-                        <br>
+                        Instead of finding the perfect offset only do a couple samples with jittered offsets. <br>
+                        The noise this creates can then be resolved by TAA, however I am not a fan of this approach.
+                        <br><br>
                         Here are some more varied showcases of the effect:
                     </p>
                     <div class="img-compare info-small idle-animation"
