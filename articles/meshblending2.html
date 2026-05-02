@@ -524,7 +524,7 @@ void main() {
     imageStore(u_output, ivec2(coord), mix(sceneColor, otherColor, finalWeight));
 </code></pre>
                     <h2>Performance & Conclusions</h2>
-                    <p>Even with these optimisations, the effect is still somewhat expensive, running at around ~2-4ms
+                    <p>Even with these optimisations, the effect is still somewhat expensive, running at around ~2-3ms
                         at
                         8(refine)*16(circle) iterations,<br>depending on how much blends are on screen and the blend
                         size
@@ -542,7 +542,7 @@ void main() {
                         The performance can also be massively improved by adding noise which I have seen some others do,
                         <br>
                         Instead of finding the perfect offset only do a couple samples with jittered offsets. <br>
-                        The noise this creates can then be resolved by TAA, however I am not a fan of this approach.
+                        The noise this creates can then be resolved by TAA.
                         <br><br>
                         Here are some more varied showcases of the effect:
                     </p>
