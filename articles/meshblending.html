@@ -5,7 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="description" content="A guide on real time mesh blending as a post processing effect in games.">
-    <title>Mesh seam smoothing & blending - Jack Tollenaar</title>
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Mesh seam blending - Jack Tollenaar">
+    <meta property="og:description"
+        content="A guide on connecting mesh intersections in between any mesh (not just terrain) in screen space">
+    <meta property="og:url" content="https://www.jacktollenaar.top/articles/meshblending.html">
+    <meta property="og:image" content="https://www.jacktollenaar.top/media/images/seamblend-card.png">
+    <title>Mesh seam smoothing / blending - Jack Tollenaar</title>
     <link rel="stylesheet" href="../styles/style.css">
     <link rel="icon" type="image/png" href="../media/images/favicon.png">
     <style>
@@ -106,7 +112,7 @@
                         style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
 
                 <h1>Mesh seam smoothing&blending</h1>
-                <p class="muted">Smoothing of mesh seams as a post process</p>
+                <p class="muted">Screen space smoothing of mesh seams as a post process</p>
             </div>
         </section>
 
@@ -379,7 +385,7 @@ half4 Frag(Varyings input) : SV_Target
                         target="_blank" rel="noopener" style="margin-left:.75rem;">Pro (Paid) - Asset Store</a>
                     <h4>Credits</h4>
                     <p>This technique is heavily inspired by the recent unreal plugin <a
-                            href="https://meshblend.lervik.com/">MeshBlend</a><br>
+                            href="https://meshblend.lervik.com/">MeshBlend</a> shown in the Subnautica 2 devlog<br>
                         I havent used their plugin so I'm not sure if i'm doing the same things but seeing it did make
                         me think of doing it this way.<br><br></p>
                     <div class="article-related" style="text-align:center; margin-top:1.5rem;">
