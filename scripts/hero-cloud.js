@@ -170,11 +170,40 @@
             markCameraInput();
         }, { passive: true });
 
-        var observer = new ResizeObserver(resize);
+        // Only render while the canvas is displayed
+        var inView = true;
+        var running = false;
+
+        function isShown() {
+            return inView && canvas.getClientRects().length > 0;
+        }
+
+        function startLoop() {
+            if (running || !isShown()) return;
+            running = true;
+            last = performance.now();
+            requestAnimationFrame(render);
+        }
+
+        var observer = new ResizeObserver(function () {
+            resize();
+            startLoop();
+        });
         observer.observe(canvas);
         resize();
 
+        var viewObserver = new IntersectionObserver(function (entries) {
+            inView = entries[entries.length - 1].isIntersecting;
+            startLoop();
+        });
+        viewObserver.observe(canvas);
+
         function render(now) {
+            if (!isShown()) {
+                running = false;
+                return;
+            }
+
             var elapsed = (now - start) * 0.001;
             var delta = (now - last) * 0.001;
             if (delta > 0.32) delta = 0.32;
@@ -223,14 +252,10 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-            if (delta < 0.2) {
-                requestAnimationFrame(render);
-            } else {
-                requestAnimationFrame(render);
-            }
+            requestAnimationFrame(render);
         }
 
-        requestAnimationFrame(render);
+        startLoop();
     }
 
     function loadRaw3DTexture(config) {
@@ -270,19 +295,29 @@
             });
     }
 
-    Promise.all([
-        fetch(fragmentUrl, { cache: 'no-store' }).then(function (res) {
-            if (!res.ok) throw new Error('Failed to load fragment shader');
-            return res.text();
-        }),
-        loadRaw3DTexture(textureConfig.profile),
-        loadRaw3DTexture(textureConfig.noise)
-    ])
-        .then(function (results) {
-            init(results[0], { profile: results[1], noise: results[2] });
-        })
-        .catch(function (err) {
-            if (window.console) console.warn('Cloud resources failed:', err);
-            canvas.style.display = 'none';
-        });
+    // Don't download shader/textures until the canvas is actually displayed
+    var loaded = false;
+    function loadWhenShown() {
+        if (loaded || canvas.getClientRects().length === 0) return;
+        loaded = true;
+        window.removeEventListener('resize', loadWhenShown);
+
+        Promise.all([
+            fetch(fragmentUrl, { cache: 'no-store' }).then(function (res) {
+                if (!res.ok) throw new Error('Failed to load fragment shader');
+                return res.text();
+            }),
+            loadRaw3DTexture(textureConfig.profile),
+            loadRaw3DTexture(textureConfig.noise)
+        ])
+            .then(function (results) {
+                init(results[0], { profile: results[1], noise: results[2] });
+            })
+            .catch(function (err) {
+                if (window.console) console.warn('Cloud resources failed:', err);
+                canvas.style.display = 'none';
+            });
+    }
+    window.addEventListener('resize', loadWhenShown);
+    loadWhenShown();
 })();
