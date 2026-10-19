@@ -107,8 +107,8 @@
             <div class="container">
                 <button class="btn"
                     style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 17.5%; transform: translateY(-50%); cursor: pointer; z-index: 100;"
-                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
-                        src="../media/images/rss.png" alt="RSS Icon"
+                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img loading="lazy"
+                        src="../media/images/rss.webp" alt="RSS Icon"
                         style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
 
                 <h1>Mesh seam smoothing&blending</h1>
@@ -119,19 +119,19 @@
         <section class="toc-section">
             <section class="section">
                 <div class="container article-content">
-                    <img src="../media/images/articles/blending/hero.png" alt="Denoising example">
+                    <img loading="lazy" src="../media/images/articles/blending/hero.webp" alt="Denoising example">
                     <h2 id="idea">Idea</h2>
                     <p>When putting meshes/objects together in games the seam between them can look very jarring.
                         This is especially the case with objects used for terrain. <br>
                         By merging and blending edges together seams look way smoother and more realistic.</p>
-                    <img src="../media/images/articles/blending/idea.gif" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/idea.webp" alt="Preview">
                     <p>But how do we blend objects together in a game engine?
                         First lets think about how you would create a transition in 2d.
                         <br>To create a transition in 2d you would overlap the 2 images and then smoothly blend the edge
                         so
                         it transitions in between the 2 images
                     </p>
-                    <img src="../media/images/articles/blending/exampleblend.gif" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/exampleblend.webp" alt="Preview">
                     <p>In 3d this creates a problem though since we cannot overlap our pixels like that without very
                         complex
                         rendering of our scene.
@@ -140,7 +140,7 @@
                         have
                         color on the other side of the seam.
                     </p>
-                    <img src="../media/images/articles/blending/examplemirror.gif" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/examplemirror.webp" alt="Preview">
                     <h2 id="detection">Seam detection</h2>
                     <p>This technique relies on knowing where the seams between meshes are, so we need a system to be
                         able
@@ -175,7 +175,7 @@ half4 frag(Varyings input) : SV_Target
     return half4(hashValue, 0, 0, 1);
 }</code></pre>
                     <p>If you draw this to a screen This should get you something like this:</p>
-                    <img src="../media/images/articles/blending/objectid.png" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/objectid.webp" alt="Preview">
                     <p>Now that we have a id per object detecting seams is pretty straight forward.
                         In a post process shader we run a kernel that detects if the id changes
                     </p>
@@ -214,7 +214,7 @@ half4 Frag(Varyings input) : SV_Target
     return color;
 }</code></pre>
                     <p>With this you should basically have a outline shader:</p>
-                    <img src="../media/images/articles/blending/outline.png" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/outline.webp" alt="Preview">
                     <h2 id="Blending">Blending</h2>
                     <p>
                         Now comes the actual blending,<br>
@@ -273,7 +273,7 @@ half4 Frag(Varyings input) : SV_Target
 </code></pre>
                     <p>This should produce a trippy effect wherein both sides of the seam are mirrored,
                         I split the image with and without the effect for clarity</p>
-                    <img src="../media/images/articles/blending/mirror.png" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/mirror.webp" alt="Preview">
                     <p>If instead of directly mirroring we lerp the colors based on distance from the seam it becomes a
                         nice
                         transition,<br>
@@ -302,7 +302,7 @@ return lerp(sceneColor, otherColor, weight); &lt;changed&gt;
 }
 </code></pre>
                     <p>This should give us a nicely blended seam:</p>
-                    <img src="../media/images/articles/blending/blended.png" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/blended.webp" alt="Preview">
 
                     <h2 id="Conditions">Conditions</h2>
                     <p>There is one simple problem with our transitions. <br>
@@ -340,7 +340,7 @@ half4 Frag(Varyings input) : SV_Target
 </code></pre>
                     <p>
                         This creates our final effect</p>
-                    <img src="../media/images/articles/blending/idea.gif" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/idea.webp" alt="Preview">
                     <h2 id="improvements">Improvements</h2>
                     <p>In this article I went over a simpler way to implement this but it is very slow and has some
                         artifacts.</p>

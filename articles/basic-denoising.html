@@ -82,8 +82,8 @@
             <div class="container">
                 <button class="btn"
                     style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 17.5%; transform: translateY(-50%); cursor: pointer; z-index: 100;"
-                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
-                        src="../media/images/rss.png" alt="RSS Icon"
+                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img loading="lazy"
+                        src="../media/images/rss.webp" alt="RSS Icon"
                         style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
 
                 <h1>Weighted Gaussian blurring for denoising</h1>
@@ -95,7 +95,7 @@
 
             <section class="section">
                 <div class="container article-content">
-                    <img src="../media/images/articles/denoising/final.png" alt="Denoising example">
+                    <img loading="lazy" src="../media/images/articles/denoising/final.webp" alt="Denoising example">
                     <h2 id="idea">Idea</h2>
                     <p>Real time Path/Raytracers give very noisy images which do not look nice.
                         While there are currently significantly better techniques using for example machine learning, I
@@ -117,7 +117,7 @@
                         average
                     </p>
                     <p>This weight follows the standard Gaussian distribution which is calculated as</p>
-                    <img src="../media/images/articles/denoising/gaussian.png" alt="Gaussian formula">
+                    <img loading="lazy" src="../media/images/articles/denoising/gaussian.webp" alt="Gaussian formula">
 
                     <p>where x is the distance of the pixel and σ is the standard deviation which controls the spread of
                         the
@@ -180,9 +180,9 @@ color = totalColor / totalWeight; // calculate average by dividing by the total 
                     <pre
                         class="code"><code class="language-glsl">vec2 neigborUV = uv + -direction*i*offset; // Get the uv coords (negative)</code></pre>
                     <p>If you did it correctly you should get something like this:</p>
-                    <img src="../media/images/articles/denoising/beforeBlur.png" alt="Before">
+                    <img loading="lazy" src="../media/images/articles/denoising/beforeBlur.webp" alt="Before">
                     <p><b>⬆ Input | Output ⬇ </b></p>
-                    <img src="../media/images/articles/denoising/afterBlur.png" alt="After">
+                    <img loading="lazy" src="../media/images/articles/denoising/afterBlur.webp" alt="After">
                     <p>To get the full blur you have to run the filter over the image twice switching the direction from
                         horizontal to vertical</p>
                     <p>so:</p>
@@ -201,7 +201,7 @@ else direction = vec2(0,1);</code></pre>
                         vertically.
                     </p>
                     <p>This gives us the full blur:</p>
-                    <img src="../media/images/articles/denoising/fullblur.png" alt="Blurred">
+                    <img loading="lazy" src="../media/images/articles/denoising/fullblur.webp" alt="Blurred">
                     <h2 id="weighing">Weighing</h2>
                     <p>While simply blurring gets rid of any noise that would be there it also gets rid of any coherent
                         scene.
@@ -212,7 +212,7 @@ else direction = vec2(0,1);</code></pre>
                         I will only be using the normals for this example but you will get better results by using a
                         mixture
                         of them and tweaking their influence until it looks good.</p>
-                    <img src="../media/images/articles/denoising/gbuffer.png" alt="Normals">
+                    <img loading="lazy" src="../media/images/articles/denoising/gbuffer.webp" alt="Normals">
                     <p>As you can see big changes in normals give a good estimate of all the edges in our scene which we
                         do
                         not want to blur.
@@ -249,12 +249,12 @@ color = totalColor / totalWeight;</code></pre>
                         blur separately in each direction.</p>
                     <p>This will make our blur stop at hard edges and blur less at steep changes which will make edges
                         visible again.</p>
-                    <img src="../media/images/articles/denoising/edges.png" alt="Blur with clear edges">
+                    <img loading="lazy" src="../media/images/articles/denoising/edges.webp" alt="Blur with clear edges">
                     <p>Like mentioned before, you can improve this by adding more data for weighing, like the difference
                         in
                         depth or world position of a pixel</p>
                     <p>When applied to a noisy image it dramatically reduces noise</p>
-                    <img src="../media/images/articles/denoising/light data.png" alt="Noisy image denoised">
+                    <img loading="lazy" src="../media/images/articles/denoising/light data.webp" alt="Noisy image denoised">
                     <h2 id="data">Choosing the right data</h2>
                     <p>As keen eyed people might have noticed is that while this technique removes noise it also removes
                         any
@@ -276,14 +276,14 @@ else
 {
     colorDiff = 1.0-abs(dot(normalize(lastColor),normalize(color)));  // Get the difference in color (hue)
 }</code></pre>
-                    <img src="../media/images/articles/denoising/colorpreserve.png" alt="Colors slightly preserved">
+                    <img loading="lazy" src="../media/images/articles/denoising/colorpreserve.webp" alt="Colors slightly preserved">
                     <p>A better solution is to not blur your detailed textures at all.
                         In most cases not all your data is noisy, in my case only the lighting data is noisy while the
                         colors/textures of the frame aren't.</p>
                     <p>Because of this if you split your noisy data from your unnoisy data you can denoise only the
                         noisy
                         data and recombine it with the rest of the data to get a better final image</p>
-                    <img src="../media/images/articles/denoising/final.png" alt="Final denoising">
+                    <img loading="lazy" src="../media/images/articles/denoising/final.webp" alt="Final denoising">
 
                     <div class="article-related" style="text-align:center; margin-top:1.5rem;">
                         <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back to

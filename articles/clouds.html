@@ -238,8 +238,8 @@
         <section class="hero container articles-hero">
             <button class="btn"
                 style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 17.5%; transform: translateY(-50%); cursor: pointer; z-index: 100;"
-                onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
-                    src="../media/images/rss.png" alt="RSS Icon"
+                onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img loading="lazy"
+                    src="../media/images/rss.webp" alt="RSS Icon"
                     style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
             <div class="container">
                 <h1>Volumetric Cloud Rendering</h1>
@@ -257,14 +257,14 @@
                             <button class="carousel-btn prev" type="button" aria-label="Previous image">&#8249;</button>
                             <div class="carousel-track">
                                 <figure class="carousel-slide is-active">
-                                    <img src="../media/images/articles/clouds/hero2.jpg"
+                                    <img loading="lazy" src="../media/images/articles/clouds/hero2.webp"
                                         alt="Volumetric cloud denoising example">
                                 </figure>
                                 <figure class="carousel-slide">
-                                    <img src="../media/images/articles/clouds/hero.jpg" alt="Volumetric cloud render">
+                                    <img loading="lazy" src="../media/images/articles/clouds/hero.webp" alt="Volumetric cloud render">
                                 </figure>
                                 <figure class="carousel-slide">
-                                    <img src="../media/images/articles/clouds/hero3.png" alt="Volumetric cloud render">
+                                    <img loading="lazy" src="../media/images/articles/clouds/hero3.webp" alt="Volumetric cloud render">
                                 </figure>
                             </div>
                             <button class="carousel-btn next" type="button" aria-label="Next image">&#8250;</button>
@@ -304,7 +304,7 @@
                             taking a set amount of steps/samples.
                             <br>
                         <p style="opacity: 0.5;">The march along the ray, number shows accumulated density</p>
-                        <img class="info" src="../media/images/articles/clouds/marching.png"
+                        <img loading="lazy" class="info" src="../media/images/articles/clouds/marching.webp"
                             alt="Ray marching illustration">
                         For every step along the Ray we sample the density of the volume and accumulate the
                         total along
@@ -356,7 +356,7 @@ float3 marchVolume(float3 rayOrigin, float3 rayDir, float3 backgroundColor) {
                         <p style="opacity: 0.5;">Extra rays towards the light source, using transmissance
                             calculated
                             along the way</p>
-                        <img class="info" src="../media/images/articles/clouds/marchinglight.png"
+                        <img loading="lazy" class="info" src="../media/images/articles/clouds/marchinglight.webp"
                             alt="Ray marching illustration">
                         For now, we'll calculate our density using the distance from a sphere.
                         <pre class="code"><code class="language-glsl"># Lighting and example density
@@ -385,7 +385,7 @@ float3 CalculateLighting(float3 pos) {
 }
 </code></pre>
                         Using this you should get a simple foggy sphere.
-                        <img class="info" src="../media/images/articles/clouds/basic.png" alt="Ray marching basics">
+                        <img loading="lazy" class="info" src="../media/images/articles/clouds/basic.webp" alt="Ray marching basics">
                     </details>
 
                     <p></p>
@@ -435,7 +435,7 @@ float3 CalculateLighting(float3 pos) {
                         only the
                         voxels where there are actually clouds,
                         or using a tree structure to have smaller voxels where there is more detail.<br>
-                        <img class="info" src="../media/images/articles/clouds/data.png"
+                        <img loading="lazy" class="info" src="../media/images/articles/clouds/data.webp"
                             alt="Sparse voxel structure illustration">
                         This has a lot of benefits in memory usage, allowing you to store significantly more
                         detailed
@@ -470,7 +470,7 @@ float3 CalculateLighting(float3 pos) {
                         <a href="https://www.openvdb.org/">https://www.openvdb.org/</a>
                     </p>
                     <p style="opacity: 0.5;">Sampling voxel data in our basic raymarcher from earlier:</p>
-                    <img class="info" src="../media/images/articles/clouds/structure.png"
+                    <img loading="lazy" class="info" src="../media/images/articles/clouds/structure.webp"
                         alt="Voxel sampling illustration">
                     </p>
                 </div>
@@ -503,7 +503,7 @@ float3 CalculateLighting(float3 pos) {
                         This profile has a range from 0-1.
                     </p>
                     <p style="opacity: 0.5;">A 2D slice of the low resolution density profile of a cloud</p>
-                    <img class="info-small" src="../media/images/articles/clouds/lowslice.png"
+                    <img loading="lazy" class="info-small" src="../media/images/articles/clouds/lowslice.webp"
                         alt="Cloud profile slice">
 
                     <h3>Eroding</h3>
@@ -557,11 +557,11 @@ float3 CalculateLighting(float3 pos) {
                     <p style="opacity: 0.5;">Final cloud comparison after applying noise based erosion,
                         blockiness at
                         the edges gets removed with more detail.</p>
-                    <div class="img-compare info-small" data-before="../media/images/articles/clouds/uprez-before.png"
-                        data-after="../media/images/articles/clouds/uprez-after.png">
-                        <img class="img-after" src="../media/images/articles/clouds/uprez-after.png"
+                    <div class="img-compare info-small" data-before="../media/images/articles/clouds/uprez-before.webp"
+                        data-after="../media/images/articles/clouds/uprez-after.webp">
+                        <img loading="lazy" class="img-after" src="../media/images/articles/clouds/uprez-after.webp"
                             alt="Uprezzed cloud">
-                        <img class="img-before" src="../media/images/articles/clouds/uprez-before.png"
+                        <img loading="lazy" class="img-before" src="../media/images/articles/clouds/uprez-before.webp"
                             alt="Low resolution cloud">
                         <div class="handle"></div>
                         <div class="label before-label">Low Res</div>
@@ -633,7 +633,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                     <p style="opacity: 0.5;">Ambient light coming from all directions, deeper and lower parts
                         are more
                         shadowed</p>
-                    <img class="info" src="../media/images/articles/clouds/ambientrays.png"
+                    <img loading="lazy" class="info" src="../media/images/articles/clouds/ambientrays.webp"
                         alt="Ambient lighting illustration">
 
                     <p>
@@ -666,7 +666,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         already blurry by itself, it can be stored in a lower resolution grid.
                     </p>
                     <p style="opacity: 0.5;">Single ray approximation</p>
-                    <img class="info-small" src="../media/images/articles/clouds/ambientrayscheap.png"
+                    <img loading="lazy" class="info-small" src="../media/images/articles/clouds/ambientrayscheap.webp"
                         alt="Ambient lighting illustration">
                     <p>
                         To combine this all together, we weight the ambient lighting by not only this ray but
@@ -693,11 +693,11 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
     </code></pre>
                     <p style="opacity: 0.5;">Comparison, you see mainly that the parts away from the sun are not
                         unrealistically dark anymore<br>and shadowed parts (the underside) stay shadowed</p>
-                    <div class="img-compare info" data-before="../media/images/articles/clouds/ambient-before.png"
-                        data-after="../media/images/articles/clouds/ambient-after.png">
-                        <img class="img-after" src="../media/images/articles/clouds/ambient-after.png"
+                    <div class="img-compare info" data-before="../media/images/articles/clouds/ambient-before.webp"
+                        data-after="../media/images/articles/clouds/ambient-after.webp">
+                        <img loading="lazy" class="img-after" src="../media/images/articles/clouds/ambient-after.webp"
                             alt="With ambient lighting">
-                        <img class="img-before" src="../media/images/articles/clouds/ambient-before.png"
+                        <img loading="lazy" class="img-before" src="../media/images/articles/clouds/ambient-before.webp"
                             alt="Without ambient lighting">
                         <div class="handle"></div>
                         <div class="label before-label">No Ambient</div>
@@ -710,7 +710,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         Light also scatters around the inside of the clouds and can hit our sample indirectly.
                     </p>
 
-                    <img class="info" src="../media/images/articles/clouds/mis.png"
+                    <img loading="lazy" class="info" src="../media/images/articles/clouds/mis.webp"
                         alt="Multiple scattering visualization">
 
                     <p>
@@ -753,11 +753,11 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         brighter.<br>
                         You can also see inner edges in the middle of the cloud be slightly darker adding
                         detail.</p>
-                    <div class="img-compare info" data-before="../media/images/articles/clouds/mis-before.png"
-                        data-after="../media/images/articles/clouds/mis-after.png">
-                        <img class="img-after" src="../media/images/articles/clouds/mis-after.png"
+                    <div class="img-compare info" data-before="../media/images/articles/clouds/mis-before.webp"
+                        data-after="../media/images/articles/clouds/mis-after.webp">
+                        <img loading="lazy" class="img-after" src="../media/images/articles/clouds/mis-after.webp"
                             alt="With multiple in-scattering">
-                        <img class="img-before" src="../media/images/articles/clouds/mis-before.png"
+                        <img loading="lazy" class="img-before" src="../media/images/articles/clouds/mis-before.webp"
                             alt="Without multiple in-scattering">
                         <div class="handle"></div>
                         <div class="label before-label">No Scattering</div>
@@ -784,7 +784,7 @@ float HenyeyGreensteinPhase(float inCosAngle /*the dot product difference betwee
                         fixed steps.<br>
                         This removes banding but adds noise.
                     </p>
-                    <img class="info-small" src="../media/images/articles/clouds/random.png"
+                    <img loading="lazy" class="info-small" src="../media/images/articles/clouds/random.webp"
                         alt="Random jitter illustration">
                     <p>
                         This noise can be reduced by accumulating multiple frames.<br>
@@ -839,7 +839,7 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
                     <p style="opacity: 0.5;">Every step has an imaginary sphere to the closest point, and uses
                         that as
                         the step size. We switch to a fixed size inside the cloud.</p>
-                    <img class="info" src="../media/images/articles/clouds/sphere.png"
+                    <img loading="lazy" class="info" src="../media/images/articles/clouds/sphere.webp"
                         alt="Sphere tracing illustration">
 
                     <p>
@@ -950,7 +950,7 @@ float3 result = lerp(history, currentResult, weight); // weight based on camera 
                 <div class="container article-content">
                     <p style="color: var(--text);"><b>This article was made as part of my project at <br>
                             Y2 Programming at Breda University of Applied Sciences</b></p>
-                    <img class="info" src="../media/images/buas.png" alt="BUas Logo">
+                    <img loading="lazy" class="info" src="../media/images/buas.webp" alt="BUas Logo">
                 </div>
                 </div>
             </section>

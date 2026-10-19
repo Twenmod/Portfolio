@@ -107,8 +107,8 @@
             <div class="container">
                 <button class="btn"
                     style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 17.5%; transform: translateY(-50%); cursor: pointer; z-index: 100;"
-                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
-                        src="../media/images/rss.png" alt="RSS Icon"
+                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img loading="lazy"
+                        src="../media/images/rss.webp" alt="RSS Icon"
                         style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
 
                 <h1>Fast mesh seam blending</h1>
@@ -120,12 +120,12 @@
             <section class="section">
                 <div class="container article-content">
                     <div class="img-compare info-small idle-animation"
-                        data-before="../media/images/articles/blending2/blendon2.png"
-                        data-after="../media/images/articles/blending2/blendoff2.png">
-                        <img class=" img-after" src="../media/images/articles/blending2/blendoff2.png"
+                        data-before="../media/images/articles/blending2/blendon2.webp"
+                        data-after="../media/images/articles/blending2/blendoff2.webp">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/blending2/blendoff2.webp"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="No blending">
-                        <img class="img-before" src="../media/images/articles/blending2/blendon2.png"
+                        <img loading="lazy" class="img-before" src="../media/images/articles/blending2/blendon2.webp"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Blending">
                         <div class="handle"></div>
@@ -151,7 +151,7 @@
                     <p>The technique relies on 3 logical passes, <br>
                         First we have to find where the object seams are.
                     </p>
-                    <img class="img-small" src="../media/images/articles/blending2/outlines.jpg" />
+                    <img loading="lazy" class="img-small" src="../media/images/articles/blending2/outlines.jpg" />
                     <p>
                         Then we have to find the <u>exact</u> uv offset to each closest seam, we use to mirror around
                         after.
@@ -159,17 +159,17 @@
                         This is the expensive part so we should only do this on the pixels close to the seams
                     </p>
                     <p style="opacity: 0.5;">Image shows UV offsets to seam</p>
-                    <img class="img-small" src="../media/images/articles/blending2/locations.jpg" />
+                    <img loading="lazy" class="img-small" src="../media/images/articles/blending2/locations.jpg" />
                     <p>Then by using these offsets to sample the other side of the seam, we can mirror the pixels.
                         <br>
                         This allows us to blend while keeping the texture detail of the object.
                     </p>
                     <p style="opacity: 0.5;">Outlined rock to show where the seam is; the mirror is not perfect, but
                         that is barely noticeable in practice</p>
-                    <div class="img-compare info-small" data-before="../media/images/articles/blending2/mirroroff.jpg"
-                        data-after="../media/images/articles/blending2/mirroron.jpg">
-                        <img class=" img-after" src="../media/images/articles/blending2/mirroroff.jpg" alt="no mirror">
-                        <img class="img-before" src="../media/images/articles/blending2/mirroron.jpg"
+                    <div class="img-compare info-small" data-before="../media/images/articles/blending2/mirroroff.webp"
+                        data-after="../media/images/articles/blending2/mirroron.webp">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/blending2/mirroroff.webp" alt="no mirror">
+                        <img loading="lazy" class="img-before" src="../media/images/articles/blending2/mirroron.webp"
                             alt="mirrored pixels">
                         <div class="handle"></div>
                         <div class="label before-label">Mirror Off</div>
@@ -184,7 +184,7 @@
                         As an example, you can do this using either a stencil ID or a separate output in your
                         shading or GBuffer pass. <br>
                     </p>
-                    <img src="../media/images/articles/blending/objectid.png" alt="Preview">
+                    <img loading="lazy" src="../media/images/articles/blending/objectid.webp" alt="Preview">
                     <p>To find the seams we can run a basic outline shader on this:
                     </p>
                     <pre class="code"><code class="language-glsl">// GLSL, Compute:
@@ -247,7 +247,7 @@ void main()
                         Let's say our GPU supports 32 threads in a warp, <br>
                         That means our program will run in 32 warps of 32 threads.
                     </p>
-                    <img src="../media/images/articles/blending2/warp1.png" alt="Visualisation of the warps">
+                    <img loading="lazy" src="../media/images/articles/blending2/warp1.webp" alt="Visualisation of the warps">
                     <p>Since these warps are executed together it has to wait for all threads in the warp to be
                         finished before starting a next one.<br>
                         This is fine when all threads are basically the same duration but will slow things down
@@ -268,7 +268,7 @@ void main()
 </code></pre>
                     <p>This means our warp will look like this</p>
 
-                    <img src="../media/images/articles/blending2/warp2.png"
+                    <img loading="lazy" src="../media/images/articles/blending2/warp2.webp"
                         alt="Visualisation showing warp has to wait for the longest thread">
                     <p>The warp takes ~500ms since it has to wait for the longest thread.<br>
                         <br>
@@ -409,7 +409,7 @@ glDispatchComputeIndirect(0);
                         For every blended pixel we need the exact offset, we need this for 2 things.<br>
                         We use double this offset as the sample location to get the mirrored side<br>
                         and we need the length of this offset to know how much to blend the pixel</p>
-                    <img src="../media/images/articles/blending2/sample.png" />
+                    <img loading="lazy" src="../media/images/articles/blending2/sample.webp" />
                     <p>In the previous article we used a square search kernel, however this becomes either very slow or
                         creates a lot of artifacts at blend sizes more than a few pixels<br>
                         Instead we will be using a refining search which allows us to find the seam more accurately
@@ -419,7 +419,7 @@ glDispatchComputeIndirect(0);
                         then, using the direction we find, we sample a smaller circle around that direction. <br>
                         We do this for a set amount of iterations
                     </p>
-                    <img src="../media/images/articles/blending2/searchanim.gif" />
+                    <img loading="lazy" src="../media/images/articles/blending2/searchanim.webp" />
                     <p><br>The code would then look something like this:</p>
                     <pre class="code"><code class="language-glsl">//GLSL Compute, Blend Pass
 
@@ -547,12 +547,12 @@ void main() {
                         Here are some more varied showcases of the effect:
                     </p>
                     <div class="img-compare info-small idle-animation"
-                        data-before="../media/images/articles/blending2/iceon.png"
-                        data-after="../media/images/articles/blending2/iceoff.png">
-                        <img class=" img-after" src="../media/images/articles/blending2/iceoff.png"
+                        data-before="../media/images/articles/blending2/iceon.webp"
+                        data-after="../media/images/articles/blending2/iceoff.webp">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/blending2/iceoff.webp"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Ice environment without blending">
-                        <img class="img-before" src="../media/images/articles/blending2/iceon.png"
+                        <img loading="lazy" class="img-before" src="../media/images/articles/blending2/iceon.webp"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Ice environment with blending">
                         <div class="handle"></div>
@@ -560,12 +560,12 @@ void main() {
                         <div class="label after-label">Blending Off</div>
                     </div>
                     <div class="img-compare info-small idle-animation"
-                        data-before="../media/images/articles/blending2/lavaon.png"
-                        data-after="../media/images/articles/blending2/lavaoff.png">
-                        <img class=" img-after" src="../media/images/articles/blending2/lavaon.png"
+                        data-before="../media/images/articles/blending2/lavaon.webp"
+                        data-after="../media/images/articles/blending2/lavaoff.webp">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/blending2/lavaon.webp"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Lava environment with blending">
-                        <img class="img-before" src="../media/images/articles/blending2/lavaoff.png"
+                        <img loading="lazy" class="img-before" src="../media/images/articles/blending2/lavaoff.webp"
                             style="transform: translateY(-18%) scaleY(1.176471); transform-origin: top center;"
                             alt="Lava environment without blending">
                         <div class="handle"></div>
