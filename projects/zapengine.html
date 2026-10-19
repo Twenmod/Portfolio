@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Zap Engine - Jack Tollenaar</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="icon" type="image/png" href="../media/images/favicon.png">
+</head>
+
+<body>
+    <main>
+        <section class="hero container projects-hero">
+            <div class="container">
+                <h1>Zap Engine</h1>
+                <p class="lead">cross platform PS5 & PC Game engine<br><b>Project page WIP</b></p>
+
+            </div>
+        </section>
+
+        <section class="toc-section">
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-row">
+                        <div class="text">
+                            <div class="project-meta-row">
+                                <p class="project-meta">Role | Rendering · Team</p>
+                            </div>
+                            <h2>Overview</h2>
+                            <p>For BUAS Y2 block C, <br>
+                                We were tasked to make a cross platform game engine for PC and PS5<br><br>
+                                I was responsible for rendering on both platforms,<br> as the only graphics programmer
+                                in a
+                                team of 6 other engine programmers. <br> <br>
+                                We then had to use this engine in a cross discipline team to make a game.
+                            </p>
+                        </div>
+                        <div class="media">
+                            <img src="../media/images/projects/zap/zap-env.png" alt="A environment rendered in Zap">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-row">
+                        <div class="text">
+                            <h2>My Role</h2>
+                            <p><b>WIP: still have to write/show actual sections, here is a list of what I did for
+                                    now.</b><br><br>I created the renderer for the engine, with feature parity on both
+                                platforms<br>
+                                OpenGL and PS5.
+                            </p>
+                            <ul>
+                                <li>PBR Renderer, PBR Materials, shadows, and IBL</li>
+                                <li>Particle system, with mesh shaders for rendering. Updates on CPU but performant and
+                                    extensive</li>
+                                <li>Post processing, with: Bloom, Toon shader, Outlines and <a
+                                        href="../articles/meshblending2.html">Mesh blending</a></li>
+                                <li>UI System (with an editor, masking, animations)</li>
+                                <li>Support for multiple viewports (pc only)</li>
+                                <li>Flight stick support with FFB, (directinput, pc only)</li>
+                            </ul>
+                            <p>Some further systems I interacted with and did something on but did not make</p>
+                            <ul>
+                                <li>Custom shaders with Slang, (added usability, default variables, hot reloading, PBR)
+                                </li>
+                                <li>Lightprobes (build on top of IBL system)
+                                </li>
+                                <li>FMOD (fixed spatial audio)
+                                </li>
+                                <li>Angelscript (worked with and binded C++ functions/variables)
+                                </li>
+                            </ul>
+
+
+                        </div>
+                        <div class="media">
+                            <img src="../media/images/projects/zap/zap-env.png" alt="A environment rendered in Zap">
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- 
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 class="details">Block C</h2>
+                            <h3 class="details">Team</h3>
+                            <p>I was put into a team together with 6 other programmers, <br>
+                                who were all specializing in engine programming. <br>
+                                Meaning I was <b>the only graphics
+                                    programmer</b> on the team
+                            </p>
+                            <h3>Starts of the engine</h3>
+                            <p>The teachers provided a starting point we could use, however we decided to <b>start from
+                                    scratch.</b><br>We chose that since we wanted a scripting&project based engine
+                                rather than a
+                                more library like approach that was given.
+                                <br><br>
+                                This meant I had to quickly set up a renderer since the team was very dependent on it.
+                                <br>
+                                The renderer needed to work cross platform on PS5 & PC, for PC I chose to use OpenGL.
+                                <br>
+                            </p>
+                        </div>
+
+
+                        <div class="media media-grid" role="region" aria-label="gallery">
+                            <img src="../media/images/projects/clouds/rainbow.png" alt="Rainbow cloud">
+                            <img src="../media/images/projects/clouds/kraken.png" alt="kraken cloud">
+                            <img src="../media/images/projects/clouds/spacecloud.png" alt="Space Nebula">
+                            <img src="../media/images/projects/clouds/lights.png" alt="Cloud with lightning">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 class="details">Optimisation</h2>
+                            <p>Rendering clouds is quite expensive so performance was a big concern while making this
+                                project<br>
+                                During the project I ran scalability tests and profiled using multiple tools like Pix
+                                and NSight<br><br>
+                                I implemented multiple high and lower level optimisations including:<br>
+                                - Adaptive sampling based on distance fields<br>
+                                - Caching of lighting data<br>
+                                - Block Compression <br>
+                                - Temporal, i.e. Reprojection, Jittering<br><br>
+                                <a href="../media/documents/clouds/optimisations.pdf">Here</a> is a document detailing
+                                some of my optimisations
+                            </p>
+                            <p style="opacity: 0.5;">Video showing runtime performance<br>Running on a RTX 4060 Laptop
+                                GPU at 1080p<br> Volumetric pass is under
+                                "Volumarcher: ..."</p>
+                        </div>
+                        <video class="media" controls>
+                            <source src="../media/videos/projects/clouds/performance.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-alt">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 class="details">Usability</h2>
+                            <p>Since I planned on porting this to next block's custom engine team project Usability was
+                                a important factor.<br>
+                                For this I made the API simple to use, mainly having to supply settings and existing
+                                scene targets.<br><br>
+                                I also communicated with artists to make sure it would be usable for them to make
+                                clouds, <br>From this I created a houdini asset to generate VDB files to be rendered.
+                        </div>
+                        <div class="media media-grid" role="region" aria-label="gallery">
+                            <img src="../media/images/projects/clouds/houdini.png" alt="Clouds in houdini">
+                            <img src="../media/images/projects/clouds/real.png" alt="Same clouds in renderer">
+                        </div>
+                    </div>
+                </div>
+            </section> -->
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-special">
+                        <div class="text">
+                            <h2 class="details">Showcase</h2>
+                            <p>First part shows the game second the engine</p>
+                        </div>
+                        <video class="media" controls>
+                            <source src="../media/videos/projects/zap/GPDirectVid.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="/includes/load-header.js"></script>
+    <script src="/includes/load-footer.js"></script>
+    <script src="/includes/load-toc.js"></script>
+
+</body>
+
+</html>

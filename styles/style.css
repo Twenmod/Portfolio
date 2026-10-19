@@ -240,7 +240,7 @@ main {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(79, 139, 249, 0.14), rgba(79, 139, 249, 0.06));
+    background: rgba(79, 139, 249, 0.14);
     transform-origin: left center;
     transform: scaleX(0);
     z-index: 0;
