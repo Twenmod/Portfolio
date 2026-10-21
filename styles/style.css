@@ -242,28 +242,16 @@ main {
     inset: 0;
     background: rgba(79, 139, 249, 0.14);
     transform-origin: left center;
-    transform: scaleX(0);
     z-index: 0;
     border-radius: inherit;
     pointer-events: none;
 
-    animation: navActiveFill .22s ease forwards;
 }
 
 .main-nav a[aria-current="page"] *,
 .main-nav a.active * {
     position: relative;
     z-index: 1;
-}
-
-@keyframes navActiveFill {
-    from {
-        transform: scaleX(0);
-    }
-
-    to {
-        transform: scaleX(1);
-    }
 }
 
 @media (max-width: 800px) {
