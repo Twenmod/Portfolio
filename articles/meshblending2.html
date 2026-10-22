@@ -107,8 +107,8 @@
             <div class="container">
                 <button class="btn"
                     style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 17.5%; transform: translateY(-50%); cursor: pointer; z-index: 100;"
-                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img loading="lazy"
-                        src="../media/images/rss.webp" alt="RSS Icon"
+                    onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
+                        loading="lazy" src="../media/images/rss.webp" alt="RSS Icon"
                         style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
 
                 <h1>Fast mesh seam blending</h1>
@@ -168,7 +168,8 @@
                         that is barely noticeable in practice</p>
                     <div class="img-compare info-small" data-before="../media/images/articles/blending2/mirroroff.webp"
                         data-after="../media/images/articles/blending2/mirroron.webp">
-                        <img loading="lazy" class=" img-after" src="../media/images/articles/blending2/mirroroff.webp" alt="no mirror">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/blending2/mirroroff.webp"
+                            alt="no mirror">
                         <img loading="lazy" class="img-before" src="../media/images/articles/blending2/mirroron.webp"
                             alt="mirrored pixels">
                         <div class="handle"></div>
@@ -247,7 +248,8 @@ void main()
                         Let's say our GPU supports 32 threads in a warp, <br>
                         That means our program will run in 32 warps of 32 threads.
                     </p>
-                    <img loading="lazy" src="../media/images/articles/blending2/warp1.webp" alt="Visualisation of the warps">
+                    <img loading="lazy" src="../media/images/articles/blending2/warp1.webp"
+                        alt="Visualisation of the warps">
                     <p>Since these warps are executed together it has to wait for all threads in the warp to be
                         finished before starting a next one.<br>
                         This is fine when all threads are basically the same duration but will slow things down
@@ -575,11 +577,12 @@ void main() {
                     <video controls width="100%">
                         <source src="../media/videos/articles/blend2.mp4" type="video/mp4">
                         Your browser does not support the video tag.
-                        <div class="article-related" style="text-align:center; margin-top:1.5rem;">
-                            <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
-                                to
-                                Articles</a>
-                        </div>
+                    </video>
+                    <div class="article-related" style="text-align:center; margin-top:1.5rem;">
+                        <a class="btn btn-primary" href="/articles.html" aria-label="Back to articles">Back
+                            to
+                            Articles</a>
+                    </div>
             </section>
         </section>
         <section class="section-alt">
