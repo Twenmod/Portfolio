@@ -1,3 +1,5 @@
+//most of this js is vibecoded since i dont care about webdev
+
 // Fetch and inject a floating Table-of-Contents for article pages.
 (function () {
   function slugify(text) {

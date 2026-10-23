@@ -57,44 +57,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/glsl.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/hlsl.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (!window.hljs) return;
-
-            const markerFinder = /<changed>/i;
-            const markerFinderG = /<changed>/gi;
-
-            document.querySelectorAll('pre.code code').forEach(codeEl => {
-                const original = codeEl.textContent || '';
-                const textLines = original.split('\n');
-                const toHighlight = textLines.map(l => markerFinder.test(l));
-
-                const tokenized = original.replace(markerFinderG, '');
-                codeEl.textContent = tokenized;
-
-                try { hljs.highlightElement(codeEl); } catch (e) { /* ignore highlight errors */ }
-
-                const renderedLines = (codeEl.innerHTML || '').split('\n');
-
-                for (let i = 0; i < renderedLines.length; i++) {
-                    if (toHighlight[i]) {
-                        renderedLines[i] = renderedLines[i].replace(/&lt;changed&gt;/gi, '');
-                        renderedLines[i] = renderedLines[i].replace(/<\/?changed[^>]*>/gi, '');
-                        renderedLines[i] = '<span class="changed-line">' + renderedLines[i] + '</span>';
-                    }
-                }
-
-                codeEl.innerHTML = renderedLines.join('\n');
-                codeEl.innerHTML = codeEl.innerHTML.replace(/\b(float3|float4|half4|float2|float|uint|uint2|uint3|Hash)\b/g, '<span class="hljs-type">$1</span>');
-
-                // Highlight custom function calls (any identifier followed by opening parenthesis)
-                codeEl.innerHTML = codeEl.innerHTML.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, function (match, funcName) {
-                    if (match.includes('<span')) return match;
-                    return '<span class="hljs-title function_' + funcName + '">' + funcName + '</span>';
-                });
-            });
-        });
-    </script>
+    <script src="/includes/code-highlight.js" data-types="float3 float4 half4 float2 float uint uint2 uint3 Hash" data-functions></script>
 </head>
 
 <body>
@@ -129,7 +92,7 @@
                     <h3>Radiance Cascades</h3>
                     <p>For this article i'll assume you already know the basics of RC, <br>if not I really recommend the
                         interactive tutorial from <a href="https://jason.today/rc">jason.today</a> or the article from
-                        <a>MAX</a>https://m4xc.dev/articles/fundamental-rc/ <br>
+                        <a href="https://m4xc.dev/articles/fundamental-rc/">MAX</a> <br>
                         Here is a quick recap as well
                     </p>
                     <h4>RC Recap</h4>
@@ -164,8 +127,8 @@
                     <h3>Sparse probes</h3>
                     <p>To only spawn probes on visible surfaces, we reconstruct worldpositions from the screen.<br>We
                         round these positions to a grid of cells</p>
-                    <img loading="lazy" class="img-small" style="max-height: 10rem;"
-                        src="../media/images/articles/rc/visible.png" alt="TODO: IMG World space grid" />
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/worldprobe.png" alt="Cells based on world position" />
                     <p>To store our light in these cells we need a buffer of probes. <br>To allocate this we use a
                         hashtable, creating a hash for each cell allows us to quickly allocate a slot for each of these
                         without much fighting between threads.<br>We also store a AppendBuffer with a list of the probes
@@ -184,13 +147,13 @@
                     <p>We can visualize/debug our probes in a seperate pass</p>
 
                     <pre class="code"><code class="language-cpp">// HLSL, Compute:
-//For now most kinds of hash tables are fine
+//I'm using a simple linear hash table
 #include "HashTable.hlsl"
 
 // TODO Displaying
 </code></pre>
-                    <img loading="lazy" class="img-small" style="max-height: 10rem;"
-                        src="../media/images/articles/rc/visible.png" alt="Probes" />
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/hashprobe.png" alt="A random hash per probe" />
 
                     <h4>Gather</h4>
                     <p>TODO: gather</p>
@@ -284,6 +247,11 @@
             </div>
         </section>
     </main>
+    <!-- Include sources: shown in a popup when the matching #include is clicked -->
+    <script type="text/plain" data-include="HashTable.hlsl">
+// TODO: paste HashTable.hlsl here
+</script>
+
     <script src="/includes/load-header.js"></script>
     <script src="/includes/load-footer.js"></script>
     <script src="/includes/load-toc.js"></script>

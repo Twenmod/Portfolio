@@ -1136,6 +1136,70 @@ code {
     border-radius: 2px;
 }
 
+/* Clickable #include popups (see includes/code-highlight.js) */
+.include-link {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.include-link:hover {
+    text-decoration-style: solid;
+    filter: brightness(1.25);
+}
+
+.include-modal {
+    width: min(900px, calc(100vw - 2rem));
+    max-height: calc(100vh - 4rem);
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-large);
+    background: var(--card-bg);
+    color: var(--text);
+    box-shadow: var(--shadow-strong);
+}
+
+.include-modal[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.include-modal::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.include-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.include-modal-title {
+    font-family: var(--font-mono);
+    color: var(--muted);
+}
+
+.include-modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.include-modal-close:hover {
+    color: var(--text);
+}
+
+.include-modal pre.code {
+    margin: 0;
+    overflow: auto;
+    border-radius: 0 0 var(--radius-large) var(--radius-large);
+}
+
 .hljs-keyword,
 .hljs-type {
     color: #de79c6 !important;
