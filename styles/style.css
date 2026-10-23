@@ -1099,6 +1099,7 @@ pre.code {
     border-radius: 6px;
     font-weight: 400;
     font-family: 'Source Code Pro', monospace;
+    tab-size: 4;
 }
 
 code {
@@ -1153,7 +1154,7 @@ code {
     max-height: calc(100vh - 4rem);
     padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-large);
+    border-radius: var(--radius-medium);
     background: var(--card-bg);
     color: var(--text);
     box-shadow: var(--shadow-strong);
@@ -1178,7 +1179,7 @@ code {
 
 .include-modal-title {
     font-family: var(--font-mono);
-    color: var(--muted);
+    color: #d69d85;
 }
 
 .include-modal-close {
@@ -1224,7 +1225,7 @@ code {
 }
 
 .hljs-string {
-    color: #9be7a1;
+    color: #d69d85 !important;
 }
 
 .hljs-comment {

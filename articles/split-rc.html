@@ -57,7 +57,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/glsl.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/hlsl.min.js"></script>
-    <script src="/includes/code-highlight.js" data-types="float3 float4 half4 float2 float uint uint2 uint3 Hash" data-functions></script>
+    <script src="/includes/code-highlight.js" data-types="float3 float4 half4 float2 float uint uint2 uint3 Hash"
+        data-functions></script>
 </head>
 
 <body>
@@ -136,7 +137,7 @@
                             style="opacity: 0.5;">(this somewhat goes against the use of the hashtable, but the table
                             will be needed more later)</span><br>We clear and fill this table every frame and with this
                         we get a table of sparsely allocated probes.
-                        probes</p>
+                    </p>
 
                     <pre class="code"><code class="language-cpp">// HLSL, Compute:
 //For now most kinds of hash tables are fine
@@ -248,8 +249,105 @@
         </section>
     </main>
     <!-- Include sources: shown in a popup when the matching #include is clicked -->
-    <script type="text/plain" data-include="HashTable.hlsl">
-// TODO: paste HashTable.hlsl here
+    <script type="text/plain" data-include="HashTable.hlsl" data-language="cpp">//A "simple" linear probing hash table
+
+StructuredBuffer<uint64_t> HashTable;
+RWStructuredBuffer<uint64_t> RWHashTable;
+uint HashTableSize;
+
+// Returns true if key is added for the first time.
+// Index input is the first slot to look at, this reduces conflicts
+// Index output is the location it was added
+bool HashTableAdd(uint64_t Key, inout uint Index, uint Cascade)
+{
+
+    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    uint TableBase = Cascade * HashTableSize; // this cascade's start position
+    //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
+    uint CascadeTableSize = HashTableSize >> (2 * Cascade);
+
+    //Index is random so we need to limit it to our buffer size
+    Index = Index % CascadeTableSize;
+
+    //In the worst case if the whole hashtable is full we need to check every spot. (the table works best when its filled around < 80%)
+    for (uint i = 0; i < CascadeTableSize; i++)
+    {
+
+        uint64_t StoredKey = RWHashTable[TableBase + Index];
+        if (StoredKey != Key)
+        {
+            //Skip if the slot is already occupied
+            if (StoredKey != 0)
+            {
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+
+            //We use a atomic here, to make sure another thread didn't occupy this slot while we are busy 
+            uint64_t PrevKey;
+            InterlockedCompareExchange(RWHashTable[TableBase + Index], 0, Key, PrevKey);
+
+            if (PrevKey == 0)
+            {
+                //Added the key
+                return true;
+            }
+            else if (PrevKey != Key)
+            {
+                //We got blocked by another thread so use the next slot
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+        } 
+        // Else our key is already in the table, so do nothing
+        break;
+    }
+
+    return false;
+}
+
+// Returns true if key is found.
+// Index input is the first slot to look at, this needs to be the same as used for adding
+// Index output is the location the key is stored at if found
+bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
+{
+
+    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    uint TableBase = Cascade * HashTableSize; // this cascade's start position
+    //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
+    uint CascadeTableSize = HashTableSize >> (2 * Cascade);
+
+    //Index is random so we need to limit it to our buffer size
+    Index = Index % CascadeTableSize;
+
+    //In the worst case if the whole hashtable is full we need to check every spot
+    for (uint i = 0; i < CascadeTableSize; i++)
+    {
+        uint64_t StoredKey = HashTable[TableBase + Index];
+        if (StoredKey != Key)
+        {
+            //Skip if the slot is occupied by another key
+            if (StoredKey != 0)
+            {
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+
+            //Found an empty slot, so the key was never added.
+            //this logic is valid since the table fills linearly from our start index
+            return false;
+        }
+        // Else we found our key
+        break;
+    }
+
+    return false;
+}
+
+
 </script>
 
     <script src="/includes/load-header.js"></script>

@@ -9,6 +9,7 @@
 // Lines containing <changed> get the .changed-line highlight.
 // A quoted filename (e.g. #include "HashTable.hlsl") becomes a link that opens a popup when
 // the page has a matching <script type="text/plain" data-include="HashTable.hlsl"> block.
+// Add data-language="cpp" (any highlight.js language) to that block to change its highlighting, default is hlsl.
 (function () {
     const script = document.currentScript;
     const types = (script.dataset.types || '').trim().split(/\s+/).filter(Boolean);
@@ -95,9 +96,9 @@
         const dialog = getModal();
         const code = dialog.querySelector('code');
         dialog.querySelector('.include-modal-title').textContent = name;
-        code.className = 'language-hlsl';
+        code.className = 'language-' + includeSources[name].language;
         delete code.dataset.highlighted;
-        code.textContent = includeSources[name];
+        code.textContent = includeSources[name].code;
         highlightCode(code);
         dialog.showModal();
     }
@@ -106,7 +107,10 @@
         if (!window.hljs) return;
 
         document.querySelectorAll('script[type="text/plain"][data-include]').forEach(s => {
-            includeSources[s.dataset.include] = s.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n';
+            includeSources[s.dataset.include] = {
+                code: s.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n',
+                language: s.dataset.language || 'hlsl'
+            };
         });
 
         document.addEventListener('click', e => {
