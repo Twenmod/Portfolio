@@ -1137,10 +1137,21 @@ code {
     border-radius: 2px;
 }
 
-/* Clickable #include popups (see includes/code-highlight.js) */
+/* Argument labels like Foo(Key, Cascade: 0), not real code just to tell the reader what the argument is */
+.arg-label {
+    color: #73627bad !important;
+    font-style: italic;
+    /* Leave the label out when the code is copied */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Clickable #include panels (see includes/code-highlight.js) */
 .include-link {
     text-decoration: underline dotted;
-    text-underline-offset: 3px;
+    text-decoration-inset: 7px;
+    text-underline-offset: 4px;
+    text-decoration-color: #e0ac96;
     cursor: pointer;
 }
 
@@ -1149,40 +1160,33 @@ code {
     filter: brightness(1.25);
 }
 
-.include-modal {
-    width: min(900px, calc(100vw - 2rem));
-    max-height: calc(100vh - 4rem);
-    padding: 0;
+.include-panel {
+    display: block;
+    margin: 0.4rem 0;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-medium);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
     background: var(--card-bg);
     color: var(--text);
     box-shadow: var(--shadow-strong);
+    overflow: hidden;
 }
 
-.include-modal[open] {
-    display: flex;
-    flex-direction: column;
-}
-
-.include-modal::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.include-modal-header {
+.include-panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 1rem;
+    padding: 0.3rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.include-modal-title {
+.include-panel-title {
     font-family: var(--font-mono);
     color: #d69d85;
 }
 
-.include-modal-close {
+.include-panel-close {
     background: none;
     border: none;
     color: var(--muted);
@@ -1191,14 +1195,29 @@ code {
     cursor: pointer;
 }
 
-.include-modal-close:hover {
+.include-panel-close:hover {
     color: var(--text);
 }
 
-.include-modal pre.code {
+.include-panel pre.code {
     margin: 0;
+    min-height: 3rem;
     overflow: auto;
-    border-radius: 0 0 var(--radius-large) var(--radius-large);
+    border-radius: 0;
+}
+
+/* Drag bar along the bottom edge to resize the panel */
+.include-panel-resize {
+    display: block;
+    height: 6px;
+    cursor: ns-resize;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    touch-action: none;
+}
+
+.include-panel-resize:hover,
+.include-panel-resize.dragging {
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .hljs-keyword,

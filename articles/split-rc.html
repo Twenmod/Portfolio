@@ -72,7 +72,7 @@
                         style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
 
                 <h1>Split Radiance Cascades</h1>
-                <p class="muted">Implementing 3D radiance cascades using ray splitting</p>
+                <p class="muted">Implementing 3D Radiance Cascades for Global Illumination using Ray Splitting</p>
             </div>
         </section>
 
@@ -85,7 +85,9 @@
                     <p>Radiance cascades is a technique that massively improves global illumination without much extra
                         cost or
                         accumulation.<br>
-                        In this article I'll go over the recent technique of ray splitting which allows the use of RC
+                        In this article I'll go over the recent technique of <a
+                            href="https://arxiv.org/abs/2607.20384">Ray Splitting</a> which allows
+                        the use of RC
                         <span style="opacity: 0.5">(Radiance cascades)</span><br>in 3D without huge costs, and how to
                         implement this.
                     </p>
@@ -143,58 +145,229 @@
 //For now most kinds of hash tables are fine
 #include "HashTable.hlsl"
 
-// TODO reconstructing and allocating
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveProbes;
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveCounter;
+
+[numthreads(8, 8, 1)]
+void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
+{
+    //We run over every pixel, to allocate a probe at its world position
+	uint2 PixelId = DispatchThreadId;
+	
+	// Check that we are in scope
+    if (any(float2(DispatchThreadId) >= ViewportPixelSize)) {
+        return;
+    }
+
+    float2 UV = float2(PixelId) + 0.5f / float2(ViewportPixelSize);
+
+    float DeviceZ = SampleSceneDepth(UV);
+    if (DeviceZ == 0) {
+        return;
+    }
+
+    //We can reconstruct the world position from the depthbuffer using our camera view, most engines have a helper for this
+    float3 WorldPos = ReconstructWorldPositionFromDepth(DeviceZ);
+
+	float VoxelSize = BaseVoxelSize;
+	int3 Cell = int3(floor((WorldPos / VoxelSize)));
+
+    //For our Key we simply shift the bits of the cell into 1 big uint
+    //Later we store more info in here so we dont use all the bits
+    //Make sure to add + (1u &lsaquo;&lsaquo; (BitsPerInt - 1)) to each value to make them unsigned
+    //So our key is
+    //Bits:
+    // xxxxxxxxxxxxxxxxyyyyyyyyyyyyyyyyzzzzzzzzzzzzzzzz0000000000000000
+	uint64_t Key = PackProbeKey(Cell);
+
+    //Add our key to the table
+
+    //Get a random index from our Key, most hashing functions work on 32 bit uints so we do this
+    uint Index = Hash(uint(Key) ^ Hash(uint(Key >> 32)));
+
+    bool Added = HashTableAdd(Key, Cascade: 0, [&]: Index);
+    //Added should always be true here if you cleared the hash table
+    if (Added)
+    {
+        //Add to active probes for next passes
+        uint Counter;
+        InterlockedAdd(ActiveCounter[0], 1, Counter);
+        ActiveProbes[Counter] = Index;
+    }
+}
 </code></pre>
                     <p>We can visualize/debug our probes in a seperate pass</p>
 
                     <pre class="code"><code class="language-cpp">// HLSL, Compute:
-//I'm using a simple linear hash table
 #include "HashTable.hlsl"
+#include "ColorFromHash.hlsl"
 
-// TODO Displaying
+[numthreads(8, 8, 1)]
+void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
+{
+    //Go over every pixel and check if the probe is there
+	uint2 PixelId = DispatchThreadId;
+
+	// Check that we are in scope
+    if (any(float2(DispatchThreadId) >= ViewportPixelSize)) {
+        return;
+    }
+
+    float VoxelSize = BaseVoxelSize;
+	int3 Cell = int3(floor((WorldPos / VoxelSize)));
+	uint64_t Key = PackProbeKey(Cell);
+
+    uint Index = Hash(uint(Key) ^ Hash(uint(Key >> 32)));
+	bool Found = HashTableFind(Key, Cascade: 0, [&]: Index);
+
+    if (Found) {
+        Output[PixelId] = float4(ColorFromHash(Hash(DebugIndex)), 1.0);
+    }else {
+        Output[PixelId] = float4(1,0,0,1);
+    }
+}
+
 </code></pre>
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/hashprobe.png" alt="A random hash per probe" />
 
-                    <h4>Gather</h4>
-                    <p>TODO: gather</p>
-
                     <h4>Cascades</h4>
-                    <p>TODO: cascades</p>
-
-                    <h3>LODs</h3>
-                    <p>TODO: LODs</p>
-
-                    <h4>Why?</h4>
-                    <p>TODO: why LODs</p>
-                    <p><br></p>
-
-                    <!-- ============================== Rays ============================== -->
+                    <p>With this gather pass we now have a single cascade of probes allocated.<br>However we need
+                        multiple cascades of lowering resolution to do RC.<br>
+                        For this we need to fill seperate hashtables for each cascade, we could just re-run our shader
+                        for each cascade but that would be very innefficent.<br> We already have our highest detail
+                        probes and there are significantly less of them than we have pixels. <br>So instead of running
+                        over all pixels again, we can just go over all the probes we just allocated, for each of these
+                        we just halve their position to get the cascade above it. Any duplicates we get from this are
+                        handled by the hashtable.</p>
+                    <pre class="code"><code class="language-cpp">// HLSL, Compute:
+                        TODO: Cascade fill
+                    </code></pre>
+                    <p style="opacity: 0.5;">Note that when visualizing your higher cascades you need to shift your
+                        positions
+                    </p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/cascades.png"
+                        alt="Multiple cascades shown split next to eachother" />
                     <h2>Rays</h2>
 
                     <h3>From probes vs from screen</h3>
-                    <p>TODO: tracing from probes vs screen</p>
-
+                    <p>Normally to get the lighting at every probe, we shoot a set amount of rays into random directions
+                        from each
+                        probe.<br>This however comes with quite some issues.<br>Ray counts become very big with good
+                        enough spatial and angular resolution. <br>But the main problem is probe positioning, since our
+                        probes are in a grid they are not aligned with the surfaces which can cause a bunch of rays to
+                        shoot below the surface. <br>This can cause overocclusion and light leaking, and also makes it
+                        so we cannot shoot rays in just a hemisphere.<br></p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/ProbePos.png"
+                        alt="A probe with 2 rays overoccluded due to being inside the ground" />
+                    <p style="opacity: 0.5; font-size: small;">The 2 red rays
+                        in this probe here got unfairly blocked because the probe is too far into the ground</p>
+                    <p>This would cause dark splotches in our lighting.<br>So instead we can trace the rays from
+                        reconstructed screen positions instead and put these into the probes that are at that
+                        spot.<br>This way rays are send from real geometry avoiding this problem.</p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/depth.png" alt="Rays being sent from the view position" />
                     <h3>Splitting into intervals</h3>
-                    <p>TODO: split into intervals</p>
-                    <img loading="lazy" src="../media/images/articles/split-rc/TODO.webp" alt="TODO" />
+                    <p>However in RC each cascade does not contain the full ray, only a interval/segment of it.
+                        <br>Sending multiple rays for each interval at each pixel would be quite inefficient.
+                        <br>Instead we do it the other way around, we trace the full ray and pick the interval (and thus
+                        cascade) that it would've hit in based on its hit distance.<br>
+                        We fill the hit interval's cascade with the lighting, and the mark transparancy / that a ray
+                        traveled through them in the cascades below the hit one.<br><br>
 
-                    <h3>Putting rays into probes</h3>
-                    <p>TODO: how to put into probes</p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
-// TODO
+                        We store this in multiple bins per probe, one for each direction, we need to lay out these
+                        directions evenly and most importantly in a way that scales so that our merging evenly combines
+                        them into lower cascades.
+                    </p>
+                    <img loading="lazy" src="../media/images/articles/split-rc/TODO.webp"
+                        alt="TODO: image of directions?" />
+
+                    <pre class="code"><code class="language-cpp">// HLSL, Compute:
+#include "HashTable.hlsl"
+                        // TODO Ray generation and binning
 </code></pre>
-
+                    <p>With this we should now have every cascade filled with its interval of light.<br>If we display
+                        this by just avaraging all bins in a output pass, we can see the rings of light this contains.
+                    </p>
                     <h3>Merging</h3>
-                    <p>TODO: merging</p>
+                    <p>We now want to merge these intervals together so we can get our entire path of light.<br>
+                        We do this by going through our cascades from top down.<br>
+                        <br>
+                        We need to interpolate the directions and probes, <br>Starting with directions, since our
+                        directions are evenly mapped to 4 times more in the above cascade we evenly interpolate these in
+                        our own.
+                    </p>
+                    <img loading="lazy" src="../media/images/articles/split-rc/TODO.webp"
+                        alt="TODO: image of interpolating dirs" />
+                    <p>However we need to also keep in account the transparency in this merging, <br>
+                        If a ray was already blocked in the direction we're merging in the lower cascade/interval we
+                        shouldn't merge it downwards.</p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/blockedRay.png"
+                        alt="Showing One interval being blocked by a wall, the further interval is blocked off" />
+                    <p style="opacity: 0.5; font-size: small;">Here the middle interval is blocked, so we should not
+                        merge
+                        the light from
+                        the last interval, or it will leak in front of the wall</p>
                     <pre class="code"><code class="language-hlsl">// HLSL, Compute:
-// TODO
+// TODO directional merging
 </code></pre>
-                    <p><br></p>
+                    <p>This merges our directions from the closest probe, Instead we want to check all the above probes
+                        and blend between them.<br>For this we need to keep in mind probe spacing, each lower cascade
+                        has 4 probes inside 1 upper probe. So we shouldnt evenly blend.</p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/todo.png"
+                        alt="Showing spatial interpolation, and its distancing to upper probes" />
+                    <p>It's also important to keep in mind that our grid is sparse, meaning the 8 surrounding probes
+                        will probably not all be there. <br>This can be resolved by only weighing and sampling the
+                        probes that actually exist.<br>
+                        Additionally not all our probes are of the same quality. The amount of rays a probe contains and
+                        thus how accurate it is, is
+                        based on its visibility on the screen. <br>We should also adjust for this, giving a higher
+                        weight to probes that contain more rays.
+                    </p>
+                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
+// Spatial merging
+</code></pre>
+                    <h2>LODs</h2>
+                    <p>Currently we had a even grid of probes, which works fine for small scenes. But our probes get
+                        very small on the screen further away.<br>This has 2 major problems. <br>We shoot our rays from
+                        the screen, so the number of rays in a probe is based on how many pixels it occupies on the
+                        screen. So very small probes only get one ray or maybe even less.<br>Secondly the amount of
+                        probes we spawn explodes further away which costs a lot of memory and cost to merge.<br><br>By
+                        adding a form of LODs to our probes we solve both these problems, at only the cost of lower
+                        resolution lighting far away.<br>This is very similar to cascades shadow maps which makes naming
+                        confusing and thus we call them LODs/Levels.<br>For each higher LOD we also halve the
+                        resolution
+                        similarly to our higher cascades although we keep the direction count the same. <br>
+                        To do this we just halve our cell position each level. However for this we need to add a level
+                        index to our per probe key. <br>We need to do this since our halved positions can overlap with
+                        the
+                        lower level.<br>We can just bitshift this index after the rest of our key.<br><br>Since
+                        everything else uses the hashmap, this should automatically work with the rest of our code
+                        assuming we calculate the key in the same way.</p>
+                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
+// Spatial merging
+</code></pre>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/todo.png" alt="LOD probes" />
+                    <p>This fixes any flickering or overallocation further away, however it creates big seams where the
+                        LODs change.<br>So we want to blend in between these seams. To do this we keep one probe of
+                        overlap at the seam, allocating probes of both levels and also binning the ray into
+                        both.<br>Wherever we calculate our level we instead calculate the range, making sure to keep
+                        correct weights so we do not double the light at the seam.</p>
+                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
+// Blending
+</code></pre>
+                    <p>This should result in smooth, although flickering results</p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/todo.png" alt="Blended seams" />
 
                     <!-- ============================== Temporal ============================== -->
                     <h2>Temporal</h2>
-
+                    <p>Due to the benefits of RC</p>
                     <h3>Why?</h3>
                     <p>TODO: why temporal</p>
 
@@ -223,6 +396,7 @@
 
                     <!-- ============================== Conclusion ============================== -->
                     <h2>Performance & Conclusions</h2>
+
                     <p>TODO: performance & conclusions</p>
 
                     <!-- TODO: showcase video -->
@@ -346,10 +520,27 @@ bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
 
     return false;
 }
-
-
 </script>
+    <script type="text/plain" data-include="ColorFromHash.hlsl" data-language="cpp">//Some magic functions that output a nice random color from a hash.
+//I always struggle to find one of these to easily copy paste so here is one :P
 
+//We generate in HSV since that makes it easy to generate a pleasant color, convert back to RGB
+float3 HSVtoRGB(float3 c)
+{
+	float3 p = abs(frac(c.xxx + float3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+	return c.z * lerp(1.0.xxx, saturate(p - 1.0), c.y);
+}
+
+float3 ColorFromHash(uint h)
+{
+    //Generate randomish HSV values.
+	float Hue = (h & 0xFFFFu) / 65535.0;
+    //We add some magic offsets to sat and val to make it look nicer
+	float Sat = 0.55 + 0.35 * ((h >> 16) & 0xFFu) / 255.0;
+	float Val = 0.70 + 0.30 * ((h >> 24) & 0xFFu) / 255.0;
+	return HSVtoRGB(float3(Hue, Sat, Val));
+}
+</script>
     <script src="/includes/load-header.js"></script>
     <script src="/includes/load-footer.js"></script>
     <script src="/includes/load-toc.js"></script>
