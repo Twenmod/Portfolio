@@ -141,7 +141,7 @@
                         we get a table of sparsely allocated probes.
                     </p>
 
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute:
+                    <pre class="code"><code class="language-cpp">// HLSL, Compute: "GatherC0Probes.hlsl"
 //For now most kinds of hash tables are fine
 #include "HashTable.hlsl"
 
@@ -198,7 +198,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
 </code></pre>
                     <p>We can visualize/debug our probes in a seperate pass</p>
 
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute:
+                    <pre class="code"><code class="language-cpp">// HLSL, Compute: "DebugOutput.hlsl"
 #include "HashTable.hlsl"
 #include "ColorFromHash.hlsl"
 
@@ -239,16 +239,69 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                         probes and there are significantly less of them than we have pixels. <br>So instead of running
                         over all pixels again, we can just go over all the probes we just allocated, for each of these
                         we just halve their position to get the cascade above it. Any duplicates we get from this are
-                        handled by the hashtable.</p>
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute:
-                        TODO: Cascade fill
-                    </code></pre>
-                    <p style="opacity: 0.5;">Note that when visualizing your higher cascades you need to shift your
-                        positions
+                        handled by the hashtable.<br>We run this bottom up for all cascades. <br>
+                        The number of cascades we need is somewhat arbitrairy based on your scene size i'll be using 4
                     </p>
+                    <pre class="code"><code class="language-cpp">// HLSL, Compute: "FillCascades.hlsl"
+#include "HashTable.hlsl"
+
+// Since each pass continues from the last,
+// this starts of with the counter from the gather, and then is set to the counter we're filling for the next cascade. 
+// So each pass launches the next
+RWStructuredBuffer&lsaquo;uint&rsaquo; PrevActiveProbes;
+RWStructuredBuffer&lsaquo;uint&rsaquo; PrevActiveCounter;
+
+
+RWStructuredBuffer&lsaquo;uint&rsaquo; NextActiveProbes;
+RWStructuredBuffer&lsaquo;uint&rsaquo; NextActiveCounter;
+
+
+//The cascade we are filling, so this starts at 1
+uint Cascade;
+
+[numthreads(64, 1, 1)]
+void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
+{
+	uint ProbeId = DispatchThreadId;
+
+	// Check that we are in scope (since the dispatch gets ceiled to group count)
+	if (ProbeId >= PrevActiveCounter[0])
+	{
+		return;
+	}
+
+    // Get the actual key out of the active list which just contains hashtable id's
+    // Im adding the cascade since my hashtable stores the seperate tables in 1 big buffer
+    uint64_t ProbeKey = HashTable[(Cascade-1) * HashTableSize + PrevActiveProbes[ProbeId]];
+
+    // Since our key is just bit shifted positions we can unpack it again.
+	ProbeKeyInfo KeyData = UnpackProbeKey(ProbeKey);
+
+    // Get parent key by halving the position of our current key
+	uint64_t HighKey = PackProbeKey(KeyData.Cell >> 1);
+
+    uint Index = Hash(uint(HighKey) ^ Hash(uint(HighKey >> 32)));
+    if (HashTableAdd(HighKey, Cascade, Index))
+	{
+		// Fill in the active list which we use for next pass. 
+		uint Counter;
+		InterlockedAdd(NextActiveCounter[0], 1, Counter);
+		NextActiveProbes[Counter] = Index;
+
+    }else {
+        // Should be impossible if we cleared the table correctly
+    }
+}
+
+                    </code></pre>
+
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/cascades.png"
                         alt="Multiple cascades shown split next to eachother" />
+                    <p style="opacity: 0.5; font-size: small;">Note that when visualizing your higher cascades you need
+                        to shift your
+                        positions when creating the key
+                    </p>
                     <h2>Rays</h2>
 
                     <h3>From probes vs from screen</h3>
@@ -269,6 +322,9 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                         spot.<br>This way rays are send from real geometry avoiding this problem.</p>
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/depth.png" alt="Rays being sent from the view position" />
+                    <p style="opacity: 0.5; font-size: small;">Here the blue rays are sent from the position gotten from
+                        the
+                        screen, then moved into the closest probe.</p>
                     <h3>Splitting into intervals</h3>
                     <p>However in RC each cascade does not contain the full ray, only a interval/segment of it.
                         <br>Sending multiple rays for each interval at each pixel would be quite inefficient.
@@ -279,14 +335,114 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
 
                         We store this in multiple bins per probe, one for each direction, we need to lay out these
                         directions evenly and most importantly in a way that scales so that our merging evenly combines
-                        them into lower cascades.
+                        them into lower cascades.<br>
+                        For shooting each ray we can just pick a random direction in a hemisphere at our hit.
                     </p>
-                    <img loading="lazy" src="../media/images/articles/split-rc/TODO.webp"
-                        alt="TODO: image of directions?" />
-
                     <pre class="code"><code class="language-cpp">// HLSL, Compute:
 #include "HashTable.hlsl"
-                        // TODO Ray generation and binning
+#include "EncodeDirection.hlsl"
+
+RWStructuredBuffer&lsaquo;uint4&rsaquo; TotalRadiance;
+RWStructuredBuffer&lsaquo;uint&rsaquo; Weights;
+RWStructuredBuffer&lsaquo;uint&rsaquo; DepositCounts;
+
+static const uint BaseDirections = 4; // This means 32 actual direction bins
+static const uint kNumCascades = 4;
+static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4*PI)),
+
+[shader("raygeneration")] void MainRG()
+{
+	uint2 PixelCoord = DispatchRaysIndex().xy;
+
+    float2 UV = float2(PixelId) + 0.5f / float2(ViewportPixelSize);
+
+	FGBufferData GBuffer = GetGBufferDataFromSceneTextures(UV);
+
+    float DeviceZ = SampleSceneDepth(UV);
+    if (DeviceZ &lsaquo;= 0) {
+    	return;
+    }
+    float3 WorldPos = ReconstructWorldPositionFromDepth(DeviceZ);
+	
+    //Also sample worldnormal from GBuffer, could also reconstruct from depth dx/dy
+    float3 Normal = SampleWorldNormal(UV);
+
+	FRayDesc Ray;
+    // Add a bit of offset along the normal, this is needed since reconstructing from the depth is not perfectly accurate.
+	Ray.Origin = WorldPos + Normal * 0.1;
+
+	uint64_t TopKey = MakeProbeKey(WorldPos, CameraPos);
+
+    uint TopProbeIndex = Hash(uint(TopKey) ^ Hash(uint(TopKey >> 32)));
+	bool Found = HashTableFind(TopKey, Cascade: 0, [&]: TopProbeIndex);
+	if (!Found)
+	{
+		//Shouldn't really be possible unless there is a mismatch with our gather 
+		return;
+	}
+
+	float3 Radiance = 0;
+
+    Ray.Direction = RandomHemiSphere(Normal).xyz;
+
+    //Trace the actual ray, this should trace 1 hit with direct lighting applied.
+	FMaterialClosestHitPayload Payload = TraceRayWithLighting(Ray, ...)
+    
+
+	//Fill into containing cascades
+
+    // Find the cascade the ray hit inside based on its hit length
+    uint RayHitCascade = kNumCascades - 1;
+    if (Payload.IsHit())
+    {
+        uint HitCascade = ceil(max(0.5 * log2(Payload.HitT / (kC0Len * BaseVoxelSize)), 0.0));
+        //Clamp to the highest cascade we have, since we cannot allocate infinite cascades
+        RayHitCascade = min(HitCascade, kNumCascades - 1);
+    }
+
+    //We fill the hit cascade and the ones before it, since the ray traveled through those intervals and not the ones after
+    for (uint Cascade = 0; Cascade &lsaquo;= RayHitCascade; ++Cascade)
+    {
+
+        uint64_t Key = MakeProbeKey(WorldPos, CameraPos);
+        ProbeKeyInfo KeyData = UnpackProbeKey(Key);
+
+        uint64_t CascadeKey = PackProbeKey(KeyData.Cell >> Cascade);
+
+        uint ProbeIndex = Hash(uint(CascadeKey) ^ Hash(uint(CascadeKey >> 32)));
+        bool Found = HashTableFind(CascadeKey, Cascade, [&]: ProbeIndex);
+        if (Found)
+        {
+            //We only deposit the full color if the ray hit in this cascade
+            bool HitCascade = (Cascade == RayHitCascade);
+
+            //Directions increase every cascade
+            uint DirectionCount = BaseDirections &lsaquo;&lsaquo; Cascade;
+
+            //I calculate a offset to store the probes for each cascade in 1 big buffer instead of seperate ones per cascade, which is also valid.
+            uint CascadeIndex = Cascade * MaximumProbes * BinsPerProbe(BaseDirections);
+
+            //Convert the ray's direction to the index of the bin we store that direction in.
+            uint DirectionalBinIndex = DirToLinear(Ray.Direction.xyz, DirectionCount);
+            
+            uint SlotIndex = CascadeIndex + ProbeIndex * BinsPerProbe(DirectionCount) + DirectionalBinIndex
+
+            float3 Rad = HitCascade ? Radiance : float3(0, 0, 0);
+
+            //Normally you cannot do atomics on floats, so I pack the float values to a fixed point uint, 
+            // This is a simple multiply/devide since the values are never negative 
+            
+            //Attomically deposit our hit, since multiple rays deposit to the same probe
+            InterlockedAdd(TotalRadiance[SlotIndex].x, PackFloatUnsigned(Rad.x));
+            InterlockedAdd(TotalRadiance[SlotIndex].y, PackFloatUnsigned(Rad.y));
+            InterlockedAdd(TotalRadiance[SlotIndex].z, PackFloatUnsigned(Rad.z));
+            InterlockedAdd(TotalRadiance[SlotIndex].w, HitCascade ? 0u : 1u); // Transmittance, so rays that went through but didn't hit
+            
+            InterlockedAdd(Weights[SlotIndex], 1u); // Used for the "quality" of the bin when merging, to count how many rays got deposited in it
+            InterlockedAdd(DepositCounts[Cascade * MaximumProbes + ProbeIndex], PackedLodWeight); // Same but for the whole probe
+        }
+	}
+}
 </code></pre>
                     <p>With this we should now have every cascade filled with its interval of light.<br>If we display
                         this by just avaraging all bins in a output pass, we can see the rings of light this contains.
@@ -297,10 +453,8 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                         <br>
                         We need to interpolate the directions and probes, <br>Starting with directions, since our
                         directions are evenly mapped to 4 times more in the above cascade we evenly interpolate these in
-                        our own.
+                        our own cascade.
                     </p>
-                    <img loading="lazy" src="../media/images/articles/split-rc/TODO.webp"
-                        alt="TODO: image of interpolating dirs" />
                     <p>However we need to also keep in account the transparency in this merging, <br>
                         If a ray was already blocked in the direction we're merging in the lower cascade/interval we
                         shouldn't merge it downwards.</p>
@@ -311,8 +465,90 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                         merge
                         the light from
                         the last interval, or it will leak in front of the wall</p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
-// TODO directional merging
+                    <pre class="code"><code class="language-hlsl">// HLSL, Compute: "Merging.hlsl"
+#include "HashTable.hlsl"
+
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveProbes;
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveCounter;
+
+uint Cascade;
+
+RWStructuredBuffer&lsaquo;uint4&rsaquo; TotalRadiance;
+RWStructuredBuffer&lsaquo;uint&rsaquo; Weights;
+RWStructuredBuffer&lsaquo;uint&rsaquo; DepositCounts;
+
+//Seperate outputbuffer our merging outputs into
+RWStructuredBuffer&lsaquo;float4&rsaquo; MergedRadiance;
+
+[numthreads(64, 1, 1)]
+void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
+{
+	uint ProbeId = DispatchThreadId;
+
+	// Check that we are in scope
+	if (ProbeId >= ActiveCounter[0])
+	{
+		return;
+	}
+
+    //Get current probe    
+	uint ProbeIndex = ActiveProbes[ProbeId];
+    
+	uint64_t ProbeKey = HashTable[(Cascade) * HashTableSize + ProbeIndex];
+    ProbeKeyInfo KeyData = UnpackProbeKey(ProbeKey);
+
+    //The parent cell is bigger so halve its position
+	int3 ParentCell = (KeyData.Cell - 1) >> 1;
+    
+    //Direction count of this cascade
+	uint DirectionCount = BaseDirections &lsaquo;&lsaquo; Cascade;
+
+	uint CascadeIndex = Cascade * HashTableSize * BinsPerProbe(BaseDirections);
+	uint ParentCascadeIndex = (Cascade + 1) * HashTableSize * BinsPerProbe(BaseDirections);
+	uint ParentDirCount = BaseDirections &lsaquo;&lsaquo; (Cascade + 1);
+
+	for (int i = 0; i &lsaquo; BinsPerProbe(DirectionCount); ++i)
+	{
+		//Load own Radiance
+	    uint SlotIndex = CascadeIndex + ProbeIndex * BinsPerProbe(DirectionCount) + i;
+
+        //How much rays got into this bin.
+	    float Weight = UnpackFloatUnsigned(Weights[SlotIndex]);
+
+	    uint4 PackedRadiance = TotalRadiance[SlotIndex];
+        float4 UnpackedRadiance = float4(UnpackFloatUnsigned(PackedRadiance.x), UnpackFloatUnsigned(PackedRadiance.y),
+	                                UnpackFloatUnsigned(PackedRadiance.z), UnpackFloatUnsigned(PackedRadiance.w));
+	    
+        float3 CurrentRadiance = UnpackedRadiance.xyz / Weight;
+	    //Amount of transmission through this probe, based on the rays that traveled through but didnt hit.
+        float TransmittedWeight = UnpackedRadiance.w / Weight;
+
+        float3 ParentRadiance = 0;
+        //Cant merge the parent of the highest cascade
+        if (Cascade &lsaquo; NumCascades - 1)
+        {
+                uint64_t ParentCascadeKey = PackProbeKey(ParentCell);
+
+                uint ParentIndex = Hash(uint(ParentCascadeKey) ^ Hash(uint(ParentCascadeKey >> 32)));
+                bool Found = HashTableFind(CascadeKey, Cascade + 1, [&]: ParentIndex);
+                if (Found)
+                {
+                    // The parent has 4 times as much directions, so go over the 4 directions in the parent
+                    float4 DirRadiance = 0;
+                    for (uint d = 0; d &lsaquo; 4; ++d)
+                    {
+                        uint ParentSlotIndex = ParentCascadeIndex + ParentIndex * BinsPerProbe(ParentDirCount) + i * 4 + d;
+                        DirRadiance += MergedRadiance[ParentSlotIndex];
+                    }
+                    ParentRadianceSum = (DirRadiance.xyz / DirRadiance.w);
+            }
+        }        
+        MergedRadiance[SlotIndex] = (Weight &lsaquo;= 0.0001)
+                                            ? 0
+                                            : float4(CurrentRadiance + ParentRadiance * TransmittedWeight, 1);
+    }
+}
+
 </code></pre>
                     <p>This merges our directions from the closest probe, Instead we want to check all the above probes
                         and blend between them.<br>For this we need to keep in mind probe spacing, each lower cascade
@@ -328,8 +564,123 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                         based on its visibility on the screen. <br>We should also adjust for this, giving a higher
                         weight to probes that contain more rays.
                     </p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
-// Spatial merging
+                    <pre class="code"><code class="language-hlsl">// HLSL, Compute: "Merging.hlsl"
+#include "HashTable.hlsl"
+
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveProbes;
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveCounter;
+
+uint Cascade;
+
+RWStructuredBuffer&lsaquo;uint4&rsaquo; TotalRadiance;
+RWStructuredBuffer&lsaquo;uint&rsaquo; Weights;
+RWStructuredBuffer&lsaquo;uint&rsaquo; DepositCounts;
+
+//Seperate outputbuffer our merging outputs into
+RWStructuredBuffer&lsaquo;float4&rsaquo; MergedRadiance;
+
+[numthreads(64, 1, 1)]
+void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
+{
+	uint ProbeId = DispatchThreadId;
+
+	// Check that we are in scope
+	if (ProbeId >= ActiveCounter[0])
+	{
+		return;
+	}
+
+    //Get current probe    
+	uint ProbeIndex = ActiveProbes[ProbeId];
+    
+	uint64_t ProbeKey = HashTable[(Cascade) * HashTableSize + ProbeIndex];
+    ProbeKeyInfo KeyData = UnpackProbeKey(ProbeKey);
+
+    //The parent cell is bigger so halve its position
+	int3 ParentCell = (KeyData.Cell - 1) >> 1;
+    
+    //Get the part of the corner we are in, this is needed so we can weigh by the corner, 
+    // since we sit at 75% to the nearest parent and 25% to the furthest on each axis
+	int3 NearCorner = ~KeyData.Cell & 1;
+
+    //Direction count of this cascade
+	uint DirectionCount = BaseDirections &lsaquo;&lsaquo; Cascade;
+
+	uint CascadeIndex = Cascade * HashTableSize * BinsPerProbe(BaseDirections);
+	uint ParentCascadeIndex = (Cascade + 1) * HashTableSize * BinsPerProbe(BaseDirections);
+	uint ParentDirCount = BaseDirections &lsaquo;&lsaquo; (Cascade + 1);
+
+	for (int i = 0; i &lsaquo; BinsPerProbe(DirectionCount); ++i)
+	{
+		//Load own Radiance
+	    uint SlotIndex = CascadeIndex + ProbeIndex * BinsPerProbe(DirectionCount) + i;
+
+        //Weight of this bin, this was based on how much rays got binned into it.
+	    float Weight = UnpackFloatUnsigned(Weights[SlotIndex]);
+
+	    uint4 PackedRadiance = TotalRadiance[SlotIndex];
+        float4 UnpackedRadiance = float4(UnpackFloatUnsigned(PackedRadiance.x), UnpackFloatUnsigned(PackedRadiance.y),
+	                                UnpackFloatUnsigned(PackedRadiance.z), UnpackFloatUnsigned(PackedRadiance.w));
+	    
+        float3 CurrentRadiance = UnpackedRadiance.xyz / Weight;
+	    //Amount of transmission through this probe, based on the rays that traveled through but didnt hit.
+        float TransmittedWeight = UnpackedRadiance.w / Weight;
+
+        float3 ParentRadianceSum = 0;
+        float ParentRadianceWeight = 0;
+        //Cant merge the parent of the highest cascade
+        if (Cascade &lsaquo; NumCascades - 1)
+        {
+            //Trilinearly interpolate each of the 8 probes above us
+            for (uint c = 0; c &lsaquo; 8; ++c)
+            {
+                int3 Offset = int3(c & 1, (c >> 1) & 1, c >> 2);
+                int3 Corner = ParentCell + Offset;
+
+                //Trilinear weight based on where we are compared to parent
+                float3 AxisWeight = Offset == NearCorner ? 0.75 : 0.25;
+                float InterpWeight = AxisWeight.x * AxisWeight.y * AxisWeight.z;
+
+                uint64_t ParentCascadeKey = PackProbeKey(Corner);
+
+                uint ParentIndex = Hash(uint(ParentCascadeKey) ^ Hash(uint(ParentCascadeKey >> 32)));
+                bool Found = HashTableFind(CascadeKey, Cascade + 1, [&]: ParentIndex);
+                if (Found)
+                {
+                    //Weight of this probe, this was based on how much rays got binned into it.
+                    uint DepositCount = DepositCounts[((Cascade + 1) * HashTableSize) + ParentIndex];
+                    //Empty probes have no contribution
+                    if (DepositCount &lsaquo;= 0)
+                    {
+                        continue;
+                    }
+
+                    // The parent has 4 times as much directions, so go over the 4 directions in the parent
+                    float4 DirRadiance = 0;
+                    for (uint d = 0; d &lsaquo; 4; ++d)
+                    {
+                        uint ParentSlotIndex = ParentCascadeIndex + ParentIndex * BinsPerProbe(ParentDirCount) + i * 4 + d;
+                        DirRadiance += MergedRadiance[ParentSlotIndex];
+                    }
+                    if (DirRadiance.w > 0.0)
+                    {
+                        float DepositQuality = UnpackFloatUnsigned(DepositCount);
+                        float QualityInterpWeight = InterpWeight * DepositQuality;
+                        ParentRadianceSum += (DirRadiance.xyz / DirRadiance.w) * QualityInterpWeight;
+                        //Accumulate weight, since some probes are skipped
+                        ParentRadianceWeight += QualityInterpWeight;
+                    }
+                }
+            }
+        }
+        //Normalize parent
+        float3 ParentRadiance = ParentRadianceWeight > 0.00001 ? (ParentRadianceSum / ParentRadianceWeight) : 0;
+        
+        MergedRadiance[SlotIndex] = (Weight &lsaquo;= 0.0001)
+                                            ? 0
+                                            : float4(CurrentRadiance + ParentRadiance * TransmittedWeight, 1);
+    }
+}
 </code></pre>
                     <h2>LODs</h2>
                     <p>Currently we had a even grid of probes, which works fine for small scenes. But our probes get
@@ -540,6 +891,90 @@ float3 ColorFromHash(uint h)
 	float Val = 0.70 + 0.30 * ((h >> 24) & 0xFFu) / 255.0;
 	return HSVtoRGB(float3(Hue, Sat, Val));
 }
+</script>
+    <script type="text/plain" data-include="EncodeDirection.hlsl" data-language="cpp">
+//Encodes/Decodes a 3D direction into a linear buffer. rounds the directions to a grid of our direction count.
+//So the actual amount of directions stored is: (DirectionCount * 2 * DirectionCount)  
+
+float NextFloatDown(float x)
+{
+    return asfloat(asuint(x) - 1u);
+}
+
+float2 EncodeDir(float3 d)
+{
+    return float2(frac(atan2(d.y, d.x) * (1/(2*PI)))), (d.z + 1.0) * 0.5);
+}
+
+//Round the direction to a grid of our direction count
+uint2 QuantizeDir(float2 uv, uint2 gridSize)
+{
+    float2 s = float2(NextFloatDown(gridSize.x), NextFloatDown(gridSize.y));
+    return (uint2) (uv * s);
+}
+
+//We use morton encoding, which stores the memory a bit nicer when for we merge later
+uint Part1By1(uint x)
+{
+    x &= 0x0000FFFFu;
+    x = (x ^ (x << 8)) & 0x00FF00FFu;
+    x = (x ^ (x << 4)) & 0x0F0F0F0Fu;
+    x = (x ^ (x << 2)) & 0x33333333u;
+    x = (x ^ (x << 1)) & 0x55555555u;
+    return x;
+}
+
+uint EncodeMorton2(uint2 v)
+{
+    return Part1By1(v.x) | (Part1By1(v.y) << 1);
+}
+
+
+uint BinsPerProbe(uint DirectionCount)
+{
+    return DirectionCount * 2 * DirectionCount;
+}
+uint DirToLinear(float3 dir, uint DirectionCount)
+{
+    uint2 g = uint2(DirectionCount << 1, DirectionCount);
+    return EncodeMorton2(QuantizeDir(EncodeDir(dir), g) % g);
+}
+
+static const float kTwoPi = 6.28318530718;
+
+uint Compact1By1(uint x)
+{
+    x &= 0x55555555u;
+    x = (x ^ (x >> 1)) & 0x33333333u;
+    x = (x ^ (x >> 2)) & 0x0F0F0F0Fu;
+    x = (x ^ (x >> 4)) & 0x00FF00FFu;
+    x = (x ^ (x >> 8)) & 0x0000FFFFu;
+    return x;
+}
+
+uint2 DecodeMorton2(uint code)
+{
+    return uint2(Compact1By1(code), Compact1By1(code >> 1));
+}
+
+float3 DecodeDir(float2 uv)
+{
+    float phi = uv.x * kTwoPi;
+    float z = uv.y * 2.0 - 1.0;
+    float r = sqrt(saturate(1.0 - z * z));
+    float s, c;
+    sincos(phi, s, c);
+    return float3(r * c, r * s, z);
+}
+
+float3 LinearToDir(uint index, uint DirectionCount)
+{
+    uint2 g = uint2(DirectionCount << 1, DirectionCount);
+    uint2 cell = DecodeMorton2(index);
+    float2 uv = (float2(cell) + 0.5) / float2(g);
+    return DecodeDir(uv);
+}
+
 </script>
     <script src="/includes/load-header.js"></script>
     <script src="/includes/load-footer.js"></script>

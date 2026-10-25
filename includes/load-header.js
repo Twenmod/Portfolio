@@ -1,3 +1,5 @@
+//most of this js is vibecoded since i dont care about webdev
+
 // Fetch and inject a shared header fragment into pages.
 // Places the header at the start of <body> and sets the active nav item.
 (function () {
