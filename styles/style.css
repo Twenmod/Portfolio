@@ -1220,6 +1220,58 @@ code {
     background: rgba(255, 255, 255, 0.06);
 }
 
+/* Code blocks folded behind a header, <pre class="code" data-collapsed> (see includes/code-highlight.js) */
+.code-collapse {
+    margin: 1rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-medium);
+    background: var(--card-bg);
+    overflow: hidden;
+}
+
+.code-collapse-header {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.3rem 1rem;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.code-collapse.open .code-collapse-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.code-collapse-header:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.code-collapse-title {
+    font-family: var(--font-mono);
+    color: var(--muted);
+}
+
+.code-collapse-icon {
+    color: var(--muted);
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.code-collapse-header:hover .code-collapse-icon {
+    color: var(--text);
+}
+
+.code-collapse pre.code {
+    margin: 0;
+    border-radius: 0;
+}
+
 .hljs-keyword,
 .hljs-type {
     color: #de79c6 !important;

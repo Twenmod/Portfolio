@@ -141,7 +141,7 @@
                         we get a table of sparsely allocated probes.
                     </p>
 
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute: "GatherC0Probes.hlsl"
+                    <pre class="code" data-collapsed="Example Code: Gathering pass"><code class="language-cpp">// HLSL, Compute: "GatherC0Probes.hlsl"
 //For now most kinds of hash tables are fine
 #include "HashTable.hlsl"
 
@@ -198,7 +198,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
 </code></pre>
                     <p>We can visualize/debug our probes in a seperate pass</p>
 
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute: "DebugOutput.hlsl"
+                    <pre class="code" data-collapsed="Example Code: Debug output"><code class="language-cpp">// HLSL, Compute: "Output.hlsl"
 #include "HashTable.hlsl"
 #include "ColorFromHash.hlsl"
 
@@ -242,7 +242,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                         handled by the hashtable.<br>We run this bottom up for all cascades. <br>
                         The number of cascades we need is somewhat arbitrairy based on your scene size i'll be using 4
                     </p>
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute: "FillCascades.hlsl"
+                    <pre class="code" data-collapsed="Example Code: Fill Cascades"><code class="language-cpp">// HLSL, Compute: "FillCascades.hlsl"
 #include "HashTable.hlsl"
 
 // Since each pass continues from the last,
@@ -338,7 +338,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         them into lower cascades.<br>
                         For shooting each ray we can just pick a random direction in a hemisphere at our hit.
                     </p>
-                    <pre class="code"><code class="language-cpp">// HLSL, Compute:
+                    <pre class="code" data-collapsed="Example Code: Ray generation / binning"><code class="language-cpp">// HLSL, Compute:
 #include "HashTable.hlsl"
 #include "EncodeDirection.hlsl"
 
@@ -465,7 +465,8 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
                         merge
                         the light from
                         the last interval, or it will leak in front of the wall</p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute: "Merging.hlsl"
+
+                    <pre class="code" data-collapsed="Example Code: Merging"><code class="language-cpp">// HLSL, Compute: "Merging.hlsl"
 #include "HashTable.hlsl"
 
 RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveProbes;
@@ -553,9 +554,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     <p>This merges our directions from the closest probe, Instead we want to check all the above probes
                         and blend between them.<br>For this we need to keep in mind probe spacing, each lower cascade
                         has 4 probes inside 1 upper probe. So we shouldnt evenly blend.</p>
-                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
-                        src="../media/images/articles/rc/todo.png"
-                        alt="Showing spatial interpolation, and its distancing to upper probes" />
+
                     <p>It's also important to keep in mind that our grid is sparse, meaning the 8 surrounding probes
                         will probably not all be there. <br>This can be resolved by only weighing and sampling the
                         probes that actually exist.<br>
@@ -564,7 +563,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         based on its visibility on the screen. <br>We should also adjust for this, giving a higher
                         weight to probes that contain more rays.
                     </p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute: "Merging.hlsl"
+                    <pre class="code" data-collapsed="Example Code: Merging"><code class="language-cpp">// HLSL, Compute: "Merging.hlsl"
 #include "HashTable.hlsl"
 
 RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveProbes;
@@ -599,9 +598,9 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
     //The parent cell is bigger so halve its position
 	int3 ParentCell = (KeyData.Cell - 1) >> 1;
     
-    //Get the part of the corner we are in, this is needed so we can weigh by the corner, 
-    // since we sit at 75% to the nearest parent and 25% to the furthest on each axis
-	int3 NearCorner = ~KeyData.Cell & 1;
+    //Get the part of the corner we are in, this is needed so we can weigh by the corner, &lt;changed&gt;
+    // since we sit at 75% to the nearest parent and 25% to the furthest on each axis &lt;changed&gt;
+	int3 NearCorner = ~KeyData.Cell & 1; &lt;changed&gt;
 
     //Direction count of this cascade
 	uint DirectionCount = BaseDirections &lsaquo;&lsaquo; Cascade;
@@ -626,34 +625,34 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 	    //Amount of transmission through this probe, based on the rays that traveled through but didnt hit.
         float TransmittedWeight = UnpackedRadiance.w / Weight;
 
-        float3 ParentRadianceSum = 0;
-        float ParentRadianceWeight = 0;
+        float3 ParentRadianceSum = 0; &lt;changed&gt;
+        float ParentRadianceWeight = 0; &lt;changed&gt;
         //Cant merge the parent of the highest cascade
         if (Cascade &lsaquo; NumCascades - 1)
         {
-            //Trilinearly interpolate each of the 8 probes above us
-            for (uint c = 0; c &lsaquo; 8; ++c)
-            {
-                int3 Offset = int3(c & 1, (c >> 1) & 1, c >> 2);
-                int3 Corner = ParentCell + Offset;
+            //Trilinearly interpolate each of the 8 probes above us &lt;changed&gt;
+            for (uint c = 0; c &lsaquo; 8; ++c) &lt;changed&gt;
+            { &lt;changed&gt;
+                int3 Offset = int3(c & 1, (c >> 1) & 1, c >> 2); &lt;changed&gt;
+                int3 Corner = ParentCell + Offset; &lt;changed&gt;
 
-                //Trilinear weight based on where we are compared to parent
-                float3 AxisWeight = Offset == NearCorner ? 0.75 : 0.25;
-                float InterpWeight = AxisWeight.x * AxisWeight.y * AxisWeight.z;
+                //Trilinear weight based on where we are compared to parent &lt;changed&gt;
+                float3 AxisWeight = Offset == NearCorner ? 0.75 : 0.25; &lt;changed&gt;
+                float InterpWeight = AxisWeight.x * AxisWeight.y * AxisWeight.z; &lt;changed&gt;
 
-                uint64_t ParentCascadeKey = PackProbeKey(Corner);
+                uint64_t ParentCascadeKey = PackProbeKey(Corner); &lt;changed&gt;
 
                 uint ParentIndex = Hash(uint(ParentCascadeKey) ^ Hash(uint(ParentCascadeKey >> 32)));
                 bool Found = HashTableFind(CascadeKey, Cascade + 1, [&]: ParentIndex);
                 if (Found)
                 {
-                    //Weight of this probe, this was based on how much rays got binned into it.
-                    uint DepositCount = DepositCounts[((Cascade + 1) * HashTableSize) + ParentIndex];
-                    //Empty probes have no contribution
-                    if (DepositCount &lsaquo;= 0)
-                    {
-                        continue;
-                    }
+                    //Weight of this probe, this was based on how much rays got binned into it. &lt;changed&gt;
+                    uint DepositCount = DepositCounts[((Cascade + 1) * HashTableSize) + ParentIndex]; &lt;changed&gt;
+                    //Empty probes have no contribution &lt;changed&gt;
+                    if (DepositCount &lsaquo;= 0) &lt;changed&gt;
+                    { &lt;changed&gt;
+                        continue; &lt;changed&gt;
+                    } &lt;changed&gt;
 
                     // The parent has 4 times as much directions, so go over the 4 directions in the parent
                     float4 DirRadiance = 0;
@@ -662,19 +661,19 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         uint ParentSlotIndex = ParentCascadeIndex + ParentIndex * BinsPerProbe(ParentDirCount) + i * 4 + d;
                         DirRadiance += MergedRadiance[ParentSlotIndex];
                     }
-                    if (DirRadiance.w > 0.0)
-                    {
-                        float DepositQuality = UnpackFloatUnsigned(DepositCount);
-                        float QualityInterpWeight = InterpWeight * DepositQuality;
-                        ParentRadianceSum += (DirRadiance.xyz / DirRadiance.w) * QualityInterpWeight;
-                        //Accumulate weight, since some probes are skipped
-                        ParentRadianceWeight += QualityInterpWeight;
-                    }
+                    if (DirRadiance.w > 0.0) &lt;changed&gt;
+                    { &lt;changed&gt;
+                        float DepositQuality = UnpackFloatUnsigned(DepositCount); &lt;changed&gt;
+                        float QualityInterpWeight = InterpWeight * DepositQuality; &lt;changed&gt;
+                        ParentRadianceSum += (DirRadiance.xyz / DirRadiance.w) * QualityInterpWeight; &lt;changed&gt;
+                        //Accumulate weight, since some probes are skipped &lt;changed&gt;
+                        ParentRadianceWeight += QualityInterpWeight; &lt;changed&gt;
+                    } &lt;changed&gt;
                 }
-            }
+            } &lt;changed&gt;
         }
-        //Normalize parent
-        float3 ParentRadiance = ParentRadianceWeight > 0.00001 ? (ParentRadianceSum / ParentRadianceWeight) : 0;
+        //Normalize parent &lt;changed&gt;
+        float3 ParentRadiance = ParentRadianceWeight > 0.00001 ? (ParentRadianceSum / ParentRadianceWeight) : 0; &lt;changed&gt;
         
         MergedRadiance[SlotIndex] = (Weight &lsaquo;= 0.0001)
                                             ? 0
@@ -682,6 +681,49 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
     }
 }
 </code></pre>
+                    <p>With this we now have our full ray inside of the lowest cascade. <br>
+                        To display this in our output shader, we have to merge the directions of the cascade into 1
+                        value for each pixel, using the normal of the pixel to weigh the probes.<br>
+                    </p>
+
+                    <pre class="code" data-collapsed="Example Code: Output"><code class="language-cpp">// HLSL, Compute: "Output.hlsl"
+                
+... Find probe of the pixel
+                
+... Trilinearly interpolate probes
+                
+float3 TotalRadiance = 0;
+float TotalWeight = 0;
+
+for (uint i = 0; i &lsaquo; BinsPerProbe(DirectionCount); ++i)
+{
+    float3 Dir = LinearToDir(i, DirectionCount);
+    //We have to normalize by NDotL to keep correct incomming light
+    float NdotL = max(0.0, dot(Dir, Normal));
+    if (NdotL &lsaquo;= 0)
+    {
+        continue;
+    }
+
+    uint CascadeIndex = DisplayCascade * HashTableSize * BinsPerProbe(BaseDirections);
+    uint BuffIndex = CascadeIndex + Index * BinsPerProbe(DirectionCount) + i;
+    float4 MergedRad = ProbeMergedRadiance[BuffIndex];
+    if (MergedRad.w > 0.0)
+    {
+        float Weight = NdotL * UnpackFloatUnsigned(DepositCount);
+        TotalRadiance += MergedRad.xyz * Weight;
+        TotalWeight += Weight;
+    }
+}
+//Renormalize
+if (TotalWeight > 0.0)
+{
+    RadSum += TotalWeight >= 0 ? (TotalRadiance / TotalWeight) * InterpWeight * LodWeights[Level] : 0;
+    WeightSum += InterpWeight * (LodWeights[Level]);
+}
+            </code></pre>
+                    <img loading="lazy" class="img-small" style="max-height: 20rem;"
+                        src="../media/images/articles/rc/working.png" alt="Full light ray" />
                     <h2>LODs</h2>
                     <p>Currently we had a even grid of probes, which works fine for small scenes. But our probes get
                         very small on the screen further away.<br>This has 2 major problems. <br>We shoot our rays from
@@ -699,31 +741,86 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         lower level.<br>We can just bitshift this index after the rest of our key.<br><br>Since
                         everything else uses the hashmap, this should automatically work with the rest of our code
                         assuming we calculate the key in the same way.</p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
-// Spatial merging
-</code></pre>
-                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
-                        src="../media/images/articles/rc/todo.png" alt="LOD probes" />
-                    <p>This fixes any flickering or overallocation further away, however it creates big seams where the
+                    <pre class="code" data-collapsed="Example Code"><code class=" language-cpp">// HLSL,
+
+//We compute the level based on distance to the camera
+uint ComputeLevel(float3 WorldPos, float3 CameraPos)
+{
+    //Using Chebyshev distance, aka distance as a square this makes the transition less noticable. 
+	float3 Distance = abs(WorldPos - CameraPos);
+	float Radius = max(Distance.x, max(Distance.y, Distance.z));
+
+	float LodFloat = log2(Radius / LevelBaseDist);
+	uint Lower = clamp((uint)ceil(LodFloat), 0, MaxLOD);
+	return Lower;
+}
+
+//Everywhere where we use the voxel size, we should instead use the size based on the level
+float LevelVoxelSize(uint Level)
+{
+	return BaseVoxelSize * (float)(1u &lsaquo;&lsaquo; Level);
+}
+
+uint64_t MakeProbeKey(float3 WorldPos, float3 CameraPos)
+{
+	uint Level = ComputeLevel(WorldPos, CameraPos);
+	float VoxelSize = LevelVoxelSize(Level);
+	int3 Cell = int3(floor((WorldPos / VoxelSize)));
+
+	return PackProbeKey(Cell, Level);
+}
+                    </code></pre>
+                    <img loading="lazy" class="img-small" style="max-height: 20rem;"
+                        src="../media/images/articles/rc/lod.png" alt="LODs increasing size on distance" />
+                    <p>This fixes a lot of flickering or overallocation further away, however it creates big seams where
+                        the
                         LODs change.<br>So we want to blend in between these seams. To do this we keep one probe of
                         overlap at the seam, allocating probes of both levels and also binning the ray into
                         both.<br>Wherever we calculate our level we instead calculate the range, making sure to keep
                         correct weights so we do not double the light at the seam.</p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
-// Blending
+                    <pre class="code" data-collapsed="Example Code"><code class="language-cpp">// HLSL, Compute:
+
+//Compute a range instead, outputs weights so that we blend correctly on the seam.
+void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out float2 LodWeights)
+{
+	float3 Distance = abs(WorldPos - CameraPos);
+	float Radius = max(Distance.x, max(Distance.y, Distance.z));
+	float LodFloat = log2(Radius / LevelBaseDist);
+	float Blend = min(1.0, (1.0 - frac(LodFloat))); &lt;changed&gt;
+	uint Lower = clamp((uint)ceil(LodFloat), 0, kMaxLevel); 
+	Lods = uint2(Lower, Lower + 1); &lt;changed&gt;
+	LodWeights = float2(Blend, 1.0 - Blend); &lt;changed&gt;
+}
+
+//When depositing and applying
+//We loop over the range and deposit/apply both levels, following their weights.
 </code></pre>
                     <p>This should result in smooth, although flickering results</p>
-                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
-                        src="../media/images/articles/rc/todo.png" alt="Blended seams" />
-
-                    <!-- ============================== Temporal ============================== -->
+                    <div class="img-compare info-small" data-before="../media/images/articles/rc/LSeams.png"
+                        data-after="../media/images/articles/rc/NoLSeams.png">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/rc/LSeams.png"
+                            alt="no mirror">
+                        <img loading="lazy" class="img-before" src="../media/images/articles/rc/NoLSeams.png"
+                            alt="mirrored pixels">
+                        <div class="handle"></div>
+                        <div class="label before-label">Not blended</div>
+                        <div class="label after-label">Blended</div>
+                    </div>
                     <h2>Temporal</h2>
-                    <p>Due to the benefits of RC</p>
-                    <h3>Why?</h3>
-                    <p>TODO: why temporal</p>
-
+                    <p>Due to the benefits of splitting & merging with RC our single frame result is already pretty
+                        good. <br>But since we still send random rays, there is still some flickering especially in
+                        probes that did not get much rays. <br>We can fix this by accumulating our probes over time,
+                        this doesnt come with the drawbacks of most temporal effects. <br>
+                        Since our probes are spatially stable, there is no smearing from bad reprojection.<br>
+                        And since our single frame results are also pretty good already there is barely any
+                        ghosting.<br>
+                        So the only drawback is slower lighting updates.
+                    </p>
                     <h3>Stable hash table</h3>
-                    <p>TODO: stable hash table</p>
+                    <p>Currently we clear and allocate the hashtable every frame, so our probe index moves every frame.
+                        <br>To temporally accumulate we want our probes to keep the same index, so that we keep the old
+                        frame's result.
+                    </p>
 
                     <h3>Multi bounce</h3>
                     <p>TODO: multi bounce</p>
@@ -740,7 +837,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 
                     <h3>Groupshared & wave intrinsics</h3>
                     <p>TODO: groupshared & wave</p>
-                    <pre class="code"><code class="language-hlsl">// HLSL, Compute:
+                    <pre class="code" data-collapsed><code class="language-cpp">// HLSL, Compute:
 // TODO
 </code></pre>
                     <p><br></p>

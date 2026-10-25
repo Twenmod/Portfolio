@@ -11,6 +11,8 @@
 // A quoted filename (e.g. #include "HashTable.hlsl") becomes a link that expands the file below that line when
 // the page has a matching <script type="text/plain" data-include="HashTable.hlsl"> block.
 // Add data-language="cpp" (any highlight.js language) to that block to change its highlighting, default is hlsl.
+// <pre class="code" data-collapsed> starts folded behind a clickable header, titled by the attribute value or else
+// "Show code" / "Hide code".
 (function () {
     const script = document.currentScript;
     const types = (script.dataset.types || '').trim().split(/\s+/).filter(Boolean);
@@ -181,6 +183,42 @@
         });
     }
 
+    // Hides the block behind a header that expands it the same way include panels open
+    function makeCollapsible(pre) {
+        const customTitle = pre.dataset.collapsed;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-collapse';
+        wrapper.innerHTML =
+            '<button class="code-collapse-header" aria-expanded="false">' +
+            '<span class="code-collapse-title"></span>' +
+            '<span class="code-collapse-icon"></span>' +
+            '</button>';
+        const title = wrapper.querySelector('.code-collapse-title');
+        title.textContent = customTitle || 'Show code';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+        pre.hidden = true;
+
+        const header = wrapper.querySelector('.code-collapse-header');
+        const icon = wrapper.querySelector('.code-collapse-icon');
+        header.addEventListener('click', () => {
+            const opening = header.getAttribute('aria-expanded') !== 'true';
+            header.setAttribute('aria-expanded', opening);
+            icon.textContent = opening ? '' : '';
+            if (!customTitle) title.textContent = opening ? '-' : 'Example Code';
+            wrapper.classList.toggle('open', opening);
+            if (pre.closeAnimation) pre.closeAnimation.cancel();
+            if (opening) {
+                pre.hidden = false;
+                animatePanel(pre, true);
+            } else {
+                pre.closeAnimation = animatePanel(pre, false);
+                pre.closeAnimation.onfinish = () => { pre.hidden = true; pre.closeAnimation = null; };
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         if (!window.hljs) return;
 
@@ -199,5 +237,6 @@
         });
 
         document.querySelectorAll('pre.code code').forEach(highlightCode);
+        document.querySelectorAll('pre.code[data-collapsed]').forEach(makeCollapsible);
     });
 })();
