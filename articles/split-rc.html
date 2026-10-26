@@ -221,6 +221,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
 	bool Found = HashTableFind(Key, Cascade: 0, [&]: Index);
 
     if (Found) {
+        //Since our hashtable is unstable, using debugindex will flicker, you can use the key instead for now.
         Output[PixelId] = float4(ColorFromHash(Hash(DebugIndex)), 1.0);
     }else {
         Output[PixelId] = float4(1,0,0,1);
@@ -819,35 +820,207 @@ void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out fl
                     <h3>Stable hash table</h3>
                     <p>Currently we clear and allocate the hashtable every frame, so our probe index moves every frame.
                         <br>To temporally accumulate we want our probes to keep the same index, so that we keep the old
-                        frame's result.
+                        frame's result in their spot in the buffer.<br>
+                        One way of doing this is by adding a layer of indirection to our hashtable, instead of storing
+                        the index into our data buffer in the table we store an index into another list of indices.<br>
+                        That way we can add a pass that re-allocates our previous frames results with the same index as
+                        the data.<br><br>
+                        We also need to keep track of the lifetime of probes, to know which probes to reallocate or not.
+                        Resetting their lifetime if they are on screen.
+                    </p>
+                    <pre class="code" data-collapsed="Example Code: (Re)building Hashtable"><code class="language-cpp">// HLSL, Compute:
+#include "StableHashTable.hlsl"
+
+RWStructuredBuffer&lsaquo;uint&rsaquo; ProbeLifetime;
+
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveProbes;
+RWStructuredBuffer&lsaquo;uint&rsaquo; ActiveCounter;
+
+float HistoryConservation;
+
+RWStructuredBuffer&lsaquo;uint4&rsaquo; TotalRadiance;
+RWStructuredBuffer&lsaquo;uint&rsaquo; ProbeWeights;
+RWStructuredBuffer&lsaquo;uint&rsaquo; DepositCounts;
+
+//This should be launched for the maximum amount of probes, each thread reallocating that probe if its there
+[numthreads(64, 1, 1)]
+void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
+{
+	uint DataKeyId = DispatchThreadId;
+
+    //Get which cascade this probe belongs to
+	uint Table = DataKeyId / MaximumProbes;
+	
+    uint Local = DataKeyId - BaseTable * MaximumProbes;
+	if (Table &rsaquo;= NumCascades || Local &rsaquo;= (MaximumProbes &rsaquo;&rsaquo; (2 * BaseTable)))
+	{
+		return;
+	}
+
+	uint64_t Key = TableKeys[DataKeyId];
+
+    //If the key is invalid i.e. the clear value of 0 dont de or re allocate
+	bool Occupied = Key != 0;
+	if (Occupied)
+	{
+		//Remove older probes, ProbeLifetime should be reset whenever the probe is used, i.e. inside of the probe gathering and cascade filling passes
+		if (ProbeLifetime[DataKeyId] == 0)
+		{
+			TableKeys[DataKeyId] = 0;
+			Occupied = false;
+
+			//Clear probe data
+			DepositCounts[DataKeyId] = 0;
+
+			uint LocalIndex = DataKeyId - Table * MaximumProbes;
+			uint CascadeIndex = Table * MaximumProbes * BinsPerProbe(BaseDirections);
+			uint Bins = BinsPerProbe(BaseDirections &lsaquo;&lsaquo; Table);
+            //Clear each direction bin
+			for (int i = 0; i &lsaquo; Bins; ++i)
+			{
+				uint SlotIndex = CascadeIndex + LocalIndex * Bins + i;
+
+				TotalRadiance[SlotIndex] = 0;
+				ProbeWeights[SlotIndex] = 0;
+			}
+		}
+		else
+		{
+			// Re-add surviving probe
+
+            // Reduce its lifetime
+            ProbeLifetime[DataKeyId] -= 1;
+
+            //Add it to the hashtable with the same index as last frame
+			uint64_t Key = TableKeys[DataKeyId];
+			uint LocalIndex = DataKeyId - Table * MaximumProbes;
+			HashTableAddIndex(Key, Table, LocalIndex);
+
+            //Add it to the active list,
+			uint ActiveIndex;
+			InterlockedAdd(ActiveCounter[Table], 1, ActiveIndex);
+            ActiveProbes[Table * MaximumProbes + ActiveIndex] = LocalIndex;
+		}
+	}
+
+    //Add any unoccupied (or just deallocated) probe to the freelist for the hashtable to use
+	if (!Occupied)
+	{
+		uint FreeListIndex;
+		InterlockedAdd(TableFreeListIndex[Table], 1, FreeListIndex);
+		uint LocalIndex = DataKeyId - Table * MaximumProbes;
+		TableFreeList[FreeListIndex] = LocalIndex;
+	}
+}
+
+
+//Make sure to clear the freelistindex counter to the table's start after this
+</code></pre>
+                    <p>The hashtable should now be stable, you can test this using the debug output code from earlier,
+                        outputting the index. Probes shouldn't change color unless they go off the screen.<br>
+                        With stable probes temporaly accumulating is easy, when going over the probes (in the merge pass
+                        or in a seperate pass) we just re-add the probes accumulated light and weights with a falloff.
+                        <br>With that you should now have clean single bounce GI.
+                    </p>
+                    <h3>Multi bounce</h3>
+                    <p>Currently light only bounces once from where we are looking, things only start looking really
+                        good when we do multiple bounces.<br>
+                        To achieve this we need to trace 1 extra bounce ray everywhere, from which we can get infinite
+                        bounces over time.<br>
+                        To get one bounce, we just shoot an extra light ray from the hits of our primary ray.<br>
+                        To do this we output our hit positions and normals in our ray generation shader, then run a
+                        second one from that spot.
+                        <br>
+                    </p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/bounce.png"
+                        alt="One ray is shot, after another is shot from the spot" />
+                    <p style="opacity: 0.5; font-size: small;">The first hit is stored, then another random ray is sent
+                        from that hit position</p>
+
+                    <p>
+                        This gives us a single real bounce, but increasing this to more would be very expensive.
+                        Instead we can sample the probes to apply GI to this, with the temporal accumulation that gives
+                        us an extra bounce every frame.
+                        However since our probes are only allocate where we are looking, we wouldn't be able to get this
+                        bounce light from outside of the screen, since there are no probes to sample from. <br>
+                        To resolve this we allocate a seperate secondary probe cache for this, we allocate extra probes
+                        at the hit positions of our primary ray. We fill these with radiance from the bounce ray, in the
+                        same way as our primary ray.<br>
+                        To accumulate this to multiple bounces, we sample this cache at the hits of our primary and
+                        secondary rays.
+                    </p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/multiSingleBounce.gif" alt="Animation of secondary probes" />
+                    <p style="opacity: 0.5; font-size: small;">In one frame we send the primary ray, which allocates a
+                        probe filled with the bounce ray.<br>
+                        The next frame a different bounce ray hits the same secondary probe. Since it samples it also
+                        contains the previous bounce.<br>
+                        Over frames this stacks to infinite bounces</p>
+                    <p>This gives us infinite bounces, however it is limited to only the area covered by the single
+                        bounce ray, since that one allocates the secondary probes.<br><br>We can re-use almost our whole
+                        system for this secondary probe. We already have LODs over distance, by allocating the secondary
+                        probes at at least 2 LODs higher it can fit into the same hashtable/probes without conflicts.
+                        <br>If we also add these to the active probes the merge pass will merge their cascades as
+                        well.<br><br>
+                        With that we get nice looking multi bounce GI.
+                    </p>
+                    <div class="img-compare info-small" data-before="../media/images/articles/rc/single.png"
+                        data-after="../media/images/articles/rc/multi.png">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/rc/single.png"
+                            alt="Single Bounce">
+                        <img loading="lazy" class="img-before" src="../media/images/articles/rc/multi.png"
+                            alt="Multi Bounce">
+                        <div class="handle"></div>
+                        <div class="label before-label">Single bounce</div>
+                        <div class="label after-label">Multi bounce</div>
+                    </div>
+                    <h2>Basic optimizations & improvements</h2>
+                    <p>For simplicity I kept out a lot of optimizations or better ways to do things. <br>
+                        I wont go over how to fully optimize but will briefly go over the main improvements that can be
+                        done to get this running good.</p>
+                    <h3>Choosing directions</h3>
+                    <p>One big improvement in quality is choosing directions in a better way, currently we choose
+                        completely random directions.<br>But there are multiple semi random sequences that accumulate to
+                        good results significantly quicker.<br>By using a deposit count per probe as an index into
+                        something like the R2 sequence, direction coverage accumulates significantly faster.</p>
+
+                    <h3>Group sharing</h3>
+                    <p>Apart from tracing our merging & applying pass is the most expensive.<br>It's sampling a lot of
+                        data across a low amount of threads.<br>For example the bin merging can be done across threads,
+                        loading the 8 probes together and having each thread load a bin. <br>Merging them as a group.
                     </p>
 
-                    <h3>Multi bounce</h3>
-                    <p>TODO: multi bounce</p>
-                    <p><br></p>
-
-                    <!-- ============================== Optimizations ============================== -->
-                    <h2>Basic optimizations & improvements</h2>
-
-                    <h3>LOD blending</h3>
-                    <p>TODO: LOD blending</p>
-
-                    <h3>Choosing directions</h3>
-                    <p>TODO: choosing directions, sequence</p>
-
-                    <h3>Groupshared & wave intrinsics</h3>
-                    <p>TODO: groupshared & wave</p>
-                    <pre class="code" data-collapsed><code class="language-cpp">// HLSL, Compute:
-// TODO
-</code></pre>
-                    <p><br></p>
+                    <h3>Lowering ray count</h3>
+                    <p>Raytracing cost is by far the most expensive part,<br>We can skip a percentage of pixels every
+                        frame to reduce cost significantly, although at the drawback of slower accumulation and thus
+                        more ghosting.<br>Balancing this with probe sizes can improve the accumulation but at the cost
+                        of light resolution.<br>This allows for a nice way of tweaking quality vs performance.<br>
+                        It might also be worth replacing (some of) the rays with cheaper ones like screen space rays or
+                        sampling an sdf or voxel approximation of the world
+                    </p>
 
                     <!-- ============================== Conclusion ============================== -->
-                    <h2>Performance & Conclusions</h2>
-
-                    <p>TODO: performance & conclusions</p>
-
-                    <!-- TODO: showcase video -->
+                    <h2>Conclusions</h2>
+                    <h3> Performance </h3>
+                    <p>Almost all of the cost of this goes to actual tracing.<br>
+                        For my implemention in unreal on my 5070 Laptop GPU in San Miguel the
+                        cost of RC is about ~2ms depending on probe sizing.<br>Although with ~13ms on top of raytracing
+                        at 2spp (1
+                        primary 1 bounce) and ~2ms for depositing the rays.<br><br>Although the expensive tracing cost
+                        is very variable, depending on scene size and tracing performance in general.</p>
+                    <h3> Comparisons/Showcase </h3>
+                    <div class="img-compare info-small" data-before="../media/images/articles/rc/BedPT.png"
+                        data-after="../media/images/articles/rc/BedRC.png">
+                        <img loading="lazy" class=" img-after" src="../media/images/articles/rc/BedPT.png"
+                            alt="Path traced">
+                        <img loading="lazy" class="img-before" src="../media/images/articles/rc/BedRC.png" alt="RC">
+                        <div class="handle"></div>
+                        <div class="label before-label">Path traced</div>
+                        <div class="label after-label">RC</div>
+                    </div>
+                    <p style="opacity:0.5;">The main points of error are, light leaking in spots smaller than a
+                        (secondary) probe, and softer shadows (presumably due to not enough base directions)</p>
                     <video controls width="100%">
                         <source src="../media/videos/articles/TODO.mp4" type="video/mp4">
                         Your browser does not support the video tag.
@@ -969,6 +1142,179 @@ bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
     return false;
 }
 </script>
+
+    <script type="text/plain" data-include="StableHashTable.hlsl" data-language="cpp">
+//That allocates its data index from a free list, so probes keep the same index across frames
+
+StructuredBuffer<uint64_t> HashTable;
+RWStructuredBuffer<uint64_t> RWHashTable;
+uint HashTableSize;
+
+//Layer of indirection, each slot stores an index into our data buffers instead of being the index itself <changed>
+RWStructuredBuffer<uint> TableEntryIndex; <changed>
+//Data indices that are not in use, and a counter per cascade of how many we have taken from it <changed>
+StructuredBuffer<uint> TableFreeList; <changed>
+RWStructuredBuffer<uint> TableFreeListIndex; <changed>
+//The key belonging to each data index, so later passes can still get the key of a probe <changed>
+RWStructuredBuffer<uint64_t> TableKeys; <changed>
+
+// Returns true if key is added for the first time.
+// Index input is the first slot to look at, this reduces conflicts
+// Index output is the data index allocated from the free list if added <changed>
+bool HashTableAdd(uint64_t Key, inout uint Index, uint Cascade)
+{
+
+    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    uint TableBase = Cascade * HashTableSize; // this cascade's start position
+    //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
+    uint CascadeTableSize = HashTableSize >> (2 * Cascade);
+
+    //Index is random so we need to limit it to our buffer size
+    Index = Index % CascadeTableSize;
+
+    //In the worst case if the whole hashtable is full we need to check every spot. (the table works best when its filled around < 80%)
+    for (uint i = 0; i < CascadeTableSize; i++)
+    {
+
+        uint64_t StoredKey = RWHashTable[TableBase + Index];
+        if (StoredKey != Key)
+        {
+            //Skip if the slot is already occupied
+            if (StoredKey != 0)
+            {
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+
+            //We use a atomic here, to make sure another thread didn't occupy this slot while we are busy
+            uint64_t PrevKey;
+            InterlockedCompareExchange(RWHashTable[TableBase + Index], 0, Key, PrevKey);
+
+            if (PrevKey == 0)
+            {
+                //Added the key, we allocate our index atomically from the free list  <changed>
+                uint FreeListIndex; <changed>
+                InterlockedAdd(TableFreeListIndex[Cascade], 1, FreeListIndex); <changed>
+                uint DataIndex = TableFreeList[TableBase + FreeListIndex]; <changed>
+
+                //The indirection entries, that point our table index to the data, and keed track of which key is there <changed>
+                TableEntryIndex[TableBase + Index] = DataIndex; <changed>
+                TableKeys[TableBase + DataIndex] = Key; <changed>
+                Index = DataIndex; <changed>
+                return true;
+            }
+            else if (PrevKey != Key)
+            {
+                //We got blocked by another thread so use the next slot
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+        }
+        // Else our key is already in the table, so do nothing
+        break;
+    }
+
+    return false;
+}
+
+// Same as HashTableAdd, but re-adds a key with the data index it had last frame <changed>
+// Index input is the first slot to look at, this needs to be the same as used for adding <changed>
+// DataIndex is the data index this key should point to <changed>
+// Returns true if key is added for the first time.  <changed>
+bool HashTableAddIndex(uint64_t Key, uint Index, uint DataIndex, uint Cascade) <changed>
+{
+
+    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    uint TableBase = Cascade * HashTableSize; // this cascade's start position
+    //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
+    uint CascadeTableSize = HashTableSize >> (2 * Cascade);
+
+    //Index is random so we need to limit it to our buffer size
+    Index = Index % CascadeTableSize;
+
+    //In the worst case if the whole hashtable is full we need to check every spot. (the table works best when its filled around < 80%)
+    for (uint i = 0; i < CascadeTableSize; i++)
+    {
+
+        uint64_t StoredKey = RWHashTable[TableBase + Index];
+        if (StoredKey != Key)
+        {
+            //Skip if the slot is already occupied
+            if (StoredKey != 0)
+            {
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+
+            //We use a atomic here, to make sure another thread didn't occupy this slot while we are busy
+            uint64_t PrevKey;
+            InterlockedCompareExchange(RWHashTable[TableBase + Index], 0, Key, PrevKey);
+
+            if (PrevKey == 0)
+            {
+                //Added the key, point it to its old data so the previous results stay valid <changed>
+                TableEntryIndex[TableBase + Index] = DataIndex; <changed>
+                return true;
+            }
+            else if (PrevKey != Key)
+            {
+                //We got blocked by another thread so use the next slot
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+        }
+        // Else our key is already in the table, so do nothing
+        break;
+    }
+
+    return false;
+}
+
+// Returns true if key is found.
+// Index input is the first slot to look at, this needs to be the same as used for adding
+// Index output is the data index the key points to if found
+bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
+{
+
+    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    uint TableBase = Cascade * HashTableSize; // this cascade's start position
+    //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
+    uint CascadeTableSize = HashTableSize >> (2 * Cascade);
+
+    //Index is random so we need to limit it to our buffer size
+    Index = Index % CascadeTableSize;
+
+    //In the worst case if the whole hashtable is full we need to check every spot
+    for (uint i = 0; i < CascadeTableSize; i++)
+    {
+        uint64_t StoredKey = HashTable[TableBase + Index];
+        if (StoredKey != Key)
+        {
+            //Skip if the slot is occupied by another key
+            if (StoredKey != 0)
+            {
+                Index++;
+                Index = Index % CascadeTableSize;
+                continue;
+            }
+
+            //Found an empty slot, so the key was never added.
+            //this logic is valid since the table fills linearly from our start index
+            return false;
+        }
+        // Else we found our key, so look up its data index <changed>
+        Index = TableEntryIndex[TableBase + Index]; <changed>
+        return true; <changed>
+    }
+
+    return false;
+}
+</script>
+
     <script type="text/plain" data-include="ColorFromHash.hlsl" data-language="cpp">//Some magic functions that output a nice random color from a hash.
 //I always struggle to find one of these to easily copy paste so here is one :P
 
