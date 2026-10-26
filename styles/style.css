@@ -94,7 +94,7 @@ main {
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
-    max-width: 90%;
+    max-width: 100%;
 }
 
 .header-left {
