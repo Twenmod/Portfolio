@@ -79,7 +79,7 @@
         <section class="toc-section">
             <section class="section">
                 <div class="container article-content">
-                    <img loading="lazy" src="../media/images/articles/rc/SaintRC.png" alt="Saint Miquel with RC GI">
+                    <img loading="lazy" src="../media/images/articles/rc/SaintRC.png" alt="San Miquel with RC GI">
 
                     <h2>Intro</h2>
                     <p>Radiance cascades is a technique that massively improves global illumination without much extra
@@ -89,52 +89,56 @@
                             href="https://arxiv.org/abs/2607.20384">Ray Splitting</a> which allows
                         the use of RC
                         <span style="opacity: 0.5">(Radiance cascades)</span><br>in 3D without huge costs, and how to
-                        implement this.
+                        implement it.
                     </p>
 
                     <h3>Radiance Cascades</h3>
-                    <p>For this article i'll assume you already know the basics of RC, <br>if not I really recommend the
+                    <p>For this article I'll assume you already know the basics of RC, <br>if not I really recommend the
                         interactive tutorial from <a href="https://jason.today/rc">jason.today</a> or the article from
                         <a href="https://m4xc.dev/articles/fundamental-rc/">MAX</a> <br>
-                        Here is a quick recap as well
+                        Here is a quick recap as well.
                     </p>
                     <h4>RC Recap</h4>
                     <p>The main point of RC is combining the samples/rays for our GI in a way that utilizes them most
-                        effectively.<br>This results in a more correct output with less samples.The way of combining
+                        effectively.<br>This results in a more correct output with less samples. The way of combining
                         this
-                        relies on the Penumbra hypothesis. <br>Which states that, when you are
-                        close to a light source you need less rays (less angular resolution) to <i>find</i> the light.
+                        relies on the penumbra hypothesis. <br>Which states that, when you are
+                        close to a light source you need fewer rays (less angular resolution) to <i>find</i> the light.
                     </p>
-                    <img loading="lazy" class="img-small" src="../media/images/articles/split-rc/TODO.webp"
-                        alt="TODO IMAGE" />
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/raycount.gif"
+                        alt="Animation showing light missing, when further" />
                     <p>Inversely when you are close to a light you need more probes (spatial resolution) to get correct
                         shadows</p>
-                    <img loading="lazy" class="img-small" src="../media/images/articles/split-rc/TODO.webp"
-                        alt="TODO IMAGE" />
-                    <p>By merging layers ranging from (high resolution, low direction count) count to (low resolution,
-                        high direction count) that correspond to a interval of the ray.<br>we get best of both</p>
+                    <img loading="lazy" class="img-small" style="max-height: 20rem"
+                        src="../media/images/articles/rc/falloff.png"
+                        alt="Showing how larger interpolation works out far away" />
+                    <p style="opacity:0.5; font-size: small">To interpolate the half shadow, we need the light at both
+                        sides. Further away this spacing can be bigger to still get probes on both sides.</p>
+                    <p>By merging layers ranging from (high resolution, low direction count) to (low resolution,
+                        high direction count) that correspond to an interval of the ray, we get best of both of these
+                        in the range that matters.
+                    </p>
 
                     <h2>Probes</h2>
 
                     <h3>Problems of 3D</h3>
-                    <p>RC Requires storing our light into a grid of probes,<br>This becomes a problem in 3D due to the
+                    <p>RC requires storing our light into a grid of probes. <br>This becomes a problem in 3D due to the
                         massive memory cost that introduces. since probe counts scale ^3</p>
                     <img loading="lazy" class="img-small" style="max-height: 10rem;"
                         src="../media/images/articles/rc/memory.png" alt="Showcasing memory scaling" />
-                    <p>Even if we would just put this around the camera it would cost way too much memory to get a
+                    <p>Even if we would only put this around the camera it would cost way too much memory to get a
                         decent resolution.<br>Luckily we only need probes where we need light, which is on all visible
                         surfaces.<br>So we need a way to only put probes on visible geometry.</p>
-                    <img loading="lazy" class="img-small" style="max-height: 10rem;"
-                        src="../media/images/articles/rc/visible.png"
-                        alt="TODO: IMG Probes spawned only on visible geometry" />
                     <h3>Sparse probes</h3>
-                    <p>To only spawn probes on visible surfaces, we reconstruct worldpositions from the screen.<br>We
-                        round these positions to a grid of cells</p>
+                    <p>To only spawn probes on visible surfaces, we reconstruct world positions from the screen.<br>We
+                        round these positions to a grid of cells.</p>
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/worldprobe.png" alt="Cells based on world position" />
                     <p>To store our light in these cells we need a buffer of probes. <br>To allocate this we use a
-                        hashtable, creating a hash for each cell allows us to quickly allocate a slot for each of these
-                        without much fighting between threads.<br>We also store a AppendBuffer with a list of the probes
+                        hashtable. Creating a hash for each cell allows us to quickly allocate a slot for each of these
+                        without much fighting between threads.<br>We also store an AppendBuffer with a list of the
+                        probes
                         we allocated, this will be used later to launch our next passes indirectly.<br><span
                             style="opacity: 0.5;">(this somewhat goes against the use of the hashtable, but the table
                             will be needed more later)</span><br>We clear and fill this table every frame and with this
@@ -196,7 +200,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
     }
 }
 </code></pre>
-                    <p>We can visualize/debug our probes in a seperate pass</p>
+                    <p>We can visualize/debug our probes in a separate pass</p>
 
                     <pre class="code" data-collapsed="Example Code: Debug output"><code class="language-cpp">// HLSL, Compute: "Output.hlsl"
 #include "HashTable.hlsl"
@@ -235,8 +239,8 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
                     <h4>Cascades</h4>
                     <p>With this gather pass we now have a single cascade of probes allocated.<br>However we need
                         multiple cascades of lowering resolution to do RC.<br>
-                        For this we need to fill seperate hashtables for each cascade, we could just re-run our shader
-                        for each cascade but that would be very innefficent.<br> We already have our highest detail
+                        For this we need to fill separate hashtables for each cascade, we could just re-run our shader
+                        for each cascade but that would be very innefficient.<br> We already have our highest detail
                         probes and there are significantly less of them than we have pixels. <br>So instead of running
                         over all pixels again, we can just go over all the probes we just allocated, for each of these
                         we just halve their position to get the cascade above it. Any duplicates we get from this are
@@ -247,7 +251,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
 #include "HashTable.hlsl"
 
 // Since each pass continues from the last,
-// this starts of with the counter from the gather, and then is set to the counter we're filling for the next cascade. 
+// this starts off with the counter from the gather, and then is set to the counter we're filling for the next cascade. 
 // So each pass launches the next
 RWStructuredBuffer&lsaquo;uint&rsaquo; PrevActiveProbes;
 RWStructuredBuffer&lsaquo;uint&rsaquo; PrevActiveCounter;
@@ -272,7 +276,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 	}
 
     // Get the actual key out of the active list which just contains hashtable id's
-    // Im adding the cascade since my hashtable stores the seperate tables in 1 big buffer
+    // Im adding the cascade since my hashtable stores the separate tables in 1 big buffer
     uint64_t ProbeKey = HashTable[(Cascade-1) * HashTableSize + PrevActiveProbes[ProbeId]];
 
     // Since our key is just bit shifted positions we can unpack it again.
@@ -308,7 +312,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     <h3>From probes vs from screen</h3>
                     <p>Normally to get the lighting at every probe, we shoot a set amount of rays into random directions
                         from each
-                        probe.<br>This however comes with quite some issues.<br>Ray counts become very big with good
+                        probe.<br>This however comes with quite a few issues.<br>Ray counts become very big with good
                         enough spatial and angular resolution. <br>But the main problem is probe positioning, since our
                         probes are in a grid they are not aligned with the surfaces which can cause a bunch of rays to
                         shoot below the surface. <br>This can cause overocclusion and light leaking, and also makes it
@@ -319,22 +323,22 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     <p style="opacity: 0.5; font-size: small;">The 2 red rays
                         in this probe here got unfairly blocked because the probe is too far into the ground</p>
                     <p>This would cause dark splotches in our lighting.<br>So instead we can trace the rays from
-                        reconstructed screen positions instead and put these into the probes that are at that
-                        spot.<br>This way rays are send from real geometry avoiding this problem.</p>
+                        reconstructed world positions and put these into the probes that are at that
+                        spot.<br>This way rays are sent from real geometry avoiding this problem.</p>
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/depth.png" alt="Rays being sent from the view position" />
                     <p style="opacity: 0.5; font-size: small;">Here the blue rays are sent from the position gotten from
                         the
                         screen, then moved into the closest probe.</p>
                     <h3>Splitting into intervals</h3>
-                    <p>However in RC each cascade does not contain the full ray, only a interval/segment of it.
+                    <p>However, in RC each cascade does not contain the full ray, only a interval/segment of it.
                         <br>Sending multiple rays for each interval at each pixel would be quite inefficient.
                         <br>Instead we do it the other way around, we trace the full ray and pick the interval (and thus
-                        cascade) that it would've hit in based on its hit distance.<br>
-                        We fill the hit interval's cascade with the lighting, and the mark transparancy / that a ray
+                        cascade) that it would have hit in based on its hit distance.<br>
+                        We fill the hit interval's cascade with the lighting, and then mark transparancy / that a ray
                         traveled through them in the cascades below the hit one.<br><br>
 
-                        We store this in multiple bins per probe, one for each direction, we need to lay out these
+                        We store this in multiple bins per probe, one for each direction. We need to lay out these
                         directions evenly and most importantly in a way that scales so that our merging evenly combines
                         them into lower cascades.<br>
                         For shooting each ray we can just pick a random direction in a hemisphere at our hit.
@@ -420,7 +424,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
             //Directions increase every cascade
             uint DirectionCount = BaseDirections &lsaquo;&lsaquo; Cascade;
 
-            //I calculate a offset to store the probes for each cascade in 1 big buffer instead of seperate ones per cascade, which is also valid.
+            //I calculate a offset to store the probes for each cascade in 1 big buffer instead of separate ones per cascade, which is also valid.
             uint CascadeIndex = Cascade * MaximumProbes * BinsPerProbe(BaseDirections);
 
             //Convert the ray's direction to the index of the bin we store that direction in.
@@ -431,7 +435,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
             float3 Rad = HitCascade ? Radiance : float3(0, 0, 0);
 
             //Normally you cannot do atomics on floats, so I pack the float values to a fixed point uint, 
-            // This is a simple multiply/devide since the values are never negative 
+            // This is a simple multiply/divide since the values are never negative 
             
             //Attomically deposit our hit, since multiple rays deposit to the same probe
             InterlockedAdd(TotalRadiance[SlotIndex].x, PackFloatUnsigned(Rad.x));
@@ -446,17 +450,17 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
 }
 </code></pre>
                     <p>With this we should now have every cascade filled with its interval of light.<br>If we display
-                        this by just avaraging all bins in a output pass, we can see the rings of light this contains.
+                        this by just averaging all bins in an output pass, we can see the rings of light this contains.
                     </p>
                     <h3>Merging</h3>
                     <p>We now want to merge these intervals together so we can get our entire path of light.<br>
                         We do this by going through our cascades from top down.<br>
                         <br>
-                        We need to interpolate the directions and probes, <br>Starting with directions, since our
+                        We need to interpolate the directions and probes. <br>Starting with directions, since our
                         directions are evenly mapped to 4 times more in the above cascade we evenly interpolate these in
                         our own cascade.
                     </p>
-                    <p>However we need to also keep in account the transparency in this merging, <br>
+                    <p>However we need to also keep in account the transparency in this merging. <br>
                         If a ray was already blocked in the direction we're merging in the lower cascade/interval we
                         shouldn't merge it downwards.</p>
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
@@ -479,7 +483,7 @@ RWStructuredBuffer&lsaquo;uint4&rsaquo; TotalRadiance;
 RWStructuredBuffer&lsaquo;uint&rsaquo; Weights;
 RWStructuredBuffer&lsaquo;uint&rsaquo; DepositCounts;
 
-//Seperate outputbuffer our merging outputs into
+//Separate outputbuffer our merging outputs into
 RWStructuredBuffer&lsaquo;float4&rsaquo; MergedRadiance;
 
 [numthreads(64, 1, 1)]
@@ -535,7 +539,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                 bool Found = HashTableFind(CascadeKey, Cascade + 1, [&]: ParentIndex);
                 if (Found)
                 {
-                    // The parent has 4 times as much directions, so go over the 4 directions in the parent
+                    // The parent has 4 times as many directions, so go over the 4 directions in the parent
                     float4 DirRadiance = 0;
                     for (uint d = 0; d &lsaquo; 4; ++d)
                     {
@@ -552,14 +556,15 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 }
 
 </code></pre>
-                    <p>This merges our directions from the closest probe, Instead we want to check all the above probes
+                    <p>This merges our directions from the closest probe. Instead we want to check all the above probes
                         and blend between them.<br>For this we need to keep in mind probe spacing, each lower cascade
-                        has 4 probes inside 1 upper probe. So we shouldnt evenly blend.</p>
+                        has 8 probes inside 1 upper probe. So we shouldnt evenly blend.</p>
 
                     <p>It's also important to keep in mind that our grid is sparse, meaning the 8 surrounding probes
                         will probably not all be there. <br>This can be resolved by only weighing and sampling the
                         probes that actually exist.<br>
-                        Additionally not all our probes are of the same quality. The amount of rays a probe contains and
+                        Additionally, not all our probes are of the same quality. The amount of rays a probe contains
+                        and
                         thus how accurate it is, is
                         based on its visibility on the screen. <br>We should also adjust for this, giving a higher
                         weight to probes that contain more rays.
@@ -576,7 +581,7 @@ RWStructuredBuffer&lsaquo;uint4&rsaquo; TotalRadiance;
 RWStructuredBuffer&lsaquo;uint&rsaquo; Weights;
 RWStructuredBuffer&lsaquo;uint&rsaquo; DepositCounts;
 
-//Seperate outputbuffer our merging outputs into
+//Separate outputbuffer our merging outputs into
 RWStructuredBuffer&lsaquo;float4&rsaquo; MergedRadiance;
 
 [numthreads(64, 1, 1)]
@@ -726,13 +731,15 @@ if (TotalWeight > 0.0)
                     <img loading="lazy" class="img-small" style="max-height: 20rem;"
                         src="../media/images/articles/rc/working.png" alt="Full light ray" />
                     <h2>LODs</h2>
-                    <p>Currently we had a even grid of probes, which works fine for small scenes. But our probes get
+                    <p>Currently we have a even grid of probes, which works fine for small scenes. But our probes get
                         very small on the screen further away.<br>This has 2 major problems. <br>We shoot our rays from
                         the screen, so the number of rays in a probe is based on how many pixels it occupies on the
-                        screen. So very small probes only get one ray or maybe even less.<br>Secondly the amount of
-                        probes we spawn explodes further away which costs a lot of memory and cost to merge.<br><br>By
+                        screen. So very small probes only get one ray or maybe even less.<br>Secondly, the number of
+                        probes we spawn explodes further away which costs a lot of memory and is expensive to
+                        merge.<br><br>By
                         adding a form of LODs to our probes we solve both these problems, at only the cost of lower
-                        resolution lighting far away.<br>This is very similar to cascades shadow maps which makes naming
+                        resolution lighting far away.<br>This is very similar to cascaded shadow maps which makes
+                        naming
                         confusing and thus we call them LODs/Levels.<br>For each higher LOD we also halve the
                         resolution
                         similarly to our higher cascades although we keep the direction count the same. <br>
@@ -740,7 +747,7 @@ if (TotalWeight > 0.0)
                         index to our per probe key. <br>We need to do this since our halved positions can overlap with
                         the
                         lower level.<br>We can just bitshift this index after the rest of our key.<br><br>Since
-                        everything else uses the hashmap, this should automatically work with the rest of our code
+                        everything else uses the hashtable, this should automatically work with the rest of our code
                         assuming we calculate the key in the same way.</p>
                     <pre class="code" data-collapsed="Example Code"><code class=" language-cpp">// HLSL,
 
@@ -796,7 +803,7 @@ void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out fl
 //When depositing and applying
 //We loop over the range and deposit/apply both levels, following their weights.
 </code></pre>
-                    <p>This should result in smooth, although flickering results</p>
+                    <p>This should result in smooth, although flickering results.</p>
                     <div class="img-compare info-small" data-before="../media/images/articles/rc/LSeams.png"
                         data-after="../media/images/articles/rc/NoLSeams.png">
                         <img loading="lazy" class=" img-after" src="../media/images/articles/rc/LSeams.png"
@@ -810,10 +817,10 @@ void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out fl
                     <h2>Temporal</h2>
                     <p>Due to the benefits of splitting & merging with RC our single frame result is already pretty
                         good. <br>But since we still send random rays, there is still some flickering especially in
-                        probes that did not get much rays. <br>We can fix this by accumulating our probes over time,
-                        this doesnt come with the drawbacks of most temporal effects. <br>
+                        probes that did not get many rays. <br>We can fix this by accumulating our probes over time.
+                        This doesnt come with the drawbacks of most temporal effects. <br>
                         Since our probes are spatially stable, there is no smearing from bad reprojection.<br>
-                        And since our single frame results are also pretty good already there is barely any
+                        And since there is not a lot of noise in after a single frame there is barely any
                         ghosting.<br>
                         So the only drawback is slower lighting updates.
                     </p>
@@ -823,10 +830,10 @@ void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out fl
                         frame's result in their spot in the buffer.<br>
                         One way of doing this is by adding a layer of indirection to our hashtable, instead of storing
                         the index into our data buffer in the table we store an index into another list of indices.<br>
-                        That way we can add a pass that re-allocates our previous frames results with the same index as
+                        That way we can add a pass that re-allocates our previous frame's results with the same index as
                         the data.<br><br>
-                        We also need to keep track of the lifetime of probes, to know which probes to reallocate or not.
-                        Resetting their lifetime if they are on screen.
+                        We also need to keep track of the lifetime of probes, to know which probes to reallocate or not,
+                        and resetting their lifetime if they are on screen.
                     </p>
                     <pre class="code" data-collapsed="Example Code: (Re)building Hashtable"><code class="language-cpp">// HLSL, Compute:
 #include "StableHashTable.hlsl"
@@ -918,12 +925,13 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 </code></pre>
                     <p>The hashtable should now be stable, you can test this using the debug output code from earlier,
                         outputting the index. Probes shouldn't change color unless they go off the screen.<br>
-                        With stable probes temporaly accumulating is easy, when going over the probes (in the merge pass
-                        or in a seperate pass) we just re-add the probes accumulated light and weights with a falloff.
+                        With stable probes temporally accumulating is easy, when going over the probes (in the merge
+                        pass
+                        or in a separate pass) we just re-add the probes accumulated light and weights with a falloff.
                         <br>With that you should now have clean single bounce GI.
                     </p>
                     <h3>Multi bounce</h3>
-                    <p>Currently light only bounces once from where we are looking, things only start looking really
+                    <p>Currently light only bounces once from where we are looking. Things only start looking really
                         good when we do multiple bounces.<br>
                         To achieve this we need to trace 1 extra bounce ray everywhere, from which we can get infinite
                         bounces over time.<br>
@@ -934,7 +942,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     </p>
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/bounce.png"
-                        alt="One ray is shot, after another is shot from the spot" />
+                        alt="One ray is shot, afterwards another is shot from the spot" />
                     <p style="opacity: 0.5; font-size: small;">The first hit is stored, then another random ray is sent
                         from that hit position</p>
 
@@ -942,9 +950,10 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         This gives us a single real bounce, but increasing this to more would be very expensive.
                         Instead we can sample the probes to apply GI to this, with the temporal accumulation that gives
                         us an extra bounce every frame.
-                        However since our probes are only allocate where we are looking, we wouldn't be able to get this
+                        However since our probes are only allocated where we are looking, we wouldn't be able to get
+                        this
                         bounce light from outside of the screen, since there are no probes to sample from. <br>
-                        To resolve this we allocate a seperate secondary probe cache for this, we allocate extra probes
+                        To resolve this we allocate a separate secondary probe cache for this, we allocate extra probes
                         at the hit positions of our primary ray. We fill these with radiance from the bounce ray, in the
                         same way as our primary ray.<br>
                         To accumulate this to multiple bounces, we sample this cache at the hits of our primary and
@@ -954,8 +963,8 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         src="../media/images/articles/rc/multiSingleBounce.gif" alt="Animation of secondary probes" />
                     <p style="opacity: 0.5; font-size: small;">In one frame we send the primary ray, which allocates a
                         probe filled with the bounce ray.<br>
-                        The next frame a different bounce ray hits the same secondary probe. Since it samples it also
-                        contains the previous bounce.<br>
+                        The next frame a different bounce ray hits the same secondary probe. Since it samples the cache
+                        it then also contains the previous bounce.<br>
                         Over frames this stacks to infinite bounces</p>
                     <p>This gives us infinite bounces, however it is limited to only the area covered by the single
                         bounce ray, since that one allocates the secondary probes.<br><br>We can re-use almost our whole
@@ -977,23 +986,24 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     </div>
                     <h2>Basic optimizations & improvements</h2>
                     <p>For simplicity I kept out a lot of optimizations or better ways to do things. <br>
-                        I wont go over how to fully optimize but will briefly go over the main improvements that can be
-                        done to get this running good.</p>
+                        I won't go over how to fully optimize but will briefly go over the main improvements that can be
+                        done to get this running well.</p>
                     <h3>Choosing directions</h3>
                     <p>One big improvement in quality is choosing directions in a better way, currently we choose
                         completely random directions.<br>But there are multiple semi random sequences that accumulate to
                         good results significantly quicker.<br>By using a deposit count per probe as an index into
-                        something like the R2 sequence, direction coverage accumulates significantly faster.</p>
+                        something like the R2 sequence or blue noise, direction coverage accumulates significantly
+                        faster.</p>
 
                     <h3>Group sharing</h3>
-                    <p>Apart from tracing our merging & applying pass is the most expensive.<br>It's sampling a lot of
+                    <p>Apart from tracing, our merging & applying pass is the most expensive.<br>It's sampling a lot of
                         data across a low amount of threads.<br>For example the bin merging can be done across threads,
-                        loading the 8 probes together and having each thread load a bin. <br>Merging them as a group.
+                        loading the 8 probes together and having each thread load a bin, merging them as a group.
                     </p>
 
                     <h3>Lowering ray count</h3>
-                    <p>Raytracing cost is by far the most expensive part,<br>We can skip a percentage of pixels every
-                        frame to reduce cost significantly, although at the drawback of slower accumulation and thus
+                    <p>Raytracing cost is by far the most expensive part.<br>We can skip a percentage of pixels every
+                        frame to reduce cost significantly, although with the drawback of slower accumulation and thus
                         more ghosting.<br>Balancing this with probe sizes can improve the accumulation but at the cost
                         of light resolution.<br>This allows for a nice way of tweaking quality vs performance.<br>
                         It might also be worth replacing (some of) the rays with cheaper ones like screen space rays or
@@ -1004,7 +1014,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     <h2>Conclusions</h2>
                     <h3> Performance </h3>
                     <p>Almost all of the cost of this goes to actual tracing.<br>
-                        For my implemention in unreal on my 5070 Laptop GPU in San Miguel the
+                        For my implemention in Unreal on my 5070 Laptop GPU in San Miguel the
                         cost of RC is about ~2ms depending on probe sizing.<br>Although with ~13ms on top of raytracing
                         at 2spp (1
                         primary 1 bounce) and ~2ms for depositing the rays.<br><br>Although the expensive tracing cost
@@ -1019,10 +1029,10 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         <div class="label before-label">Path traced</div>
                         <div class="label after-label">RC</div>
                     </div>
-                    <p style="opacity:0.5;">The main points of error are, light leaking in spots smaller than a
-                        (secondary) probe, and softer shadows (presumably due to not enough base directions)</p>
+                    <p style="opacity:0.5;">The main points of error are light leaking in spots smaller than a
+                        (secondary) probe, and softer shadows. (presumably due to not enough base directions)</p>
                     <video controls width="100%">
-                        <source src="../media/videos/articles/TODO.mp4" type="video/mp4">
+                        <source src="../media/videos/articles/rcvid-c.mp4" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
 
@@ -1056,7 +1066,7 @@ uint HashTableSize;
 bool HashTableAdd(uint64_t Key, inout uint Index, uint Cascade)
 {
 
-    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    //Each cascade needs a separate hashtable, to simplify things we just offset in the same buffer
     uint TableBase = Cascade * HashTableSize; // this cascade's start position
     //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
     uint CascadeTableSize = HashTableSize >> (2 * Cascade);
@@ -1109,7 +1119,7 @@ bool HashTableAdd(uint64_t Key, inout uint Index, uint Cascade)
 bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
 {
 
-    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    //Each cascade needs a separate hashtable, to simplify things we just offset in the same buffer
     uint TableBase = Cascade * HashTableSize; // this cascade's start position
     //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
     uint CascadeTableSize = HashTableSize >> (2 * Cascade);
@@ -1144,7 +1154,7 @@ bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
 </script>
 
     <script type="text/plain" data-include="StableHashTable.hlsl" data-language="cpp">
-//That allocates its data index from a free list, so probes keep the same index across frames
+//Hashtable that allocates its data index from a free list, so probes keep the same index across frames
 
 StructuredBuffer<uint64_t> HashTable;
 RWStructuredBuffer<uint64_t> RWHashTable;
@@ -1164,7 +1174,7 @@ RWStructuredBuffer<uint64_t> TableKeys; <changed>
 bool HashTableAdd(uint64_t Key, inout uint Index, uint Cascade)
 {
 
-    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    //Each cascade needs a separate hashtable, to simplify things we just offset in the same buffer
     uint TableBase = Cascade * HashTableSize; // this cascade's start position
     //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
     uint CascadeTableSize = HashTableSize >> (2 * Cascade);
@@ -1226,7 +1236,7 @@ bool HashTableAdd(uint64_t Key, inout uint Index, uint Cascade)
 bool HashTableAddIndex(uint64_t Key, uint Index, uint DataIndex, uint Cascade) <changed>
 {
 
-    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    //Each cascade needs a separate hashtable, to simplify things we just offset in the same buffer
     uint TableBase = Cascade * HashTableSize; // this cascade's start position
     //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
     uint CascadeTableSize = HashTableSize >> (2 * Cascade);
@@ -1280,7 +1290,7 @@ bool HashTableAddIndex(uint64_t Key, uint Index, uint DataIndex, uint Cascade) <
 bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
 {
 
-    //Each cascade needs a seperate hashtable, to simplify things we just offset in the same buffer
+    //Each cascade needs a separate hashtable, to simplify things we just offset in the same buffer
     uint TableBase = Cascade * HashTableSize; // this cascade's start position
     //Each cascade has a smaller amount of probes, since they decrease in spatial resolution
     uint CascadeTableSize = HashTableSize >> (2 * Cascade);
