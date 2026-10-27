@@ -79,7 +79,7 @@
         <section class="toc-section">
             <section class="section">
                 <div class="container article-content">
-                    <img loading="lazy" src="../media/images/articles/rc/SaintRC.png" alt="San Miquel with RC GI">
+                    <img loading="lazy" src="../media/images/articles/rc/SaintRC.png" alt="San Miguel with RC GI">
 
                     <h2>Intro</h2>
                     <p>Radiance cascades is a technique that massively improves global illumination without much extra
@@ -89,7 +89,10 @@
                             href="https://arxiv.org/abs/2607.20384">Ray Splitting</a> which allows
                         the use of RC
                         <span style="opacity: 0.5">(Radiance cascades)</span><br>in 3D without huge costs, and how to
-                        implement it.
+                        implement it.<br><br>
+                        <span style="opacity: 0.5; font-size: small;">Note that the code examples are modified for
+                            clearability, so might
+                            not fully work</span>
                     </p>
 
                     <h3>Radiance Cascades</h3>
@@ -108,7 +111,8 @@
                     <img loading="lazy" class="img-small" style="max-height: 15rem;"
                         src="../media/images/articles/rc/raycount.gif"
                         alt="Animation showing light missing, when further" />
-                    <p>Inversely when you are close to a light you need more probes (spatial resolution) to get correct
+                    <p>In addition when you are close to a light you need more probes (spatial resolution) to get
+                        correct
                         shadows</p>
                     <img loading="lazy" class="img-small" style="max-height: 20rem"
                         src="../media/images/articles/rc/falloff.png"
@@ -163,7 +167,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
         return;
     }
 
-    float2 UV = float2(PixelId) + 0.5f / float2(ViewportPixelSize);
+    float2 UV = (float2(PixelId) + 0.5f) / float2(ViewportPixelSize);
 
     float DeviceZ = SampleSceneDepth(UV);
     if (DeviceZ == 0) {
@@ -189,8 +193,7 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
     //Get a random index from our Key, most hashing functions work on 32 bit uints so we do this
     uint Index = Hash(uint(Key) ^ Hash(uint(Key >> 32)));
 
-    bool Added = HashTableAdd(Key, Cascade: 0, [&]: Index);
-    //Added should always be true here if you cleared the hash table
+    bool Added = HashTableAdd(Key,  [&]: Index, Cascade: 0);
     if (Added)
     {
         //Add to active probes for next passes
@@ -222,11 +225,11 @@ void MainCS(uint2 DispatchThreadId : SV_DispatchThreadID)
 	uint64_t Key = PackProbeKey(Cell);
 
     uint Index = Hash(uint(Key) ^ Hash(uint(Key >> 32)));
-	bool Found = HashTableFind(Key, Cascade: 0, [&]: Index);
+	bool Found = HashTableFind(Key, [&]: Index, Cascade: 0 );
 
     if (Found) {
         //Since our hashtable is unstable, using debugindex will flicker, you can use the key instead for now.
-        Output[PixelId] = float4(ColorFromHash(Hash(DebugIndex)), 1.0);
+        Output[PixelId] = float4(ColorFromHash(Hash(Index)), 1.0);
     }else {
         Output[PixelId] = float4(1,0,0,1);
     }
@@ -293,8 +296,6 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 		InterlockedAdd(NextActiveCounter[0], 1, Counter);
 		NextActiveProbes[Counter] = Index;
 
-    }else {
-        // Should be impossible if we cleared the table correctly
     }
 }
 
@@ -359,7 +360,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
 {
 	uint2 PixelCoord = DispatchRaysIndex().xy;
 
-    float2 UV = float2(PixelId) + 0.5f / float2(ViewportPixelSize);
+    float2 UV = (float2(PixelCoord) + 0.5f) / float2(ViewportPixelSize);
 
 	FGBufferData GBuffer = GetGBufferDataFromSceneTextures(UV);
 
@@ -379,7 +380,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
 	uint64_t TopKey = MakeProbeKey(WorldPos, CameraPos);
 
     uint TopProbeIndex = Hash(uint(TopKey) ^ Hash(uint(TopKey >> 32)));
-	bool Found = HashTableFind(TopKey, Cascade: 0, [&]: TopProbeIndex);
+	bool Found = HashTableFind(TopKey, [&]: TopProbeIndex, Cascade: 0);
 	if (!Found)
 	{
 		//Shouldn't really be possible unless there is a mismatch with our gather 
@@ -391,7 +392,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
     Ray.Direction = RandomHemiSphere(Normal).xyz;
 
     //Trace the actual ray, this should trace 1 hit with direct lighting applied.
-	FMaterialClosestHitPayload Payload = TraceRayWithLighting(Ray, ...)
+	FMaterialClosestHitPayload Payload = TraceRayWithLighting(Ray, ..., [&]: Radiance);
     
 
 	//Fill into containing cascades
@@ -415,7 +416,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
         uint64_t CascadeKey = PackProbeKey(KeyData.Cell >> Cascade);
 
         uint ProbeIndex = Hash(uint(CascadeKey) ^ Hash(uint(CascadeKey >> 32)));
-        bool Found = HashTableFind(CascadeKey, Cascade, [&]: ProbeIndex);
+        bool Found = HashTableFind(CascadeKey, [&]: ProbeIndex, Cascade);
         if (Found)
         {
             //We only deposit the full color if the ray hit in this cascade
@@ -430,7 +431,7 @@ static const float kC0Len = 1.5958; // sqrt(2*BaseDirections*BaseDirections / (4
             //Convert the ray's direction to the index of the bin we store that direction in.
             uint DirectionalBinIndex = DirToLinear(Ray.Direction.xyz, DirectionCount);
             
-            uint SlotIndex = CascadeIndex + ProbeIndex * BinsPerProbe(DirectionCount) + DirectionalBinIndex
+            uint SlotIndex = CascadeIndex + ProbeIndex * BinsPerProbe(DirectionCount) + DirectionalBinIndex;
 
             float3 Rad = HitCascade ? Radiance : float3(0, 0, 0);
 
@@ -504,7 +505,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
     ProbeKeyInfo KeyData = UnpackProbeKey(ProbeKey);
 
     //The parent cell is bigger so halve its position
-	int3 ParentCell = (KeyData.Cell - 1) >> 1;
+	int3 ParentCell = (KeyData.Cell) >> 1;
     
     //Direction count of this cascade
 	uint DirectionCount = BaseDirections &lsaquo;&lsaquo; Cascade;
@@ -536,7 +537,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                 uint64_t ParentCascadeKey = PackProbeKey(ParentCell);
 
                 uint ParentIndex = Hash(uint(ParentCascadeKey) ^ Hash(uint(ParentCascadeKey >> 32)));
-                bool Found = HashTableFind(CascadeKey, Cascade + 1, [&]: ParentIndex);
+                bool Found = HashTableFind(ParentCascadeKey, [&]: ParentIndex, Cascade + 1);
                 if (Found)
                 {
                     // The parent has 4 times as many directions, so go over the 4 directions in the parent
@@ -546,7 +547,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         uint ParentSlotIndex = ParentCascadeIndex + ParentIndex * BinsPerProbe(ParentDirCount) + i * 4 + d;
                         DirRadiance += MergedRadiance[ParentSlotIndex];
                     }
-                    ParentRadianceSum = (DirRadiance.xyz / DirRadiance.w);
+                    ParentRadiance = (DirRadiance.xyz / DirRadiance.w);
             }
         }        
         MergedRadiance[SlotIndex] = (Weight &lsaquo;= 0.0001)
@@ -649,7 +650,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                 uint64_t ParentCascadeKey = PackProbeKey(Corner); &lt;changed&gt;
 
                 uint ParentIndex = Hash(uint(ParentCascadeKey) ^ Hash(uint(ParentCascadeKey >> 32)));
-                bool Found = HashTableFind(CascadeKey, Cascade + 1, [&]: ParentIndex);
+                bool Found = HashTableFind(ParentCascadeKey, [&]: ParentIndex, Cascade + 1);
                 if (Found)
                 {
                     //Weight of this probe, this was based on how much rays got binned into it. &lt;changed&gt;
@@ -782,20 +783,20 @@ uint64_t MakeProbeKey(float3 WorldPos, float3 CameraPos)
                         src="../media/images/articles/rc/lod.png" alt="LODs increasing size on distance" />
                     <p>This fixes a lot of flickering or overallocation further away, however it creates big seams where
                         the
-                        LODs change.<br>So we want to blend in between these seams. To do this we keep one probe of
-                        overlap at the seam, allocating probes of both levels and also binning the ray into
+                        LODs change.<br>So we want to blend in between these seams. To do this we keep some probes of
+                        overlap, allocating probes of both levels and also binning the ray into
                         both.<br>Wherever we calculate our level we instead calculate the range, making sure to keep
                         correct weights so we do not double the light at the seam.</p>
                     <pre class="code" data-collapsed="Example Code"><code class="language-cpp">// HLSL, Compute:
 
-//Compute a range instead, outputs weights so that we blend correctly on the seam.
+//Compute a range instead, outputs weights so that we blend correctly
 void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out float2 LodWeights)
 {
 	float3 Distance = abs(WorldPos - CameraPos);
 	float Radius = max(Distance.x, max(Distance.y, Distance.z));
 	float LodFloat = log2(Radius / LevelBaseDist);
 	float Blend = min(1.0, (1.0 - frac(LodFloat))); &lt;changed&gt;
-	uint Lower = clamp((uint)ceil(LodFloat), 0, kMaxLevel); 
+	uint Lower = clamp((uint)ceil(LodFloat), 0, MaxLOD); 
 	Lods = uint2(Lower, Lower + 1); &lt;changed&gt;
 	LodWeights = float2(Blend, 1.0 - Blend); &lt;changed&gt;
 }
@@ -824,6 +825,17 @@ void ComputeLevelRange(float3 WorldPos, float3 CameraPos, out uint2 Lods, out fl
                         ghosting.<br>
                         So the only drawback is slower lighting updates.
                     </p>
+                    <p style="opacity: 0.5;">Example of smearing using Lumen</p>
+                    <video controls width="auto" style="max-height: 15rem;">
+                        <source src="../media/videos/articles/rc/smearing.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <p style="opacity: 0.5;">No smearing or much ghosting with RC</p>
+                    <video controls width="auto" style="max-height: 15rem;">
+                        <source src="../media/videos/articles/rc/nosmearing.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+
                     <h3>Stable hash table</h3>
                     <p>Currently we clear and allocate the hashtable every frame, so our probe index moves every frame.
                         <br>To temporally accumulate we want our probes to keep the same index, so that we keep the old
@@ -859,7 +871,7 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
 	uint Table = DataKeyId / MaximumProbes;
 	
     uint Local = DataKeyId - BaseTable * MaximumProbes;
-	if (Table &rsaquo;= NumCascades || Local &rsaquo;= (MaximumProbes &rsaquo;&rsaquo; (2 * BaseTable)))
+	if (Table &rsaquo;= NumCascades || Local &rsaquo;= (MaximumProbes &rsaquo;&rsaquo; (2 * Table)))
 	{
 		return;
 	}
@@ -1016,8 +1028,8 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                     <p>Almost all of the cost of this goes to actual tracing.<br>
                         For my implemention in Unreal on my 5070 Laptop GPU in San Miguel the
                         cost of RC is about ~2ms depending on probe sizing.<br>Although with ~13ms on top of raytracing
-                        at 2spp (1
-                        primary 1 bounce) and ~2ms for depositing the rays.<br><br>Although the expensive tracing cost
+                        at 2spp (1 primary 1 bounce) and another ~2ms for depositing the rays.<br><br>The expensive
+                        tracing cost
                         is very variable, depending on scene size and tracing performance in general.</p>
                     <h3> Comparisons/Showcase </h3>
                     <div class="img-compare info-small" data-before="../media/images/articles/rc/BedPT.png"
@@ -1146,7 +1158,7 @@ bool HashTableFind(uint64_t Key, inout uint Index, uint Cascade)
             return false;
         }
         // Else we found our key
-        break;
+        return true;
     }
 
     return false;
