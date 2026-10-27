@@ -103,14 +103,23 @@
             </div>
             <button class="btn"
                 style="position: absolute; left: var(--container-padding-horizontal, 1rem); top: 50%; transform: translateY(-50%); cursor: pointer;"
-                onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img loading="lazy"
-                    src="media/images/rss.webp" alt="RSS Icon"
+                onclick="navigator.clipboard.writeText('https://www.jacktollenaar.top/feed.xml'); this.textContent = 'Copied to clipboard'; setTimeout(() => this.textContent = 'RSS', 5000);"><img
+                    loading="lazy" src="media/images/rss.webp" alt="RSS Icon"
                     style="height: 1em; vertical-align: middle; margin-right: 0;">RSS</button>
         </section>
 
         <section class="section">
             <div class="container">
                 <div class="cards">
+                    <article class="card">
+                        <a href="articles/split-rc.html">
+                            <img loading="lazy" src="./media/images/articles/rc/BedRC.png" alt="RC">
+                            <h3>Ray splitting</h3>
+                            <p class="muted">Implementing RC with Ray splitting.</p>
+                            <div class="project-year">Oct 27 2026</div>
+
+                        </a>
+                    </article>
                     <article class="card">
                         <a href="articles/clouds.html">
                             <img loading="lazy" src="./media/images/clouds-card.webp" alt="Clouds">
@@ -130,14 +139,7 @@
 
                         </a>
                     </article>
-                    <article class="card">
-                        <a href="articles/basic-denoising.html">
-                            <img loading="lazy" src="./media/images/denoising-card.webp" alt="Basic Denoising">
-                            <h3>Basic Denoising</h3>
-                            <p class="muted">Weighted gaussian blurs as denoising for raytracers.</p>
-                            <div class="project-year">Mar 13 2025</div>
-                        </a>
-                    </article>
+
                     <article class="card">
                         <a href="articles/meshblending.html">
                             <img loading="lazy" src="./media/images/seamblend-card.webp" alt="Mesh seam blending">
@@ -147,7 +149,14 @@
 
                         </a>
                     </article>
-
+                    <article class="card">
+                        <a href="articles/basic-denoising.html">
+                            <img loading="lazy" src="./media/images/denoising-card.webp" alt="Basic Denoising">
+                            <h3>Basic Denoising</h3>
+                            <p class="muted">Weighted gaussian blurs as denoising for raytracers.</p>
+                            <div class="project-year">Mar 13 2025</div>
+                        </a>
+                    </article>
                 </div>
             </div>
         </section>
