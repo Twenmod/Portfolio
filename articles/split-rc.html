@@ -338,7 +338,12 @@ void MainCS(uint DispatchThreadId : SV_DispatchThreadID)
                         cascade) that it would have hit in based on its hit distance.<br>
                         We fill the hit interval's cascade with the lighting, and then mark transparancy / that a ray
                         traveled through them in the cascades below the hit one.<br><br>
-
+                    </p>
+                    <img loading="lazy" class="img-small" style="max-height: 15rem;"
+                        src="../media/images/articles/rc/split.png" alt="A ray being inside a corresponding interval" />
+                    <p style="opacity: 0.5;">The red ray hit inside the second cascade, and thus is binned into the
+                        second and first cascade.</p>
+                    <p>
                         We store this in multiple bins per probe, one for each direction. We need to lay out these
                         directions evenly and most importantly in a way that scales so that our merging evenly combines
                         them into lower cascades.<br>
