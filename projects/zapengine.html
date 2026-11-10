@@ -14,8 +14,7 @@
         <section class="hero container projects-hero">
             <div class="container">
                 <h1>Zap Engine</h1>
-                <p class="lead">cross platform PS5 & PC Game engine<br><b>Project page WIP</b></p>
-
+                <p class="lead">cross platform PS5 & PC Game engine<br></p>
             </div>
         </section>
 
@@ -34,11 +33,15 @@
                                 I was responsible for rendering on both platforms,<br> as the only graphics programmer
                                 in a
                                 team of 6 other engine programmers. <br> <br>
-                                We then had to use this engine in a cross discipline team to make a game.
+
+                                We were then allowed to use this engine in the next block to make a game in a cross
+                                discipline team of 17 people <br><span style="opacity: 0.5;">(2 Artists, 4 Designers, 10
+                                    Programmers and a Producer)</span>.
                             </p>
                         </div>
                         <div class="media">
-                            <img loading="lazy" src="../media/images/projects/zap/zap-env.webp" alt="A environment rendered in Zap">
+                            <img loading="lazy" src="../media/images/projects/zap/zap-env.webp"
+                                alt="A environment rendered in Zap">
                         </div>
                     </div>
                 </div>
@@ -49,41 +52,117 @@
                     <div class="project-row">
                         <div class="text">
                             <h2>My Role</h2>
-                            <p><b>WIP: still have to write/show actual sections, here is a list of what I did for
-                                    now.</b><br><br>I created the renderer for the engine, with feature parity on both
-                                platforms<br>
-                                OpenGL and PS5.
+                            <p>We chose to start our engine from scratch, rather than from the teacher's template, since
+                                we wanted a project based engine that was focussed on scripting.<br>
+                                As I was the only graphics programmer I was responsible for creating the renderer for
+                                both platforms, PC and PS5.</p>
+                            <h3>Decisions</h3>
+                            <p>As I thus had to make a renderer very quickly that everyone depended on, I took some
+                                decisions to make sure to not take too much risk.<br>
+                                These main decisions were 2 things, <br>
+                                <b>PC Platforms</b>, I chose to go with OpenGL as the platform on pc rather than nicer
+                                modern platforms. While I had used DX12 before in my <a
+                                    href="./cloudproject.html">volumetric renderer</a> this was build on MiniEngine so I
+                                had not made a renderer like that from scratch, and more importantly my teammates know
+                                at least some OpenGL so that allowed them to be able to review my code.<br>
+                                <b>Abstraction</b>, I heard from teams before us that they got in trouble by trying to
+                                make clean low level abstractions. <br> To keep things safer for us I chose to put the
+                                abstracting very high up, the platform independent code only submits things to be
+                                rendered. <br>The renderers eventually ended up being very similar in structure anyways,
+                                and I feel like now I would be able to put the abstraction way lower.
                             </p>
-                            <ul>
-                                <li>PBR Renderer, PBR Materials, shadows, and IBL</li>
-                                <li>Particle system, with mesh shaders for rendering. Updates on CPU but performant and
-                                    extensive</li>
-                                <li>Post processing, with: Bloom, Toon shader, Outlines and <a
-                                        href="../articles/meshblending2.html">Mesh blending</a></li>
-                                <li>UI System (with an editor, masking, animations)</li>
-                                <li>Support for multiple viewports (pc only)</li>
-                                <li>Flight stick support with FFB, (directinput, pc only)</li>
-                            </ul>
-                            <p>Some further systems I interacted with and did something on but did not make</p>
-                            <ul>
-                                <li>Custom shaders with Slang, (added usability, default variables, hot reloading, PBR)
-                                </li>
-                                <li>Lightprobes (build on top of IBL system)
-                                </li>
-                                <li>FMOD (fixed spatial audio)
-                                </li>
-                                <li>Angelscript (worked with and binded C++ functions/variables)
-                                </li>
-                            </ul>
-
-
                         </div>
                         <div class="media">
-                            <img loading="lazy" src="../media/images/projects/zap/zap-env.webp" alt="A environment rendered in Zap">
+                            <img loading="lazy" src="../media/images/projects/zap/zap-env.webp"
+                                alt="A environment rendered in Zap">
                         </div>
                     </div>
                 </div>
             </section>
+
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-row">
+                        <div class="text">
+                            <h2>Features</h2>
+                            <p>I made sure to implement all the features for both platforms at a time to keep feature
+                                parity up throughout development.<br>And also heavily prioritized features, based on
+                                what we needed and the game/demos that we were making.</p>
+                            <h3>PBR Renderer</h3>
+                            <p>For the base renderer I copied (and translated to pc) a lot of the code from my <a
+                                    href="./ps5.html">PS5 PBR renderer</a> to be able to get this running quick.<br>
+                                I got a basic renderer with the intended api setup within the first week, meaning the
+                                team was never blocked by it.<br>
+                            </p> <video class="media" controls style="max-width: 80%;">
+                                <source src="../media/videos/projects/zap/rendering.mp4" type="video/mp4">
+                            </video>
+                            <p>
+                                And IBL set up quickly after. The renderer is just forward since our games did not
+                                require any lights apart from directional ones at all.<br>But there is a depth prepass
+                                to avoid overdraw.
+                            </p>
+                            <img loading="lazy" src="../media/images/projects/zap/pbr.png" alt="Damaged Helmet"
+                                style="max-width: 80%">
+                            <h3>Particles</h3>
+                            <p>Our games heavily relied on VFX to look good, So I implemented a particle system with a
+                                lot of configurability.<br>To make it easier to allow configurability I chose for
+                                updating the particles on the CPU, <br>Although the rendering of them is gpu driven
+                                using mesh shaders.<br><br>
+                                Even before we got a vfx/tech artist in our team in the second block I talked to them to
+                                know what to implement.<br>
+                                Which brought me to making sure to implement, spritesheets, mesh particles, and depth
+                                fading. Along with a lot of settings for their physics.</p>
+                            <video class="media" controls style="max-width: 80%;">
+                                <source src="../media/videos/projects/zap/Particles.mp4" type="video/mp4">
+                            </video>
+                            <h3>UI</h3>
+                            <p>For the UI system I made sure to re-use as much of our functionality as possible to avoid
+                                extra work for a seperate UI system. Meaning it reuses our level editor so it
+                                immediately works with the editor and timeline system.<br>Then for the rendering it just
+                                draws these relative to a canvas component. And also supports masking using stencils.
+                            </p>
+                            <video class="media" controls style="max-width: 80%;">
+                                <source src="../media/videos/projects/zap/UI.mp4" type="video/mp4">
+                            </video>
+                            <h3>Post Processing</h3>
+                            <p>I implemented a couple of Post processing effects.<br>These include, <br>- Bloom using a
+                                mip chain.<br>- <a href="../articles/meshblending2.html">Mesh Blending</a><br>- A Toon
+                                Shader<br>- Outlines, for editor selection and gameplay.<br>- Fog</p>
+                            <video class="media" controls style="max-width: 80%;">
+                                <source src="../media/videos/projects/zap/post.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="section">
+                <div class="container article-content">
+                    <div class="project-row">
+                        <div class="text">
+                            <h2>Other work</h2>
+                            <p>Further on this project after we got a multi disciplinary team and more programmers as
+                                well, I spend a lot of time helping and working with other and fixing issues that were
+                                brought up.<br>For example with artists,
+                                implementing a bunch of fixes and smaller features to make their work easier. Like color
+                                corrections, more material features and particle features</p>
+                            <h3>Contributed systems</h3>
+                            <p>There is also some other systems that I partially contributed with either making parts of
+                                it or helping others build on top of what I had build.<br>Some of these
+                                include:</p>
+                            <p style="margin-left: 10px"><b>Custom slang shaders</b>, I helped research how they
+                                work on cross
+                                platform, Diagnosed issues with the spir-v OpenGL loading we were using and implemented
+                                default variables and lighting setup into them.
+                                <br><b>Angelscript scripting</b>, Binded new functions/variables and diagnosed some
+                                performance issues.<br><b>Lightprobes</b>, helped explain as they were build upon my
+                                existing IBL system and multiple view rendering. <br><b>FMOD</b>, reimplemented spatial
+                                audio.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- 
             <section class="section-alt">
                 <div class="container article-content">
@@ -173,10 +252,16 @@
                     <div class="project-special">
                         <div class="text">
                             <h2 class="details">Showcase</h2>
-                            <p>First part shows the game second the engine</p>
+                            <p>Petrified trailer</p>
                         </div>
                         <video class="media" controls>
-                            <source src="../media/videos/projects/zap/GPDirectVid.mp4" type="video/mp4">
+                            <source src="../media/videos/projects/zap/petrified_trailer.mp4" type="video/mp4">
+                        </video>
+                        <div class="text">
+                            <p>Engine showcase</p>
+                        </div>
+                        <video class="media" controls>
+                            <source src="../media/videos/projects/zap/Engine.mp4" type="video/mp4">
                         </video>
                     </div>
                 </div>
